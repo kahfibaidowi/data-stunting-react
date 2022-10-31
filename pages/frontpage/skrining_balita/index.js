@@ -154,11 +154,15 @@ class Skrining extends React.Component{
     timeout=0
 
     //helpers
-    usia_saat_ukur=(number)=>{
-        const bulan=ceil_with_enclosure(number)
+    getBulan=nmb=>{
+        const bln=ceil_with_enclosure(nmb, 0.7)
 
-        if(bulan>60) return "60+ Bulan"
-        else return bulan+" Bulan"
+        if(bln>60){
+            return "60+ Bulan"
+        }
+        else{
+            return bln+" Bulan"
+        }
     }
 
     render(){
@@ -238,7 +242,7 @@ class Skrining extends React.Component{
                                                         <th className="border-0">Alamat</th>
                                                         <th className="border-0">Usia Saat Ukur</th>
                                                         <th className="border-0">Tanggal</th>
-                                                        <th className="border-0">Berat Badan</th>
+                                                        <th className="border-0">Berat Badan </th>
                                                         <th className="border-0">Tinggi Badan</th>
                                                         <th className="border-0">TB/U</th>
                                                         <th className="border-0">BB/TB</th>
@@ -264,10 +268,10 @@ class Skrining extends React.Component{
                                                                 <td>{list.user_posyandu.desa}</td>
                                                                 <td>{list.user_posyandu.nama_lengkap}</td>
                                                                 <td>Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
-                                                                <td>{this.usia_saat_ukur(list.usia_saat_ukur)}</td>
+                                                                <td>{this.getBulan(list.usia_saat_ukur/30)}</td>
                                                                 <td>{moment(list.created_at).format("YYYY-MM-DD")}</td>
                                                                 <td>{list.berat_badan}</td>
-                                                                <td>{list.tinggi_badan_lahir}</td>
+                                                                <td>{list.tinggi_badan}</td>
                                                                 <td>{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
                                                                 <td>{list.hasil_berat_badan_per_tinggi_badan}</td>
                                                                 <td className="text-nowrap p-1">

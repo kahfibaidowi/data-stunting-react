@@ -1,6 +1,8 @@
+
+import "../styles/bootstrap.css"
 import '../styles/animate.css'
 import 'react-toastify/dist/ReactToastify.css';
-import "../styles/bootstrap.css"
+import "../styles/import.css"
 import "../styles/styles.css"
 import { ToastContainer } from "react-toastify"
 import Head from "next/head";
