@@ -307,7 +307,7 @@ class AddSkrining extends React.Component{
                                                             className="form-control"
                                                             placeholder="Cm"
                                                         />
-                                                        <span className="text-muted">Umur 24 Bulan ukur dalam keadaan telentang!</span>
+                                                        <span className="text-muted">Umur 24 Bulan ukur dalam keadaan telentang! contoh isian : 45, 45.5, 46</span>
                                                     </div>
                                                     <div className="d-flex justify-content-center mt-4">
                                                         <button 
