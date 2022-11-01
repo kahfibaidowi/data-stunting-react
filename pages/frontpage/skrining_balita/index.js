@@ -154,9 +154,7 @@ class Skrining extends React.Component{
     timeout=0
 
     //helpers
-    getBulan=nmb=>{
-        const bln=ceil_with_enclosure(nmb, 0.7)
-
+    getBulan=bln=>{
         if(bln>60){
             return "60+ Bulan"
         }
@@ -260,7 +258,7 @@ class Skrining extends React.Component{
                                                                 <td>{list.berat_badan_lahir}</td>
                                                                 <td>{list.tinggi_badan_lahir}</td>
                                                                 <td>
-                                                                    {list.data_ibu.nama_lengkap}, {list.data_ayah?.nama_lengkap}
+                                                                    {list.data_anak.ibu}, {list.data_anak.ayah}
                                                                 </td>
                                                                 <td>JAWA TIMUR</td>
                                                                 <td>MADIUN</td>
@@ -268,7 +266,7 @@ class Skrining extends React.Component{
                                                                 <td>{list.user_posyandu.desa}</td>
                                                                 <td>{list.user_posyandu.nama_lengkap}</td>
                                                                 <td>Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
-                                                                <td>{this.getBulan(list.usia_saat_ukur/30)}</td>
+                                                                <td>{this.getBulan(list.usia_saat_ukur)}</td>
                                                                 <td>{moment(list.created_at).format("YYYY-MM-DD")}</td>
                                                                 <td>{list.berat_badan}</td>
                                                                 <td>{list.tinggi_badan}</td>

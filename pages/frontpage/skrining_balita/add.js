@@ -7,9 +7,10 @@ import Link from "next/link"
 import NumberFormat from 'react-number-format'
 import { Formik } from "formik"
 import { api, api_kependudukan } from "../../../config/api"
-import { access_token, isUndefined, login_data } from "../../../config/config"
+import { access_token, ceil_with_enclosure, isUndefined, login_data } from "../../../config/config"
 import { toast } from "react-toastify"
 import Router from "next/router"
+import moment from "moment"
 
 class AddSkrining extends React.Component{
     state={
@@ -18,17 +19,14 @@ class AddSkrining extends React.Component{
         tambah_skrining:{
             id_user:"",
             nik_anak:"",
-            nik_ibu:"",
-            nik_ayah:"",
             berat_badan_lahir:"",
             tinggi_badan_lahir:"",
             berat_badan:"",
-            tinggi_badan:""
+            tinggi_badan:"",
+            umur:""
         },
         search_data:{
-            nik_anak:{},
-            nik_ibu:{},
-            nik_ayah:{}
+            nik_anak:{}
         }
     }
 
@@ -95,59 +93,16 @@ class AddSkrining extends React.Component{
             toast.error("Nik anak tidak ditemukan!", {position:"bottom-center"})
             return
         }
-
-        //nik ibu
-        let nik_ibu=await this.getPenduduk(values.nik_ibu)
-            .catch(err=>false)
-
-        if(nik_ibu!==false){
-            if(nik_ibu.jenis_kelamin=="P"){
-                const {created_at, updated_at, id_penduduk, ...data}=nik_ibu
-                nik_ibu=data
-            }
-            else{
-                toast.error("Jenis kelamin ibu harus perempuan!", {position:"bottom-center"})
-                return
-            }
-        }
-        else{
-            toast.error("Nik ibu tidak ditemukan!", {position:"bottom-center"})
-            return
-        }
-
-        //nik ayah
-        let nik_ayah={}
-        if(values.nik_ayah.trim()!=""){
-            nik_ayah=await this.getPenduduk(values.nik_ayah)
-                .catch(err=>false)
-            
-            if(nik_ayah!==false){
-                if(nik_ayah.jenis_kelamin=="L"){
-                    const {created_at, updated_at, id_penduduk, ...data}=nik_ayah
-                    nik_ayah=data
-                }
-                else{
-                    toast.error("Jenis kelamin ayah harus laki-laki!", {position:"bottom-center"})
-                    return
-                }
-            }
-            else{
-                toast.error("Nik ayah tidak ditemukan!", {position:"bottom-center"})
-                return
-            }
-        }
         
         //insert to database
         await api(access_token()).post("/skrining_balita", {
             id_user:values.id_user,
             data_anak:nik_anak,
-            data_ibu:nik_ibu,
-            data_ayah:nik_ayah,
             berat_badan_lahir:values.berat_badan_lahir,
             tinggi_badan_lahir:values.tinggi_badan_lahir,
             berat_badan:values.berat_badan,
-            tinggi_badan:values.tinggi_badan
-
+            tinggi_badan:values.tinggi_badan,
+            umur:values.umur
         })
         .then(res=>{
             actions.resetForm()
@@ -257,50 +212,6 @@ class AddSkrining extends React.Component{
                                                         }
                                                     </div>
                                                     <div className="mb-3">
-                                                        <label className="my-1 me-2 fw-semibold" for="country">NIK Ibu<span className="text-danger">*</span></label>
-                                                        <div class="input-group">
-                                                            <input 
-                                                                type="text" 
-                                                                className="form-control"
-                                                                name="nik_ibu"
-                                                                onChange={props.handleChange}
-                                                                value={props.values.nik_ibu}
-                                                            />
-                                                            <button 
-                                                                class="btn btn-secondary"
-                                                                type="button"
-                                                                onClick={e=>this.searchPenduduk(props.values.nik_ibu, "nik_ibu")}
-                                                            >
-                                                                Cek
-                                                            </button>
-                                                        </div>
-                                                        {!isUndefined(search_data.nik_ibu.id_penduduk)&&
-                                                            <span class="form-text text-success">NIK Ditemukan : {search_data.nik_ibu.nama_lengkap}</span>
-                                                        }
-                                                    </div>
-                                                    <div className="mb-3">
-                                                        <label className="my-1 me-2 fw-semibold" for="country">NIK Ayah</label>
-                                                        <div class="input-group">
-                                                            <input 
-                                                                type="text" 
-                                                                className="form-control"
-                                                                name="nik_ayah"
-                                                                onChange={props.handleChange}
-                                                                value={props.values.nik_ayah}
-                                                            />
-                                                            <button 
-                                                                class="btn btn-secondary"
-                                                                type="button"
-                                                                onClick={e=>this.searchPenduduk(props.values.nik_ayah, "nik_ayah")}
-                                                            >
-                                                                Cek
-                                                            </button>
-                                                        </div>
-                                                        {!isUndefined(search_data.nik_ayah.id_penduduk)&&
-                                                            <span class="form-text text-success">NIK Ditemukan : {search_data.nik_ayah.nama_lengkap}</span>
-                                                        }
-                                                    </div>
-                                                    <div className="mb-3">
                                                         <label className="my-1 me-2 fw-semibold" for="country">Berat Badan Lahir<span className="text-danger">*</span></label>
                                                         <NumberFormat
                                                             displayType="input"
@@ -328,6 +239,46 @@ class AddSkrining extends React.Component{
                                                             placeholder="Cm"
                                                         />
                                                         <span className="text-muted">Ukur dalam keadaan telentang!</span>
+                                                    </div>
+                                                    <div className="mb-3">
+                                                        <label className="my-1 me-2 fw-semibold" for="country">Umur (bulan)<span className="text-danger">*</span></label>
+                                                        <div class="input-group">
+                                                            <NumberFormat
+                                                                displayType="input"
+                                                                suffix=" Bulan"
+                                                                value={props.values.umur}
+                                                                onValueChange={values=>{
+                                                                    const {value}=values
+                                                                    props.setFieldValue("umur", value)
+                                                                }}
+                                                                className="form-control"
+                                                                placeholder="Bulan"
+                                                                decimalScale={false}
+                                                            />
+                                                            <button 
+                                                                class="btn btn-secondary"
+                                                                type="button"
+                                                                onClick={async e=>{
+                                                                    let found=await this.getPenduduk(props.values.nik_anak).catch(err=>false)
+
+                                                                    if(found!==false){
+                                                                        let start=moment()
+                                                                        let end=moment(found.tgl_lahir, "YYYY-MM-DD")
+                                                                        let days=start.diff(end, "days")
+                                                                        let umur=ceil_with_enclosure(days/30, 0.8)
+
+                                                                        props.setFieldValue("umur", umur)
+                                                                    }
+                                                                    else{
+                                                                        toast.error("Nik anak tidak ditemukan!", {position:"bottom-center"})
+                                                                        return
+                                                                    }
+                                                                }}
+                                                            >
+                                                                Hitung
+                                                            </button>
+                                                        </div>
+                                                        <span className="text-muted">Umur 0-60 Bulan</span>
                                                     </div>
                                                     <div className="mb-3">
                                                         <label className="my-1 me-2 fw-semibold" for="country">Berat Badan<span className="text-danger">*</span></label>
