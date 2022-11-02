@@ -47,7 +47,7 @@ class LayoutFrontpage extends React.Component{
                     <div className="container px-md-4">
                         <div className="d-flex flex-wrap align-items-center justify-content-md-between">
                             <a href="/frontpage" className="d-flex align-items-center mb-2 mb-lg-0 me-4 text-dark text-decoration-none">
-                                <img src="/622b2441572a9_1.png" className="img-fluid" style={{maxHeight:"35px"}}/>
+                                <img src="" className="img-fluid" style={{maxHeight:"35px"}}/>
                             </a>
                             {/* <ul className="d-none d-lg-flex nav col-12 col-lg-auto me-lg-auto ms-lg-auto mb-2 justify-content-center mb-md-0 mx-auto">
                                 <li>
@@ -97,7 +97,7 @@ class LayoutFrontpage extends React.Component{
                 {/* <Offcanvas show={this.state.active_mobile_menu} onHide={this.toggleMobilemenu} className="mobile-menu">
                     <Offcanvas.Header closeButton>
                         <div className="logo">
-                            <Link href="/"><img src="/622b2441572a9_1.png" className="img-fluid" style={{maxHeight:"35px"}}/></Link>
+                            <Link href="/"><img src="" className="img-fluid" style={{maxHeight:"35px"}}/></Link>
                         </div>
                     </Offcanvas.Header>
                     <Offcanvas.Body className="p-0 px-4">

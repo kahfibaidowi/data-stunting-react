@@ -243,6 +243,7 @@ class Skrining extends React.Component{
                                                         <th className="border-0">Berat Badan </th>
                                                         <th className="border-0">Tinggi Badan</th>
                                                         <th className="border-0">TB/U</th>
+                                                        <th className="border-0">BB/U</th>
                                                         <th className="border-0">BB/TB</th>
                                                         <th className="border-0 rounded-end" width="90"></th>
                                                     </tr>
@@ -271,7 +272,8 @@ class Skrining extends React.Component{
                                                                 <td>{list.berat_badan}</td>
                                                                 <td>{list.tinggi_badan}</td>
                                                                 <td>{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
-                                                                <td>{list.hasil_berat_badan_per_tinggi_badan}</td>
+                                                                <td>{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
+                                                                <td>{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
                                                                 <td className="text-nowrap p-1">
                                                                 </td>
                                                         </tr>
