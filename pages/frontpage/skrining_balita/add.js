@@ -19,14 +19,15 @@ class AddSkrining extends React.Component{
         tambah_skrining:{
             id_user:"",
             nik_anak:"",
+            data_anak:{},
             berat_badan_lahir:"",
             tinggi_badan_lahir:"",
             berat_badan:"",
-            tinggi_badan:"",
-            umur:""
+            tinggi_badan:""
         },
         search_data:{
-            nik_anak:{}
+            nik_anak:{},
+            old_data:{}
         }
     }
 
@@ -80,29 +81,18 @@ class AddSkrining extends React.Component{
     getPenduduk=async(penduduk_id)=>{
         return await api_kependudukan().get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
     }
+    getsSkriningNIK=async(nik)=>{
+        return await api().get(`/skrining_balita/${nik}?type=nik`).then(res=>res.data.data)
+    }
     addSkrining=async (values, actions)=>{
-        //nik anak
-        let nik_anak=await this.getPenduduk(values.nik_anak)
-            .catch(err=>false)
-
-        if(nik_anak!==false){
-            const {created_at, updated_at, id_penduduk, ...data}=nik_anak
-            nik_anak=data
-        }
-        else{
-            toast.error("Nik anak tidak ditemukan!", {position:"bottom-center"})
-            return
-        }
-        
         //insert to database
         await api(access_token()).post("/skrining_balita", {
             id_user:values.id_user,
-            data_anak:nik_anak,
+            data_anak:values.data_anak,
             berat_badan_lahir:values.berat_badan_lahir,
             tinggi_badan_lahir:values.tinggi_badan_lahir,
             berat_badan:values.berat_badan,
-            tinggi_badan:values.tinggi_badan,
-            umur:values.umur
+            tinggi_badan:values.tinggi_badan
         })
         .then(res=>{
             actions.resetForm()
@@ -114,6 +104,7 @@ class AddSkrining extends React.Component{
                 }
             })
             toast.success("Berhasil menambahkan data skrining!")
+            Router.push("/frontpage/skrining_balita")
         })
         .catch(err=>{
             if(err.response.status===401){
@@ -122,21 +113,6 @@ class AddSkrining extends React.Component{
             }
             toast.error("Insert Data Failed!", {position:"bottom-center"})
         })
-    }
-    searchPenduduk=async (penduduk_id, type="nik_anak")=>{
-        const data=await this.getPenduduk(penduduk_id)
-        .catch(err=>false)
-
-        if(data!==false){
-            this.setState({
-                search_data:update(this.state.search_data, {
-                    [type]:{$set:data}
-                })
-            })
-        }
-        else{
-            toast.error(`${type} tidak ditemukan!`, {position:"bottom-center"})
-        }
     }
 
     render(){
@@ -198,117 +174,153 @@ class AddSkrining extends React.Component{
                                                                 name="nik_anak"
                                                                 onChange={props.handleChange}
                                                                 value={props.values.nik_anak}
+                                                                disabled={!isUndefined(props.values.data_anak.nik)?true:false}
                                                             />
-                                                            <button 
-                                                                class="btn btn-secondary"
-                                                                type="button"
-                                                                onClick={e=>this.searchPenduduk(props.values.nik_anak, "nik_anak")}
-                                                            >
-                                                                Cek
-                                                            </button>
+                                                            {!isUndefined(props.values.data_anak.nik)?
+                                                                <button 
+                                                                    class="btn btn-danger"
+                                                                    type="button"
+                                                                    onClick={e=>{
+                                                                        this.setState({
+                                                                            search_data:update(this.state.search_data, {
+                                                                                nik_anak:{$set:{}},
+                                                                                old_data:{$set:{}}
+                                                                            })
+                                                                        })
+                                                                        props.setFieldValue("berat_badan_lahir", "")
+                                                                        props.setFieldValue("tinggi_badan_lahir", "")
+                                                                        props.setFieldValue("data_anak", {})
+                                                                        props.setFieldValue("berat_badan", "")
+                                                                        props.setFieldValue("tinggi_badan", "")
+                                                                    }}
+                                                                >
+                                                                    Batal
+                                                                </button>
+                                                            :
+                                                                <button 
+                                                                    class="btn btn-secondary"
+                                                                    type="button"
+                                                                    onClick={async e=>{
+                                                                        const resetForm=new Promise((resolve, reject)=>{
+                                                                            props.setFieldValue("berat_badan_lahir", "")
+                                                                            props.setFieldValue("tinggi_badan_lahir", "")
+                                                                            props.setFieldValue("data_anak", {})
+                                                                            props.setFieldValue("berat_badan", "")
+                                                                            props.setFieldValue("tinggi_badan", "")
+
+                                                                            resolve(true)
+                                                                        })
+
+                                                                        resetForm.then(async res=>{
+                                                                            const data=await this.getPenduduk(props.values.nik_anak).catch(err=>false)
+
+                                                                            if(data!==false){
+                                                                                const data2=await this.getsSkriningNIK(props.values.nik_anak).catch(err=>false)
+
+                                                                                let old_data={}
+                                                                                if(data2!==false){
+                                                                                    if(!isUndefined(data2.id_skrining_balita)){
+                                                                                        props.setFieldValue("berat_badan_lahir", data2.berat_badan_lahir)
+                                                                                        props.setFieldValue("tinggi_badan_lahir", data2.tinggi_badan_lahir)
+                                                                                        old_data=data2
+                                                                                    }
+                                                                                }
+                                                                                props.setFieldValue("data_anak", data)
+
+                                                                                this.setState({
+                                                                                    search_data:update(this.state.search_data, {
+                                                                                        nik_anak:{$set:data},
+                                                                                        old_data:{$set:old_data}
+                                                                                    })
+                                                                                })
+                                                                            }
+                                                                            else{
+                                                                                this.setState({
+                                                                                    search_data:update(this.state.search_data, {
+                                                                                        nik_anak:{$set:{}},
+                                                                                        old_data:{$set:{}}
+                                                                                    })
+                                                                                })
+                                                                                toast.error(`NIK Anak tidak ditemukan!`, {position:"bottom-center"})
+                                                                            }
+                                                                        })
+                                                                        
+                                                                    }}
+                                                                >
+                                                                    Gunakan
+                                                                </button>
+                                                            }
                                                         </div>
                                                         {!isUndefined(search_data.nik_anak.id_penduduk)&&
                                                             <span class="form-text text-success">NIK Ditemukan : {search_data.nik_anak.nama_lengkap}</span>
                                                         }
                                                     </div>
-                                                    <div className="mb-3">
-                                                        <label className="my-1 me-2 fw-semibold" for="country">Berat Badan Lahir<span className="text-danger">*</span></label>
-                                                        <NumberFormat
-                                                            displayType="input"
-                                                            suffix=" Kg"
-                                                            value={props.values.berat_badan_lahir}
-                                                            onValueChange={values=>{
-                                                                const {value}=values
-                                                                props.setFieldValue("berat_badan_lahir", value)
-                                                            }}
-                                                            className="form-control"
-                                                            placeholder="Kg"
-                                                        />
-                                                    </div>
-                                                    <div className="mb-3">
-                                                        <label className="my-1 me-2 fw-semibold" for="country">Tinggi Badan Lahir<span className="text-danger">*</span></label>
-                                                        <NumberFormat
-                                                            displayType="input"
-                                                            suffix=" Cm"
-                                                            value={props.values.tinggi_badan_lahir}
-                                                            onValueChange={values=>{
-                                                                const {value}=values
-                                                                props.setFieldValue("tinggi_badan_lahir", value)
-                                                            }}
-                                                            className="form-control"
-                                                            placeholder="Cm"
-                                                        />
-                                                        <span className="text-muted">Ukur dalam keadaan telentang!</span>
-                                                    </div>
-                                                    <div className="mb-3">
-                                                        <label className="my-1 me-2 fw-semibold" for="country">Umur (bulan)<span className="text-danger">*</span></label>
-                                                        <div class="input-group">
-                                                            <NumberFormat
-                                                                displayType="input"
-                                                                suffix=" Bulan"
-                                                                value={props.values.umur}
-                                                                onValueChange={values=>{
-                                                                    const {value}=values
-                                                                    props.setFieldValue("umur", value)
-                                                                }}
-                                                                className="form-control"
-                                                                placeholder="Bulan"
-                                                                decimalScale={false}
-                                                            />
-                                                            <button 
-                                                                class="btn btn-secondary"
-                                                                type="button"
-                                                                onClick={async e=>{
-                                                                    let found=await this.getPenduduk(props.values.nik_anak).catch(err=>false)
-
-                                                                    if(found!==false){
-                                                                        let start=moment()
-                                                                        let end=moment(found.tgl_lahir, "YYYY-MM-DD")
-                                                                        let days=start.diff(end, "days")
-                                                                        let umur=ceil_with_enclosure(days/30, 0.8)
-
-                                                                        props.setFieldValue("umur", umur)
-                                                                    }
-                                                                    else{
-                                                                        toast.error("Nik anak tidak ditemukan!", {position:"bottom-center"})
-                                                                        return
-                                                                    }
-                                                                }}
-                                                            >
-                                                                Hitung
-                                                            </button>
-                                                        </div>
-                                                        <span className="text-muted">Umur 0-60 Bulan</span>
-                                                    </div>
-                                                    <div className="mb-3">
-                                                        <label className="my-1 me-2 fw-semibold" for="country">Berat Badan<span className="text-danger">*</span></label>
-                                                        <NumberFormat
-                                                            displayType="input"
-                                                            suffix=" Kg"
-                                                            value={props.values.berat_badan}
-                                                            onValueChange={values=>{
-                                                                const {value}=values
-                                                                props.setFieldValue("berat_badan", value)
-                                                            }}
-                                                            className="form-control"
-                                                            placeholder="Kg"
-                                                        />
-                                                    </div>
-                                                    <div className="mb-3">
-                                                        <label className="my-1 me-2 fw-semibold" for="country">Tinggi Badan<span className="text-danger">*</span></label>
-                                                        <NumberFormat
-                                                            displayType="input"
-                                                            suffix=" Cm"
-                                                            value={props.values.tinggi_badan}
-                                                            onValueChange={values=>{
-                                                                const {value}=values
-                                                                props.setFieldValue("tinggi_badan", value)
-                                                            }}
-                                                            className="form-control"
-                                                            placeholder="Cm"
-                                                        />
-                                                        <span className="text-muted">Umur 24 Bulan ukur dalam keadaan telentang! contoh isian : 45, 45.5, 46</span>
-                                                    </div>
+                                                    {!isUndefined(props.values.data_anak.nik)&&
+                                                        <>
+                                                            {isUndefined(search_data.old_data.id_skrining_balita)&&
+                                                                <>
+                                                                    <div className="mb-3">
+                                                                        <label className="my-1 me-2 fw-semibold" for="country">Berat Badan Lahir<span className="text-danger">*</span></label>
+                                                                        <NumberFormat
+                                                                            displayType="input"
+                                                                            suffix=" Kg"
+                                                                            value={props.values.berat_badan_lahir}
+                                                                            onValueChange={values=>{
+                                                                                const {value}=values
+                                                                                props.setFieldValue("berat_badan_lahir", value)
+                                                                            }}
+                                                                            className="form-control"
+                                                                            placeholder="Kg"
+                                                                        />
+                                                                    </div>
+                                                                    <div className="mb-3">
+                                                                        <label className="my-1 me-2 fw-semibold" for="country">Tinggi Badan Lahir<span className="text-danger">*</span></label>
+                                                                        <NumberFormat
+                                                                            displayType="input"
+                                                                            suffix=" Cm"
+                                                                            value={props.values.tinggi_badan_lahir}
+                                                                            onValueChange={values=>{
+                                                                                const {value}=values
+                                                                                props.setFieldValue("tinggi_badan_lahir", value)
+                                                                            }}
+                                                                            className="form-control"
+                                                                            placeholder="Cm"
+                                                                        />
+                                                                        <span className="text-muted">Ukur dalam keadaan telentang!</span>
+                                                                    </div>
+                                                                </>
+                                                            }
+                                                            <div className="mb-3">
+                                                                <label className="my-1 me-2 fw-semibold" for="country">Berat Badan<span className="text-danger">*</span></label>
+                                                                <NumberFormat
+                                                                    displayType="input"
+                                                                    suffix=" Kg"
+                                                                    value={props.values.berat_badan}
+                                                                    onValueChange={values=>{
+                                                                        const {value}=values
+                                                                        props.setFieldValue("berat_badan", value)
+                                                                    }}
+                                                                    className="form-control"
+                                                                    placeholder="Kg"
+                                                                />
+                                                            </div>
+                                                            <div className="mb-3">
+                                                                <label className="my-1 me-2 fw-semibold" for="country">Tinggi Badan<span className="text-danger">*</span></label>
+                                                                <NumberFormat
+                                                                    displayType="input"
+                                                                    suffix=" Cm"
+                                                                    value={props.values.tinggi_badan}
+                                                                    onValueChange={values=>{
+                                                                        const {value}=values
+                                                                        props.setFieldValue("tinggi_badan", value)
+                                                                    }}
+                                                                    className="form-control"
+                                                                    placeholder="Cm"
+                                                                />
+                                                                <span className="text-muted">Umur 24 Bulan ukur dalam keadaan telentang! contoh isian : 45, 45.5, 46</span>
+                                                            </div>
+                                                        </>
+                                                    }
                                                     <div className="d-flex justify-content-center mt-4">
                                                         <button 
                                                             type="submit" 

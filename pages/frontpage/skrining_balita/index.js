@@ -13,6 +13,7 @@ import Router from "next/router"
 import { ImPlus } from "react-icons/im"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import moment from "moment"
+import { Modal } from "react-bootstrap"
 
 class Skrining extends React.Component{
     state={
@@ -24,7 +25,25 @@ class Skrining extends React.Component{
             per_page:10,
             q:"",
             posyandu_id:"",
+            nik:"",
             last_page:0
+        },
+        tambah_skrining:{
+            is_open:false,
+            kecamatan_form:[],
+            skrining:{
+                id_user:"",
+                nik_anak:"",
+                data_anak:{},
+                berat_badan_lahir:"",
+                tinggi_badan_lahir:"",
+                berat_badan:"",
+                tinggi_badan:""
+            },
+            search_data:{
+                nik_anak:{},
+                old_data:{}
+            }
         }
     }
 
@@ -88,7 +107,8 @@ class Skrining extends React.Component{
                 page:reset?1:skrining.page,
                 per_page:skrining.per_page,
                 q:skrining.q,
-                posyandu_id:skrining.posyandu_id
+                posyandu_id:skrining.posyandu_id,
+                nik:skrining.nik
             }
         })
         .then(res=>{
@@ -163,8 +183,66 @@ class Skrining extends React.Component{
         }
     }
 
+    //tambah
+    toggleTambah=()=>{
+        this.setState({
+            tambah_skrining:{
+                is_open:!this.state.tambah_skrining.is_open,
+                kecamatan_form:this.state.kecamatan_form,
+                skrining:{
+                    id_user:this.state.skrining.posyandu_id,
+                    nik_anak:"",
+                    data_anak:{},
+                    berat_badan_lahir:"",
+                    tinggi_badan_lahir:"",
+                    berat_badan:"",
+                    tinggi_badan:""
+                },
+                search_data:{
+                    nik_anak:{},
+                    old_data:{}
+                }
+            }
+        })
+    }
+    getPenduduk=async(penduduk_id)=>{
+        return await api_kependudukan().get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
+    }
+    getsSkriningNIK=async(nik)=>{
+        return await api().get(`/skrining_balita/${nik}?type=nik`).then(res=>res.data.data)
+    }
+    addSkrining=async (values, actions)=>{
+        //insert to database
+        await api(access_token()).post("/skrining_balita", {
+            id_user:values.id_user,
+            data_anak:values.data_anak,
+            berat_badan_lahir:values.berat_badan_lahir,
+            tinggi_badan_lahir:values.tinggi_badan_lahir,
+            berat_badan:values.berat_badan,
+            tinggi_badan:values.tinggi_badan
+        })
+        .then(res=>{
+            this.toggleTambah()
+            this.getsSkrining(true)
+            toast.success("Berhasil menambahkan data skrining!")
+            Router.push("/frontpage/skrining_balita")
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/")
+            }
+            toast.error("Insert Data Failed!", {position:"bottom-center"})
+        })
+    }
+
     render(){
-        const {kecamatan_form, login_data, skrining}=this.state
+        const {
+            kecamatan_form, 
+            login_data, 
+            skrining,
+            tambah_skrining
+        }=this.state
 
         return (
             <>
@@ -184,13 +262,13 @@ class Skrining extends React.Component{
                             <div className='row mt-5 mb-5'>
                                 <div className='col-md-12 mx-auto'>
                                     <div>
-                                        <Link
-                                            href="/frontpage/skrining_balita/add" 
+                                        <button
+                                            type="button"
                                             className="btn btn-primary text-nowrap" 
-                                            onClick={this.toggleModalTambah}
+                                            onClick={this.toggleTambah}
                                         >
                                             <ImPlus/> Tambah
-                                        </Link>
+                                        </button>
                                         <div className="d-flex mb-3 mt-3">
                                             <div style={{width:"200px"}} className="me-2">
                                                 <select 
@@ -321,6 +399,227 @@ class Skrining extends React.Component{
                         </div>
                     </div>
                 </LayoutFrontpage>
+
+                {/* MODAL TAMBAH */}
+                <Modal show={tambah_skrining.is_open} onHide={this.toggleTambah} backdrop="static">
+                    <Modal.Header closeButton>
+                        <Modal.Title>Cek Antropometri</Modal.Title>
+                    </Modal.Header>
+                    <Formik
+                        initialValues={tambah_skrining.skrining}
+                        enableReinitialize
+                        onSubmit={this.addSkrining}
+                    >
+                        {props=>(
+                            <form onSubmit={props.handleSubmit}>
+                                <Modal.Body>
+                                    <div className='w-100 d-flex flex-column'>
+                                        {login_data.role!="posyandu"&&
+                                            <div className="mb-3">
+                                                <label className="my-1 me-2 fw-semibold" for="country">Posyandu</label>
+                                                <div class="input-group">
+                                                    <select 
+                                                        name="id_user" 
+                                                        value={props.values.id_user} 
+                                                        className="form-select" 
+                                                        onChange={props.handleChange}
+                                                    >
+                                                        <option value="">-- Pilih Posyandu</option>
+                                                        {kecamatan_form.map(kec=>(
+                                                            <optgroup label={kec.region} key={kec}>
+                                                                {kec.posyandu.map(pos=>(
+                                                                    <option value={pos.id_user} key={pos}>{pos.nama_lengkap}</option>
+                                                                ))}
+                                                            </optgroup>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        }
+                                        <div className="mb-3">
+                                            <label className="my-1 me-2 fw-semibold" for="country">NIK Anak<span className="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <input 
+                                                    type="text" 
+                                                    className="form-control"
+                                                    name="nik_anak"
+                                                    onChange={props.handleChange}
+                                                    value={props.values.nik_anak}
+                                                    disabled={!isUndefined(props.values.data_anak.nik)?true:false}
+                                                />
+                                                {!isUndefined(props.values.data_anak.nik)?
+                                                    <button 
+                                                        class="btn btn-danger"
+                                                        type="button"
+                                                        onClick={e=>{
+                                                            this.setState({
+                                                                tambah_skrining:update(this.state.tambah_skrining, {
+                                                                    search_data:{
+                                                                        nik_anak:{$set:{}},
+                                                                        old_data:{$set:{}}
+                                                                    }
+                                                                })
+                                                            })
+                                                            props.setFieldValue("berat_badan_lahir", "")
+                                                            props.setFieldValue("tinggi_badan_lahir", "")
+                                                            props.setFieldValue("data_anak", {})
+                                                            props.setFieldValue("berat_badan", "")
+                                                            props.setFieldValue("tinggi_badan", "")
+                                                        }}
+                                                    >
+                                                        Batal
+                                                    </button>
+                                                :
+                                                    <button 
+                                                        class="btn btn-secondary"
+                                                        type="button"
+                                                        onClick={async e=>{
+                                                            const resetForm=new Promise((resolve, reject)=>{
+                                                                props.setFieldValue("berat_badan_lahir", "")
+                                                                props.setFieldValue("tinggi_badan_lahir", "")
+                                                                props.setFieldValue("data_anak", {})
+                                                                props.setFieldValue("berat_badan", "")
+                                                                props.setFieldValue("tinggi_badan", "")
+
+                                                                resolve(true)
+                                                            })
+
+                                                            resetForm.then(async res=>{
+                                                                const data=await this.getPenduduk(props.values.nik_anak).catch(err=>false)
+
+                                                                if(data!==false){
+                                                                    const data2=await this.getsSkriningNIK(props.values.nik_anak).catch(err=>false)
+
+                                                                    let old_data={}
+                                                                    if(data2!==false){
+                                                                        if(!isUndefined(data2.id_skrining_balita)){
+                                                                            props.setFieldValue("berat_badan_lahir", data2.berat_badan_lahir)
+                                                                            props.setFieldValue("tinggi_badan_lahir", data2.tinggi_badan_lahir)
+                                                                            old_data=data2
+                                                                        }
+                                                                    }
+                                                                    props.setFieldValue("data_anak", data)
+
+                                                                    this.setState({
+                                                                        tambah_skrining:update(this.state.tambah_skrining, {
+                                                                            search_data:{
+                                                                                nik_anak:{$set:data},
+                                                                                old_data:{$set:old_data}
+                                                                            }
+                                                                        })
+                                                                    })
+                                                                }
+                                                                else{
+                                                                    this.setState({
+                                                                        tambah_skrining:update(this.state.tambah_skrining, {
+                                                                            search_data:{
+                                                                                nik_anak:{$set:{}},
+                                                                                old_data:{$set:{}}
+                                                                            }
+                                                                        })
+                                                                    })
+                                                                    toast.error(`NIK Anak tidak ditemukan!`, {position:"bottom-center"})
+                                                                }
+                                                            })
+                                                            
+                                                        }}
+                                                    >
+                                                        Gunakan
+                                                    </button>
+                                                }
+                                            </div>
+                                            {!isUndefined(tambah_skrining.search_data.nik_anak.id_penduduk)&&
+                                                <span class="form-text text-success">NIK Ditemukan : {tambah_skrining.search_data.nik_anak.nama_lengkap}</span>
+                                            }
+                                        </div>
+                                        {!isUndefined(props.values.data_anak.nik)&&
+                                            <>
+                                                {isUndefined(tambah_skrining.search_data.old_data.id_skrining_balita)&&
+                                                    <>
+                                                        <div className="mb-3">
+                                                            <label className="my-1 me-2 fw-semibold" for="country">Berat Badan Lahir<span className="text-danger">*</span></label>
+                                                            <NumberFormat
+                                                                displayType="input"
+                                                                suffix=" Kg"
+                                                                value={props.values.berat_badan_lahir}
+                                                                onValueChange={values=>{
+                                                                    const {value}=values
+                                                                    props.setFieldValue("berat_badan_lahir", value)
+                                                                }}
+                                                                className="form-control"
+                                                                placeholder="Kg"
+                                                            />
+                                                        </div>
+                                                        <div className="mb-3">
+                                                            <label className="my-1 me-2 fw-semibold" for="country">Tinggi Badan Lahir<span className="text-danger">*</span></label>
+                                                            <NumberFormat
+                                                                displayType="input"
+                                                                suffix=" Cm"
+                                                                value={props.values.tinggi_badan_lahir}
+                                                                onValueChange={values=>{
+                                                                    const {value}=values
+                                                                    props.setFieldValue("tinggi_badan_lahir", value)
+                                                                }}
+                                                                className="form-control"
+                                                                placeholder="Cm"
+                                                            />
+                                                            <span className="text-muted">Ukur dalam keadaan telentang!</span>
+                                                        </div>
+                                                    </>
+                                                }
+                                                <div className="mb-3">
+                                                    <label className="my-1 me-2 fw-semibold" for="country">Berat Badan<span className="text-danger">*</span></label>
+                                                    <NumberFormat
+                                                        displayType="input"
+                                                        suffix=" Kg"
+                                                        value={props.values.berat_badan}
+                                                        onValueChange={values=>{
+                                                            const {value}=values
+                                                            props.setFieldValue("berat_badan", value)
+                                                        }}
+                                                        className="form-control"
+                                                        placeholder="Kg"
+                                                    />
+                                                </div>
+                                                <div className="mb-3">
+                                                    <label className="my-1 me-2 fw-semibold" for="country">Tinggi Badan<span className="text-danger">*</span></label>
+                                                    <NumberFormat
+                                                        displayType="input"
+                                                        suffix=" Cm"
+                                                        value={props.values.tinggi_badan}
+                                                        onValueChange={values=>{
+                                                            const {value}=values
+                                                            props.setFieldValue("tinggi_badan", value)
+                                                        }}
+                                                        className="form-control"
+                                                        placeholder="Cm"
+                                                    />
+                                                    <span className="text-muted">Umur 24 Bulan ukur dalam keadaan telentang! contoh isian : 45, 45.5, 46</span>
+                                                </div>
+                                            </>
+                                        }
+                                    </div>
+                                </Modal.Body>
+                                <Modal.Footer className="mt-3">
+                                    <button 
+                                        type="button" 
+                                        className="btn btn-link text-gray me-auto" 
+                                        onClick={this.toggleTambah}
+                                    >
+                                        Batal
+                                    </button>
+                                    <button 
+                                        type="submit" 
+                                        className="btn btn-primary"
+                                        disabled={props.isSubmitting}
+                                    >
+                                        Save Changes
+                                    </button>
+                                </Modal.Footer>
+                            </form>
+                        )}
+                    </Formik>
+                </Modal>
             </>
         )
     }
