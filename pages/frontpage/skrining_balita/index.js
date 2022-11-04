@@ -1,5 +1,6 @@
 import React from "react"
 import update from "immutability-helper"
+import classNames from "classnames"
 import Animated from "../../../component/ui/animate"
 import withAuth from "../../../component/hoc/auth"
 import LayoutFrontpage from "../../../component/LayoutFrontpage"
@@ -286,114 +287,94 @@ class Skrining extends React.Component{
         console.log("lksdf")
     }
     getsProvinsi=async ()=>{
-        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>"")
         
-        if(token!==false){
-            await api_kependudukan(token).get("/region/type/provinsi", {
-                params:{
-                    page:1,
-                    per_page:"",
-                    q:""
-                }
-            })
-            .then(res=>{
-                this.typeDownload({target:{name:"provinsi_form", value:res.data.data}})
-            })
-            .catch(err=>{
-                if(err.response.status===401){
-                    localStorage.removeItem("login_data")
-                    Router.push("/")
-                }
-                toast.error("Gets Data Failed!", {position:"bottom-center"})
-            })
-        }
-        else{
-            toast.error(`Get data failed!`, {position:"bottom-center"})
-        }
+        await api_kependudukan(token).get("/region/type/provinsi", {
+            params:{
+                page:1,
+                per_page:"",
+                q:""
+            }
+        })
+        .then(res=>{
+            this.typeDownload({target:{name:"provinsi_form", value:res.data.data}})
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/")
+            }
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
+        })
     }
     getKabKotaForm=async (province_id)=>{
-        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>"")
         
-        if(token!==false){
-            await api_kependudukan(token).get("/region/type/kabupaten_kota", {
-                params:{
-                    page:1,
-                    per_page:"",
-                    q:"",
-                    province_id:province_id
-                }
-            })
-            .then(res=>{
-                this.typeDownload({target:{name:"kabupaten_kota_form", value:res.data.data}})
-            })
-            .catch(err=>{
-                if(err.response.status===401){
-                    localStorage.removeItem("login_data")
-                    Router.push("/")
-                }
-                toast.error("Gets Data Failed!", {position:"bottom-center"})
-            })
-        }
-        else{
-            toast.error(`Get data failed!`, {position:"bottom-center"})
-        }
+        await api_kependudukan(token).get("/region/type/kabupaten_kota", {
+            params:{
+                page:1,
+                per_page:"",
+                q:"",
+                province_id:province_id
+            }
+        })
+        .then(res=>{
+            this.typeDownload({target:{name:"kabupaten_kota_form", value:res.data.data}})
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/")
+            }
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
+        })
     }
     getKecamatanForm=async (province_id, regency_id)=>{
-        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>"")
         
-        if(token!==false){
-            await api_kependudukan(token).get("/region/type/kecamatan", {
-                params:{
-                    page:1,
-                    per_page:"",
-                    q:"",
-                    province_id:province_id,
-                    regency_id:regency_id
-                }
-            })
-            .then(res=>{
-                this.typeDownload({target:{name:"kecamatan_form", value:res.data.data}})
-            })
-            .catch(err=>{
-                if(err.response.status===401){
-                    localStorage.removeItem("login_data")
-                    Router.push("/")
-                }
-                toast.error("Gets Data Failed!", {position:"bottom-center"})
-            })
-        }
-        else{
-            toast.error(`Get data failed!`, {position:"bottom-center"})
-        }
+        await api_kependudukan(token).get("/region/type/kecamatan", {
+            params:{
+                page:1,
+                per_page:"",
+                q:"",
+                province_id:province_id,
+                regency_id:regency_id
+            }
+        })
+        .then(res=>{
+            this.typeDownload({target:{name:"kecamatan_form", value:res.data.data}})
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/")
+            }
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
+        })
     }
     getDesaForm=async (province_id, regency_id, district_id)=>{
-        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>"")
         
-        if(token!==false){
-            await api_kependudukan(token).get("/region/type/desa", {
-                params:{
-                    page:1,
-                    per_page:"",
-                    q:"",
-                    province_id:province_id,
-                    regency_id:regency_id,
-                    district_id:district_id
-                }
-            })
-            .then(res=>{
-                this.typeDownload({target:{name:"desa_form", value:res.data.data}})
-            })
-            .catch(err=>{
-                if(err.response.status===401){
-                    localStorage.removeItem("login_data")
-                    Router.push("/")
-                }
-                toast.error("Gets Data Failed!", {position:"bottom-center"})
-            })
-        }
-        else{
-            toast.error(`Get data failed!`, {position:"bottom-center"})
-        }
+        await api_kependudukan(token).get("/region/type/desa", {
+            params:{
+                page:1,
+                per_page:"",
+                q:"",
+                province_id:province_id,
+                regency_id:regency_id,
+                district_id:district_id
+            }
+        })
+        .then(res=>{
+            this.typeDownload({target:{name:"desa_form", value:res.data.data}})
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/")
+            }
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
+        })
     }
     typeDownload=e=>{
         const target=e.target
@@ -574,15 +555,54 @@ class Skrining extends React.Component{
             })
         })
 
-        this.setState({
-            import_skrining:{
-                is_open:!this.state.import_skrining.is_open,
-                kecamatan_form:this.state.kecamatan_form,
-                skrining:{
-                    id_user:this.state.skrining.posyandu_id,
-                    data:data_excel
-                }
+        //cek
+        let nik_params=data_excel.map(dx=>dx.data_anak.nik)
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>"")
+
+        await api_kependudukan(token).get("/penduduk/type/multiple", {
+            params:{
+                nik:nik_params
             }
+        })
+        .then(res=>{
+            const data=res.data.data
+
+            let xlsx=data_excel.map(x=>{
+                let idx=data.findIndex(d=>d.nik==x.data_anak.nik)
+
+                if(idx!=-1){
+                    return Object.assign({}, x, {
+                        data_anak:Object.assign({}, data[idx], {
+                            ayah:data[idx].ayah!==null?data[idx].ayah:"",
+                            ibu:data[idx].ibu!==null?data[idx].ibu:"",
+                        }),
+                        found:true
+                    })
+                }
+                else{
+                    return Object.assign({}, x, {
+                        data_anak:Object.assign({}, x.data_anak, {
+                            ibu:"",
+                            ayah:""
+                        }),
+                        found:false
+                    })
+                }
+            })
+
+            this.setState({
+                import_skrining:{
+                    is_open:!this.state.import_skrining.is_open,
+                    kecamatan_form:this.state.kecamatan_form,
+                    skrining:{
+                        id_user:this.state.skrining.posyandu_id,
+                        data:xlsx
+                    }
+                }
+            })
+        })
+        .catch(err=>{
+            toast.error("Error!", {position:"bottom-center"})
         })
     }
     hideImport=()=>{
@@ -742,7 +762,7 @@ class Skrining extends React.Component{
                                                                 <td>{list.berat_badan_lahir}</td>
                                                                 <td>{list.tinggi_badan_lahir}</td>
                                                                 <td>
-                                                                    {list.data_anak.ibu.nama_lengkap}, {list.data_anak.ayah.nama_lengkap}
+                                                                    {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
                                                                 </td>
                                                                 <td>JAWA TIMUR</td>
                                                                 <td>MADIUN</td>
@@ -1187,7 +1207,7 @@ class Skrining extends React.Component{
                                             </div>
                                         </div>
                                     }
-                                    <div class="table-responsive">
+                                    <div class="table-responsive mb-4">
                                         <table class="table table-centered table-nowrap mb-0 rounded">
                                             <thead class="thead-light">
                                                 <tr>
@@ -1209,14 +1229,14 @@ class Skrining extends React.Component{
                                             <tbody>
                                                 {props.values.data.map((list, idx)=>(
                                                     <React.Fragment key={list}>
-                                                        <tr>
+                                                        <tr className={classNames({"bg-danger":!list.found})}>
                                                             <td>{(idx+1)}</td>
                                                             <td>{list.data_anak.nik}</td>
                                                             <td>{list.data_anak.nama_lengkap}</td>
                                                             <td>{moment(list.data_anak.tgl_lahir).format("D MMM YYYY")}</td>
                                                             <td>{list.data_anak.jenis_kelamin}</td>
-                                                            <td>{list.data_anak.ibu.nik}</td>
-                                                            <td>{list.data_anak.ibu.nama_lengkap}</td>
+                                                            <td>{list.data_anak.ibu?.nik}</td>
+                                                            <td>{list.data_anak.ibu?.nama_lengkap}</td>
                                                             <td>{list.data_anak.ayah?.nik}</td>
                                                             <td>{list.data_anak.ayah?.nama_lengkap}</td>
                                                             <td>{list.berat_badan_lahir}</td>
@@ -1228,6 +1248,10 @@ class Skrining extends React.Component{
                                                 ))}
                                             </tbody>
                                         </table>
+                                    </div>
+                                    <div className="d-flex flex-column">
+                                        <span className="text-muted"><strong>*</strong> Baris berwarna merah tidak ada di data kependudukan, proses import akan gagal!</span>
+                                        <span className="text-muted"><strong>*</strong> Jika kolom NIK Ibu kosong, proses import akan gagal!</span>
                                     </div>
                                 </Modal.Body>
                                 <Modal.Footer className="mt-3">
