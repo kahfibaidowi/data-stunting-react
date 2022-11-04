@@ -65,7 +65,7 @@ class LayoutAdmin extends React.Component{
                             <div className="container-fluid px-md-4 ps-md-3">
                                 <div className="d-flex flex-wrap align-items-center justify-content-md-between">
                                     <a href="/" className="d-flex align-items-center mb-2 mb-lg-0 me-4 text-dark text-decoration-none">
-                                        <img src={`/622b2441572a9_1.png`} className="img-fluid" style={{maxHeight:"35px"}}/>
+                                        <img src={``} className="img-fluid" style={{maxHeight:"35px"}}/>
                                     </a>
                                     <div className="d-flex align-items-center ms-auto ms-md-0" style={{minHeight:"3rem"}}>
                                         <Dropdown align="end" className='ms-3'>
@@ -127,7 +127,7 @@ class LayoutAdmin extends React.Component{
                             <Offcanvas.Header closeButton>
                                 <div className="logo">
                                     <Link href="/">
-                                        <img src={`/622b2441572a9_1.png`} className="img-fluid" style={{maxHeight:"35px"}}/>
+                                        <img src={``} className="img-fluid" style={{maxHeight:"35px"}}/>
                                     </Link>
                                 </div>
                             </Offcanvas.Header>
