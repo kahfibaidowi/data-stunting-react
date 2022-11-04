@@ -7,13 +7,16 @@ import Link from "next/link"
 import NumberFormat from 'react-number-format'
 import { Formik } from "formik"
 import { api, api_kependudukan } from "../../../config/api"
-import { access_token, ceil_with_enclosure, isUndefined, login_data } from "../../../config/config"
+import { access_token, ceil_with_enclosure, excelToMomentDate, isUndefined, login_data } from "../../../config/config"
 import { toast } from "react-toastify"
 import Router from "next/router"
-import { ImPlus } from "react-icons/im"
+import { ImFileExcel, ImPlus } from "react-icons/im"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import moment from "moment"
-import { Modal } from "react-bootstrap"
+import { Button, ButtonGroup, Dropdown, Modal, Spinner } from "react-bootstrap"
+import writeXlsxFile from 'write-excel-file'
+import FileSaver from "file-saver"
+import readXlsxFile from "read-excel-file"
 
 class Skrining extends React.Component{
     state={
@@ -43,6 +46,22 @@ class Skrining extends React.Component{
             search_data:{
                 nik_anak:{},
                 old_data:{}
+            }
+        },
+        download_template:{
+            is_open:false,
+            provinsi_form:[],
+            kabupaten_kota_form:[],
+            kecamatan_form:[],
+            desa_form:[],
+            template:{}
+        },
+        import_skrining:{
+            is_open:false,
+            kecamatan_form:[],
+            skrining:{
+                id_user:"",
+                data:[]
             }
         }
     }
@@ -206,7 +225,14 @@ class Skrining extends React.Component{
         })
     }
     getPenduduk=async(penduduk_id)=>{
-        return await api_kependudukan().get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        
+        if(token!==false){
+            return await api_kependudukan(token).get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
     }
     getsSkriningNIK=async(nik)=>{
         return await api().get(`/skrining_balita/${nik}?type=nik`).then(res=>res.data.data)
@@ -215,7 +241,10 @@ class Skrining extends React.Component{
         //insert to database
         await api(access_token()).post("/skrining_balita", {
             id_user:values.id_user,
-            data_anak:values.data_anak,
+            data_anak:Object.assign({}, values.data_anak, {
+                ibu:values.data_anak.ibu!==null?values.data_anak.ibu:"",
+                ayah:values.data_anak.ayah!==null?values.data_anak.ayah:""
+            }),
             berat_badan_lahir:values.berat_badan_lahir,
             tinggi_badan_lahir:values.tinggi_badan_lahir,
             berat_badan:values.berat_badan,
@@ -236,8 +265,360 @@ class Skrining extends React.Component{
         })
     }
 
+    //download template
+    toggleDownload=()=>{
+        this.setState({
+            download_template:{
+                is_open:!this.state.download_template.is_open,
+                provinsi_form:[],
+                kabupaten_kota_form:[],
+                kecamatan_form:[],
+                desa_form:[],
+                template:{
+                    id_provinsi:"",
+                    id_kabupaten_kota:"",
+                    id_kecamatan:"",
+                    id_desa:""
+                }
+            }
+        })
+        this.getsProvinsi()
+        console.log("lksdf")
+    }
+    getsProvinsi=async ()=>{
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        
+        if(token!==false){
+            await api_kependudukan(token).get("/region/type/provinsi", {
+                params:{
+                    page:1,
+                    per_page:"",
+                    q:""
+                }
+            })
+            .then(res=>{
+                this.typeDownload({target:{name:"provinsi_form", value:res.data.data}})
+            })
+            .catch(err=>{
+                if(err.response.status===401){
+                    localStorage.removeItem("login_data")
+                    Router.push("/")
+                }
+                toast.error("Gets Data Failed!", {position:"bottom-center"})
+            })
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
+    }
+    getKabKotaForm=async (province_id)=>{
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        
+        if(token!==false){
+            await api_kependudukan(token).get("/region/type/kabupaten_kota", {
+                params:{
+                    page:1,
+                    per_page:"",
+                    q:"",
+                    province_id:province_id
+                }
+            })
+            .then(res=>{
+                this.typeDownload({target:{name:"kabupaten_kota_form", value:res.data.data}})
+            })
+            .catch(err=>{
+                if(err.response.status===401){
+                    localStorage.removeItem("login_data")
+                    Router.push("/")
+                }
+                toast.error("Gets Data Failed!", {position:"bottom-center"})
+            })
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
+    }
+    getKecamatanForm=async (province_id, regency_id)=>{
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        
+        if(token!==false){
+            await api_kependudukan(token).get("/region/type/kecamatan", {
+                params:{
+                    page:1,
+                    per_page:"",
+                    q:"",
+                    province_id:province_id,
+                    regency_id:regency_id
+                }
+            })
+            .then(res=>{
+                this.typeDownload({target:{name:"kecamatan_form", value:res.data.data}})
+            })
+            .catch(err=>{
+                if(err.response.status===401){
+                    localStorage.removeItem("login_data")
+                    Router.push("/")
+                }
+                toast.error("Gets Data Failed!", {position:"bottom-center"})
+            })
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
+    }
+    getDesaForm=async (province_id, regency_id, district_id)=>{
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        
+        if(token!==false){
+            await api_kependudukan(token).get("/region/type/desa", {
+                params:{
+                    page:1,
+                    per_page:"",
+                    q:"",
+                    province_id:province_id,
+                    regency_id:regency_id,
+                    district_id:district_id
+                }
+            })
+            .then(res=>{
+                this.typeDownload({target:{name:"desa_form", value:res.data.data}})
+            })
+            .catch(err=>{
+                if(err.response.status===401){
+                    localStorage.removeItem("login_data")
+                    Router.push("/")
+                }
+                toast.error("Gets Data Failed!", {position:"bottom-center"})
+            })
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
+    }
+    typeDownload=e=>{
+        const target=e.target
+
+        this.setState({
+            download_template:update(this.state.download_template, {
+                [target.name]:{$set:target.value}
+            })
+        })
+    }
+    download=async (values, actions)=>{
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        
+        if(token!==false){
+            const data=await api_kependudukan(token).get("/penduduk", {
+                params:{
+                    page:1,
+                    per_page:"",
+                    q:"",
+                    province_id:values.id_provinsi,
+                    regency_id:values.id_kabupaten_kota,
+                    district_id:values.id_kecamatan,
+                    village_id:values.id_desa
+                }
+            })
+            .then(res=>res.data.data)
+            .catch(err=>[])
+
+            const header=[
+                {
+                    value: 'NIK',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'NAMA ANAK',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'TGL LAHIR',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'JENIS KELAMIN',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'NIK IBU',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'NAMA IBU',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'NIK AYAH',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'NAMA AYAH',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'BERAT BADAN LAHIR',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'TINGGI BADAN LAHIR',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'BERAT BADAN',
+                    fontWeight: 'bold'
+                },
+                {
+                    value: 'TINGGI BADAN',
+                    fontWeight: 'bold'
+                }
+            ]
+
+            let data_excel=[]
+            await data.map(d=>{
+                data_excel.push([
+                    {
+                        type:String,
+                        value:d.nik,
+                    },
+                    {
+                        type:String,
+                        value:d.nama_lengkap,
+                    },
+                    {
+                        type:Date,
+                        value:moment(d.tgl_lahir).toDate(),
+                        format:"dd/mm/yyyy"
+                    },
+                    {
+                        type:String,
+                        value:d.jenis_kelamin,
+                    },
+                    {
+                        type:String,
+                        value:d.ibu!==null?d.ibu.nik:null,
+                    },
+                    {
+                        type:String,
+                        value:d.ibu!==null?d.ibu.nama_lengkap:null,
+                    },
+                    {
+                        type:String,
+                        value:d.ayah!==null?d.ayah.nik:null,
+                    },
+                    {
+                        type:String,
+                        value:d.ayah!==null?d.ayah.nama_lengkap:null,
+                    },
+                    {
+                        type:Number,
+                        value:null,
+                    },
+                    {
+                        type:Number,
+                        value:null,
+                    },
+                    {
+                        type:Number,
+                        value:null,
+                    },
+                    {
+                        type:Number,
+                        value:null,
+                    },
+                ])
+            })
+
+            const excel_data=[
+                header,
+                ...data_excel
+            ]
+
+            await writeXlsxFile(excel_data, {
+                fileName:"skrining.xlsx"
+            })
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
+    }
+
+    //import
+    selectFile=async e=>{
+        let data_excel=[]
+
+        const data=readXlsxFile(e.target.files[0])
+        await data.then(rows=>{
+            rows.map((row, idx)=>{
+                if(idx>0){
+                    data_excel.push({
+                        data_anak:{
+                            nik:row[0]!==null?row[0]:"",
+                            nama_lengkap:row[1]!==null?row[1]:"",
+                            tgl_lahir:excelToMomentDate(row[2]!==null?row[2]:""),
+                            jenis_kelamin:row[3]!==null?row[3]:"",
+                            ibu:{
+                                nik:row[4]!==null?row[4]:"",
+                                nama_lengkap:row[5]!==null?row[5]:""
+                            },
+                            ayah:row[6]===null?"":{
+                                nik:row[6]!==null?row[6]:"",
+                                nama_lengkap:row[7]!==null?row[7]:""
+                            }
+                        },
+                        berat_badan_lahir:row[8]!==null?row[8]:"",
+                        tinggi_badan_lahir:row[9]!==null?row[9]:"",
+                        berat_badan:row[10]!==null?row[10]:"",
+                        tinggi_badan:row[11]!==null?row[11]:""
+                    })
+                }
+            })
+        })
+
+        this.setState({
+            import_skrining:{
+                is_open:!this.state.import_skrining.is_open,
+                kecamatan_form:this.state.kecamatan_form,
+                skrining:{
+                    id_user:this.state.skrining.posyandu_id,
+                    data:data_excel
+                }
+            }
+        })
+    }
+    hideImport=()=>{
+        this.setState({
+            import_skrining:{
+                is_open:false,
+                kecamatan_form:[],
+                skrining:{
+                    id_user:"",
+                    data:[]
+                }
+            }
+        })
+    }
+    importSkrining=async(values, actions)=>{
+        await api(access_token()).post("/skrining_balita/type/multiple", {
+            id_user:values.id_user,
+            skrining:values.data
+        })
+        .then(res=>{
+            this.getsSkrining(true)
+            this.hideImport()
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/")
+            }
+            toast.error("Import Data Failed!", {position:"bottom-center"})
+        })
+    }
+
     render(){
         const {
+            import_skrining,
+            download_template,
             kecamatan_form, 
             login_data, 
             skrining,
@@ -262,31 +643,55 @@ class Skrining extends React.Component{
                             <div className='row mt-5 mb-5'>
                                 <div className='col-md-12 mx-auto'>
                                     <div>
-                                        <button
-                                            type="button"
-                                            className="btn btn-primary text-nowrap" 
-                                            onClick={this.toggleTambah}
-                                        >
-                                            <ImPlus/> Tambah
-                                        </button>
+                                        <div className="d-flex">
+                                            <button
+                                                type="button"
+                                                className="btn btn-primary text-nowrap me-2" 
+                                                onClick={this.toggleTambah}
+                                            >
+                                                <ImPlus/> Tambah
+                                            </button>
+                                            <Dropdown as={ButtonGroup}>
+                                                <Button variant="success" className="d-inline-flex align-items-center">
+                                                    <ImFileExcel/>
+                                                    <span class="ms-1">Import</span>
+                                                </Button>
+                                                <Dropdown.Toggle split variant="success" className="px-2"/>
+                                                <Dropdown.Menu className="py-0">
+                                                    <label class="d-block w-100 mb-0">
+                                                        <Dropdown.Item as="span" className="d-block w-100 cursor-pointer">Pilih Berkas</Dropdown.Item>
+                                                        <input
+                                                            type="file"
+                                                            name="file"
+                                                            onChange={this.selectFile}
+                                                            style={{display:"none"}}
+                                                            accept=".xlsx"
+                                                        />
+                                                    </label>
+                                                    <Dropdown.Item as="span" className="d-block w-100 cursor-pointer" onClick={this.toggleDownload}>Download Template</Dropdown.Item>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                        </div>
                                         <div className="d-flex mb-3 mt-3">
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <select 
-                                                    name="posyandu_id" 
-                                                    value={skrining.posyandu_id} 
-                                                    className="form-select" 
-                                                    onChange={this.typeFilter}
-                                                >
-                                                    <option value="">-- Pilih Posyandu</option>
-                                                    {kecamatan_form.map(kec=>(
-                                                        <optgroup label={kec.region} key={kec}>
-                                                            {kec.posyandu.map(pos=>(
-                                                                <option value={pos.id_user} key={pos}>{pos.nama_lengkap}</option>
-                                                            ))}
-                                                        </optgroup>
-                                                    ))}
-                                                </select>
-                                            </div>
+                                            {login_data.role!="posyandu"&&
+                                                <div style={{width:"200px"}} className="me-2">
+                                                    <select 
+                                                        name="posyandu_id" 
+                                                        value={skrining.posyandu_id} 
+                                                        className="form-select" 
+                                                        onChange={this.typeFilter}
+                                                    >
+                                                        <option value="">-- Pilih Posyandu</option>
+                                                        {kecamatan_form.map(kec=>(
+                                                            <optgroup label={kec.region} key={kec}>
+                                                                {kec.posyandu.map(pos=>(
+                                                                    <option value={pos.id_user} key={pos}>{pos.nama_lengkap}</option>
+                                                                ))}
+                                                            </optgroup>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            }
                                             <div style={{width:"200px"}} className="me-2">
                                                 <input
                                                     type="text"
@@ -337,7 +742,7 @@ class Skrining extends React.Component{
                                                                 <td>{list.berat_badan_lahir}</td>
                                                                 <td>{list.tinggi_badan_lahir}</td>
                                                                 <td>
-                                                                    {list.data_anak.ibu}, {list.data_anak.ayah}
+                                                                    {list.data_anak.ibu.nama_lengkap}, {list.data_anak.ayah.nama_lengkap}
                                                                 </td>
                                                                 <td>JAWA TIMUR</td>
                                                                 <td>MADIUN</td>
@@ -614,6 +1019,237 @@ class Skrining extends React.Component{
                                         disabled={props.isSubmitting}
                                     >
                                         Save Changes
+                                    </button>
+                                </Modal.Footer>
+                            </form>
+                        )}
+                    </Formik>
+                </Modal>
+
+                {/* MODAL DOWNLOAD TEMPLATE */}
+                <Modal show={download_template.is_open} onHide={this.toggleDownload} backdrop="static">
+                    <Modal.Header closeButton>
+                        <Modal.Title>Download Template</Modal.Title>
+                    </Modal.Header>
+                    <Formik
+                        initialValues={download_template.template}
+                        onSubmit={this.download}
+                    >
+                        {props=>(
+                            <form onSubmit={props.handleSubmit}>
+                                <Modal.Body>
+                                    <div class="mb-3">
+                                        <label class="my-1 me-2" for="country">Provinsi</label>
+                                        <select 
+                                            name="id_provinsi" 
+                                            value={props.values.id_provinsi} 
+                                            className="form-select" 
+                                            onChange={e=>{
+                                                if(e.target.value!="") this.getKabKotaForm(e.target.value)
+                                                else this.typeDownload({target:{name:"kabupaten_kota_form", value:[]}})
+
+                                                this.typeDownload({target:{name:"kecamatan_form", value:[]}})
+                                                this.typeDownload({target:{name:"desa_form", value:[]}})
+                                                props.handleChange(e)
+                                                props.setFieldValue("id_kabupaten_kota", "")
+                                                props.setFieldValue("id_kecamatan", "")
+                                                props.setFieldValue("id_desa", "")
+                                            }}
+                                        >
+                                            <option value="">-- Pilih Provinsi</option>
+                                            {download_template.provinsi_form.map(kf=>(
+                                                <option key={kf} value={kf.id_region}>{kf.region}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="my-1 me-2" for="country">Kabupaten</label>
+                                        <select 
+                                            name="id_kabupaten_kota" 
+                                            value={props.values.id_kabupaten_kota} 
+                                            className="form-select" 
+                                            onChange={e=>{
+                                                if(e.target.value!="") this.getKecamatanForm(props.values.id_provinsi, e.target.value)
+                                                else this.typeDownload({target:{name:"kecamatan_form", value:[]}})
+
+                                                this.typeDownload({target:{name:"desa_form", value:[]}})
+                                                props.handleChange(e)
+                                                props.setFieldValue("id_kecamatan", "")
+                                                props.setFieldValue("id_desa", "")
+                                            }}
+                                        >
+                                            <option value="">-- Pilih Kabupaten Kota</option>
+                                            {download_template.kabupaten_kota_form.map(kf=>(
+                                                <option key={kf} value={kf.id_region}>{kf.region}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="my-1 me-2" for="country">Kecamatan</label>
+                                        <select 
+                                            name="id_kecamatan" 
+                                            value={props.values.id_kecamatan} 
+                                            className="form-select" 
+                                            onChange={e=>{
+                                                if(e.target.value!="") this.getDesaForm(props.values.id_provinsi, props.values.id_kabupaten_kota, e.target.value)
+                                                else this.typeDownload({target:{name:"desa_form", value:[]}})
+
+                                                props.handleChange(e)
+                                                props.setFieldValue("id_desa", "")
+                                            }}
+                                        >
+                                            <option value="">-- Pilih Kecamatan</option>
+                                            {download_template.kecamatan_form.map(kf=>(
+                                                <option key={kf} value={kf.id_region}>{kf.region}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="my-1 me-2" for="country">Desa</label>
+                                        <select 
+                                            name="id_desa" 
+                                            value={props.values.id_desa} 
+                                            className="form-select" 
+                                            onChange={props.handleChange}
+                                        >
+                                            <option value="">-- Pilih Desa</option>
+                                            {download_template.desa_form.map(kf=>(
+                                                <option key={kf} value={kf.id_region}>{kf.region}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="d-flex flex-column">
+                                        <span className="text-muted"><strong>*</strong> Hapus baris/data yang tidak digunakan!</span>
+                                        <span className="text-muted"><strong>*</strong> Isikan hanya pada kolom berat_badan_lahir, tinggi_badan_lahir, berat_badan, tinggi_badan!</span>
+                                        <span className="text-muted"><strong>*</strong> NIK Ibu, Nama Ibu Wajib diisi!</span>
+                                    </div>
+                                </Modal.Body>
+                                <Modal.Footer className="mt-3">
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-link text-gray me-auto" 
+                                        onClick={this.toggleDownload}
+                                    >
+                                        Batal
+                                    </button>
+                                    <button 
+                                        type="submit" 
+                                        class="btn btn-dark"
+                                        disabled={props.isSubmitting}
+                                    >
+                                        {props.isSubmitting?
+                                            <Spinner size="sm" variant="light" animation="border" role="status">
+                                                <span className="visually-hidden">Loading...</span>
+                                            </Spinner>
+                                        :
+                                            <>Download</>
+                                        }
+                                    </button>
+                                </Modal.Footer>
+                            </form>
+                        )}
+                    </Formik>
+                </Modal>
+
+                {/* MODAL IMPORT */}
+                <Modal show={import_skrining.is_open} onHide={this.hideImport} backdrop="static" size="xl">
+                    <Modal.Header closeButton>
+                        <Modal.Title>Data Excel</Modal.Title>
+                    </Modal.Header>
+                    <Formik
+                        initialValues={import_skrining.skrining}
+                        onSubmit={this.importSkrining}
+                    >
+                        {props=>(
+                            <form onSubmit={props.handleSubmit}>
+                                <Modal.Body>
+                                    {login_data.role!="posyandu"&&
+                                        <div className="row mb-4">
+                                            <div className="col-md-5 mx-auto">
+                                                <div class="mb-3">
+                                                    <label class="my-1 me-2" for="country">Posyandu</label>
+                                                    <select 
+                                                        name="id_user" 
+                                                        value={props.values.id_user} 
+                                                        className="form-select" 
+                                                        onChange={props.handleChange}
+                                                    >
+                                                        <option value="">-- Pilih Posyandu</option>
+                                                        {import_skrining.kecamatan_form.map(kec=>(
+                                                            <optgroup label={kec.region} key={kec}>
+                                                                {kec.posyandu.map(pos=>(
+                                                                    <option value={pos.id_user} key={pos}>{pos.nama_lengkap}</option>
+                                                                ))}
+                                                            </optgroup>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    <div class="table-responsive">
+                                        <table class="table table-centered table-nowrap mb-0 rounded">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th class="border-0 rounded-start" width="30">#</th>
+                                                    <th class="border-0">NIK</th>
+                                                    <th class="border-0">Nama Anak</th>
+                                                    <th class="border-0">Tgl Lahir</th>
+                                                    <th class="border-0">Jenis Kelamin</th>
+                                                    <th class="border-0">NIK Ibu</th>
+                                                    <th class="border-0">Nama Ibu</th>
+                                                    <th class="border-0">NIK Ayah</th>
+                                                    <th class="border-0">Nama Ayah</th>
+                                                    <th class="border-0">Berat Badan Lahir</th>
+                                                    <th class="border-0">Tinggi Badan Lahir</th>
+                                                    <th class="border-0">Berat Badan</th>
+                                                    <th class="border-0 rounded-end">Tinggi Badan</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {props.values.data.map((list, idx)=>(
+                                                    <React.Fragment key={list}>
+                                                        <tr>
+                                                            <td>{(idx+1)}</td>
+                                                            <td>{list.data_anak.nik}</td>
+                                                            <td>{list.data_anak.nama_lengkap}</td>
+                                                            <td>{moment(list.data_anak.tgl_lahir).format("D MMM YYYY")}</td>
+                                                            <td>{list.data_anak.jenis_kelamin}</td>
+                                                            <td>{list.data_anak.ibu.nik}</td>
+                                                            <td>{list.data_anak.ibu.nama_lengkap}</td>
+                                                            <td>{list.data_anak.ayah?.nik}</td>
+                                                            <td>{list.data_anak.ayah?.nama_lengkap}</td>
+                                                            <td>{list.berat_badan_lahir}</td>
+                                                            <td>{list.tinggi_badan_lahir}</td>
+                                                            <td>{list.berat_badan}</td>
+                                                            <td>{list.berat_badan}</td>
+                                                        </tr>
+                                                    </React.Fragment>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </Modal.Body>
+                                <Modal.Footer className="mt-3">
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-link text-gray me-auto" 
+                                        onClick={this.hideImport}
+                                    >
+                                        Batal
+                                    </button>
+                                    <button 
+                                        type="submit" 
+                                        class="btn btn-primary"
+                                        disabled={props.isSubmitting}
+                                    >
+                                        {props.isSubmitting?
+                                            <Spinner size="sm" variant="light" animation="border" role="status">
+                                                <span className="visually-hidden">Loading...</span>
+                                            </Spinner>
+                                        :
+                                            <>Save Changes</>
+                                        }
                                     </button>
                                 </Modal.Footer>
                             </form>

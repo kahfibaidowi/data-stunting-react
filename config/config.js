@@ -1,3 +1,6 @@
+import moment from "moment"
+
+
 //url
 export const BASE_URL=process.env.NODE_ENV==="development"?
     "http://localhost/data-stunting/public":
@@ -81,4 +84,9 @@ export const ceil_with_enclosure=(number, enclosure=0.5)=>{
     else{
         return Math.round(number);
     }
+}
+export const excelToMomentDate=date=>{
+    var date=moment(new Date(Date.UTC(0, 0, date-1)))
+    
+    return date.format('YYYY-MM-DD')
 }

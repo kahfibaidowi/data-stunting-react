@@ -79,7 +79,14 @@ class AddSkrining extends React.Component{
         })
     }
     getPenduduk=async(penduduk_id)=>{
-        return await api_kependudukan().get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        
+        if(token!==false){
+            return await api_kependudukan(token).get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
     }
     getsSkriningNIK=async(nik)=>{
         return await api().get(`/skrining_balita/${nik}?type=nik`).then(res=>res.data.data)
@@ -88,7 +95,10 @@ class AddSkrining extends React.Component{
         //insert to database
         await api(access_token()).post("/skrining_balita", {
             id_user:values.id_user,
-            data_anak:values.data_anak,
+            data_anak:Object.assign({}, values.data_anak, {
+                ibu:values.data_anak.ibu!==null?values.data_anak.ibu:"",
+                ayah:values.data_anak.ayah!==null?values.data_anak.ayah:""
+            }),
             berat_badan_lahir:values.berat_badan_lahir,
             tinggi_badan_lahir:values.tinggi_badan_lahir,
             berat_badan:values.berat_badan,

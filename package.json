@@ -11,16 +11,21 @@
   "dependencies": {
     "axios": "0.27.2",
     "classnames": "^2.3.2",
+    "file-saver": "^2.0.5",
     "formik": "^2.2.9",
+    "fs": "^0.0.1-security",
     "immutability-helper": "^3.1.1",
     "moment": "^2.29.4",
     "next": "13.0.0",
     "react": "18.2.0",
     "react-bootstrap": "^2.5.0",
     "react-dom": "18.2.0",
+    "react-export-excel": "^0.5.3",
     "react-icons": "^4.6.0",
     "react-number-format": "4.9.3",
-    "react-toastify": "^9.0.8"
+    "react-toastify": "^9.0.8",
+    "read-excel-file": "^5.5.3",
+    "write-excel-file": "^1.4.14"
   },
   "devDependencies": {
     "eslint": "8.26.0",
