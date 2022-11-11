@@ -1,4 +1,5 @@
 import moment from "moment"
+import { read, utils, writeFileXLSX } from 'xlsx';
 
 
 //url
@@ -89,4 +90,11 @@ export const excelToMomentDate=date=>{
     var date=moment(new Date(Date.UTC(0, 0, date-1)))
     
     return date.format('YYYY-MM-DD')
+}
+export const file_to_workbook=(file, callback)=>{
+    var reader=new FileReader()
+    reader.onload=e=>{
+      callback(read(e.target.result));
+    }
+    reader.readAsArrayBuffer(file)
 }

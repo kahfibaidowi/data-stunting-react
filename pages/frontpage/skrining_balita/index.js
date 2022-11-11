@@ -8,7 +8,7 @@ import Link from "next/link"
 import NumberFormat from 'react-number-format'
 import { Formik } from "formik"
 import { api, api_kependudukan } from "../../../config/api"
-import { access_token, ceil_with_enclosure, excelToMomentDate, isUndefined, login_data } from "../../../config/config"
+import { access_token, ceil_with_enclosure, excelToMomentDate, file_to_workbook, isUndefined, login_data } from "../../../config/config"
 import { toast } from "react-toastify"
 import Router from "next/router"
 import { ImFileExcel, ImPlus } from "react-icons/im"
@@ -18,6 +18,7 @@ import { Button, ButtonGroup, Dropdown, Modal, Spinner } from "react-bootstrap"
 import writeXlsxFile from 'write-excel-file'
 import FileSaver from "file-saver"
 import readXlsxFile from "read-excel-file"
+import { read, utils, writeFileXLSX } from 'xlsx';
 
 class Skrining extends React.Component{
     state={
@@ -525,84 +526,84 @@ class Skrining extends React.Component{
 
     //import
     selectFile=async e=>{
-        let data_excel=[]
+        file_to_workbook(e.target.files[0], async data=>{
+            let penduduk_sheet=utils.sheet_to_json(data.Sheets[data.SheetNames[0]], {header:1})
 
-        const data=readXlsxFile(e.target.files[0])
-        await data.then(rows=>{
-            rows.map((row, idx)=>{
+            let penduduk_data=[]
+            penduduk_sheet.map((row, idx)=>{
                 if(idx>0){
-                    data_excel.push({
+                    penduduk_data=penduduk_data.concat([{
                         data_anak:{
-                            nik:row[0]!==null?row[0]:"",
-                            nama_lengkap:row[1]!==null?row[1]:"",
-                            tgl_lahir:excelToMomentDate(row[2]!==null?row[2]:""),
-                            jenis_kelamin:row[3]!==null?row[3]:"",
+                            nik:!isUndefined(row[0])?row[0]:"",
+                            nama_lengkap:!isUndefined(row[1])?row[1]:"",
+                            tgl_lahir:excelToMomentDate(!isUndefined(row[2])?row[2]:""),
+                            jenis_kelamin:!isUndefined(row[3])?row[3]:"",
                             ibu:{
-                                nik:row[4]!==null?row[4]:"",
-                                nama_lengkap:row[5]!==null?row[5]:""
+                                nik:!isUndefined(row[4])?row[4]:"",
+                                nama_lengkap:!isUndefined(row[5])?row[5]:""
                             },
-                            ayah:row[6]===null?"":{
-                                nik:row[6]!==null?row[6]:"",
-                                nama_lengkap:row[7]!==null?row[7]:""
+                            ayah:!isUndefined(row[6])?"":{
+                                nik:!isUndefined(row[6])?row[6]:"",
+                                nama_lengkap:!isUndefined(row[7])?row[7]:""
                             }
                         },
-                        berat_badan_lahir:row[8]!==null?row[8]:"",
-                        tinggi_badan_lahir:row[9]!==null?row[9]:"",
-                        berat_badan:row[10]!==null?row[10]:"",
-                        tinggi_badan:row[11]!==null?row[11]:""
-                    })
-                }
-            })
-        })
-
-        //cek
-        let nik_params=data_excel.map(dx=>dx.data_anak.nik)
-        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>"")
-
-        await api_kependudukan(token).get("/penduduk/type/multiple", {
-            params:{
-                nik:nik_params
-            }
-        })
-        .then(res=>{
-            const data=res.data.data
-
-            let xlsx=data_excel.map(x=>{
-                let idx=data.findIndex(d=>d.nik==x.data_anak.nik)
-
-                if(idx!=-1){
-                    return Object.assign({}, x, {
-                        data_anak:Object.assign({}, data[idx], {
-                            ayah:data[idx].ayah!==null?data[idx].ayah:"",
-                            ibu:data[idx].ibu!==null?data[idx].ibu:"",
-                        }),
-                        found:true
-                    })
-                }
-                else{
-                    return Object.assign({}, x, {
-                        data_anak:Object.assign({}, x.data_anak, {
-                            ibu:"",
-                            ayah:""
-                        }),
-                        found:false
-                    })
+                        berat_badan_lahir:!isUndefined(row[8])?row[8]:"",
+                        tinggi_badan_lahir:!isUndefined(row[9])?row[9]:"",
+                        berat_badan:!isUndefined(row[10])?row[10]:"",
+                        tinggi_badan:!isUndefined(row[11])?row[11]:""
+                    }])
                 }
             })
 
-            this.setState({
-                import_skrining:{
-                    is_open:!this.state.import_skrining.is_open,
-                    kecamatan_form:this.state.kecamatan_form,
-                    skrining:{
-                        id_user:this.state.skrining.posyandu_id,
-                        data:xlsx
+            //cek
+            let nik_params=penduduk_data.map(dx=>dx.data_anak.nik)
+            const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>"")
+
+            await api_kependudukan(token).get("/penduduk/type/multiple", {
+                params:{
+                    nik:nik_params
+                }
+            })
+            .then(res=>{
+                const data=res.data.data
+
+                let xlsx=penduduk_data.map(x=>{
+                    let idx=data.findIndex(d=>d.nik==x.data_anak.nik)
+
+                    if(idx!=-1){
+                        return Object.assign({}, x, {
+                            data_anak:Object.assign({}, data[idx], {
+                                ayah:data[idx].ayah!==null?data[idx].ayah:"",
+                                ibu:data[idx].ibu!==null?data[idx].ibu:"",
+                            }),
+                            found:true
+                        })
                     }
-                }
+                    else{
+                        return Object.assign({}, x, {
+                            data_anak:Object.assign({}, x.data_anak, {
+                                ibu:"",
+                                ayah:""
+                            }),
+                            found:false
+                        })
+                    }
+                })
+
+                this.setState({
+                    import_skrining:{
+                        is_open:!this.state.import_skrining.is_open,
+                        kecamatan_form:this.state.kecamatan_form,
+                        skrining:{
+                            id_user:this.state.skrining.posyandu_id,
+                            data:xlsx
+                        }
+                    }
+                })
             })
-        })
-        .catch(err=>{
-            toast.error("Error!", {position:"bottom-center"})
+            .catch(err=>{
+                toast.error("Error!", {position:"bottom-center"})
+            })
         })
     }
     hideImport=()=>{

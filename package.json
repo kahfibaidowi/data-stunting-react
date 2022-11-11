@@ -25,7 +25,8 @@
     "react-number-format": "4.9.3",
     "react-toastify": "^9.0.8",
     "read-excel-file": "^5.5.3",
-    "write-excel-file": "^1.4.14"
+    "write-excel-file": "^1.4.14",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "eslint": "8.26.0",
