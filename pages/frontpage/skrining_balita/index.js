@@ -6,7 +6,7 @@ import withAuth from "../../../component/hoc/auth"
 import LayoutFrontpage from "../../../component/LayoutFrontpage"
 import Link from "next/link"
 import NumberFormat from 'react-number-format'
-import { Formik } from "formik"
+import { Formik, yupToFormErrors } from "formik"
 import { api, api_kependudukan } from "../../../config/api"
 import { access_token, ceil_with_enclosure, excelToMomentDate, file_to_workbook, isUndefined, login_data } from "../../../config/config"
 import { toast } from "react-toastify"
@@ -19,6 +19,7 @@ import writeXlsxFile from 'write-excel-file'
 import FileSaver from "file-saver"
 import readXlsxFile from "read-excel-file"
 import { read, utils, writeFileXLSX } from 'xlsx';
+import * as Yup from "yup"
 
 class Skrining extends React.Component{
     state={
@@ -266,6 +267,16 @@ class Skrining extends React.Component{
             toast.error("Insert Data Failed!", {position:"bottom-center"})
         })
     }
+    // tambahSkriningSchema=()=>{
+    //     return Yup.object().shape({
+    //         nik_anak:Yup.string().required(),
+    //         data_anak:Yup.object().required(),
+    //         berat_badan_lahir:Yup.string().required(),
+    //         tinggi_badan_lahir:Yup.string().required(),
+    //         berat_badan:Yup.string().required(),
+    //         tinggi_badan:Yup.string().required()
+    //     })
+    // }
 
     //download template
     toggleDownload=()=>{
@@ -285,7 +296,6 @@ class Skrining extends React.Component{
             }
         })
         this.getsProvinsi()
-        console.log("lksdf")
     }
     getsProvinsi=async ()=>{
         const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>"")
@@ -457,57 +467,62 @@ class Skrining extends React.Component{
 
             let data_excel=[]
             await data.map(d=>{
-                data_excel.push([
-                    {
-                        type:String,
-                        value:d.nik,
-                    },
-                    {
-                        type:String,
-                        value:d.nama_lengkap,
-                    },
-                    {
-                        type:Date,
-                        value:moment(d.tgl_lahir).toDate(),
-                        format:"dd/mm/yyyy"
-                    },
-                    {
-                        type:String,
-                        value:d.jenis_kelamin,
-                    },
-                    {
-                        type:String,
-                        value:d.ibu!==null?d.ibu.nik:null,
-                    },
-                    {
-                        type:String,
-                        value:d.ibu!==null?d.ibu.nama_lengkap:null,
-                    },
-                    {
-                        type:String,
-                        value:d.ayah!==null?d.ayah.nik:null,
-                    },
-                    {
-                        type:String,
-                        value:d.ayah!==null?d.ayah.nama_lengkap:null,
-                    },
-                    {
-                        type:Number,
-                        value:null,
-                    },
-                    {
-                        type:Number,
-                        value:null,
-                    },
-                    {
-                        type:Number,
-                        value:null,
-                    },
-                    {
-                        type:Number,
-                        value:null,
-                    },
-                ])
+                const tgl_lahir=moment(d.tgl_lahir, "YYYY-MM-DD").format("YYYY-MM-DD")
+                const batas_date=moment().subtract(5, "years").format("YYYY-MM-DD")
+
+                if(tgl_lahir>batas_date){
+                    data_excel.push([
+                        {
+                            type:String,
+                            value:d.nik,
+                        },
+                        {
+                            type:String,
+                            value:d.nama_lengkap,
+                        },
+                        {
+                            type:Date,
+                            value:moment(d.tgl_lahir).toDate(),
+                            format:"dd/mm/yyyy"
+                        },
+                        {
+                            type:String,
+                            value:d.jenis_kelamin,
+                        },
+                        {
+                            type:String,
+                            value:d.ibu!==null?d.ibu.nik:null,
+                        },
+                        {
+                            type:String,
+                            value:d.ibu!==null?d.ibu.nama_lengkap:null,
+                        },
+                        {
+                            type:String,
+                            value:d.ayah!==null?d.ayah.nik:null,
+                        },
+                        {
+                            type:String,
+                            value:d.ayah!==null?d.ayah.nama_lengkap:null,
+                        },
+                        {
+                            type:Number,
+                            value:null,
+                        },
+                        {
+                            type:Number,
+                            value:null,
+                        },
+                        {
+                            type:Number,
+                            value:null,
+                        },
+                        {
+                            type:Number,
+                            value:null,
+                        },
+                    ])
+                }
             })
 
             const excel_data=[
@@ -673,10 +688,19 @@ class Skrining extends React.Component{
                                                 <ImPlus/> Tambah
                                             </button>
                                             <Dropdown as={ButtonGroup}>
-                                                <Button variant="success" className="d-inline-flex align-items-center">
-                                                    <ImFileExcel/>
-                                                    <span class="ms-1">Import</span>
-                                                </Button>
+                                                <label>
+                                                    <span className="btn btn-success d-inline-flex align-items-center" style={{borderTopRightRadius:"0", borderBottomRightRadius:"0"}} onClick={this.selectfi}>
+                                                        <ImFileExcel/>
+                                                        <span class="ms-1">Import</span>
+                                                    </span>
+                                                    <input
+                                                        type="file"
+                                                        name="file"
+                                                        onChange={this.selectFile}
+                                                        style={{display:"none"}}
+                                                        accept=".xlsx"
+                                                    />
+                                                </label>
                                                 <Dropdown.Toggle split variant="success" className="px-2"/>
                                                 <Dropdown.Menu className="py-0">
                                                     <label class="d-block w-100 mb-0">
@@ -727,58 +751,58 @@ class Skrining extends React.Component{
                                         <div className="table-responsive">
                                             <table className="table table-centered table-nowrap mb-0 rounded">
                                                 <thead className="thead-light">
-                                                    <tr>
-                                                        <th className="border-0 rounded-start" width="50">#</th>
-                                                        <th className="border-0">NIK</th>
-                                                        <th className="border-0">Nama</th>
-                                                        <th className="border-0">JK</th>
-                                                        <th className="border-0">Tgl Lahir</th>
-                                                        <th className="border-0">BB Lahir</th>
-                                                        <th className="border-0">TB Lahir</th>
-                                                        <th className="border-0">Orang Tua</th>
-                                                        <th className="border-0">Prov</th>
-                                                        <th className="border-0">Kab/Kota</th>
-                                                        <th className="border-0">Kec</th>
-                                                        <th className="border-0">Desa/Kel</th>
-                                                        <th className="border-0">Posyandu</th>
-                                                        <th className="border-0">Alamat</th>
-                                                        <th className="border-0">Usia Saat Ukur</th>
-                                                        <th className="border-0">Tanggal</th>
-                                                        <th className="border-0">Berat Badan </th>
-                                                        <th className="border-0">Tinggi Badan</th>
-                                                        <th className="border-0">TB/U</th>
-                                                        <th className="border-0">BB/U</th>
-                                                        <th className="border-0">BB/TB</th>
-                                                        <th className="border-0 rounded-end" width="90"></th>
+                                                    <tr className="text-uppercase">
+                                                        <th className="px-3 rounded-start" width="50">#</th>
+                                                        <th className="px-3">NIK</th>
+                                                        <th className="px-3">Nama</th>
+                                                        <th className="px-3">JK</th>
+                                                        <th className="px-3">Tgl Lahir</th>
+                                                        <th className="px-3">BB Lahir</th>
+                                                        <th className="px-3">TB Lahir</th>
+                                                        <th className="px-3">Orang Tua</th>
+                                                        <th className="px-3">Prov</th>
+                                                        <th className="px-3">Kab/Kota</th>
+                                                        <th className="px-3">Kec</th>
+                                                        <th className="px-3">Desa/Kel</th>
+                                                        <th className="px-3">Posyandu</th>
+                                                        <th className="px-3">Alamat</th>
+                                                        <th className="px-3">Usia Saat Ukur</th>
+                                                        <th className="px-3">Tanggal</th>
+                                                        <th className="px-3">Berat Badan </th>
+                                                        <th className="px-3">Tinggi Badan</th>
+                                                        <th className="px-3">TB/U</th>
+                                                        <th className="px-3">BB/U</th>
+                                                        <th className="px-3">BB/TB</th>
+                                                        <th className="px-3 rounded-end" width="90"></th>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
+                                                <tbody className="border-top-0">
                                                     {skrining.data.map((list, idx)=>(
                                                         <tr key={list}>
-                                                                <td className="align-middle">{(idx+1)+((skrining.page-1)*skrining.per_page)}</td>
-                                                                <td>{list.data_anak.nik}</td>
-                                                                <td>{list.data_anak.nama_lengkap}</td>
-                                                                <td>{list.data_anak.jenis_kelamin}</td>
-                                                                <td>{list.data_anak.tgl_lahir}</td>
-                                                                <td>{list.berat_badan_lahir}</td>
-                                                                <td>{list.tinggi_badan_lahir}</td>
-                                                                <td>
+                                                                <td className="align-middle px-3">{(idx+1)+((skrining.page-1)*skrining.per_page)}</td>
+                                                                <td className="px-3">{list.data_anak.nik}</td>
+                                                                <td className="px-3">{list.data_anak.nama_lengkap}</td>
+                                                                <td className="px-3">{list.data_anak.jenis_kelamin}</td>
+                                                                <td className="px-3">{list.data_anak.tgl_lahir}</td>
+                                                                <td className="px-3">{list.berat_badan_lahir}</td>
+                                                                <td className="px-3">{list.tinggi_badan_lahir}</td>
+                                                                <td className="px-3">
                                                                     {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
                                                                 </td>
-                                                                <td>JAWA TIMUR</td>
-                                                                <td>MADIUN</td>
-                                                                <td>{list.user_posyandu.kecamatan}</td>
-                                                                <td>{list.user_posyandu.desa}</td>
-                                                                <td>{list.user_posyandu.nama_lengkap}</td>
-                                                                <td>Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
-                                                                <td>{this.getBulan(list.usia_saat_ukur)}</td>
-                                                                <td>{moment(list.created_at).format("YYYY-MM-DD")}</td>
-                                                                <td>{list.berat_badan}</td>
-                                                                <td>{list.tinggi_badan}</td>
-                                                                <td>{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
-                                                                <td>{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
-                                                                <td>{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
-                                                                <td className="text-nowrap p-1">
+                                                                <td className="px-3">JAWA TIMUR</td>
+                                                                <td className="px-3">MADIUN</td>
+                                                                <td className="px-3">{list.user_posyandu.kecamatan}</td>
+                                                                <td className="px-3">{list.user_posyandu.desa}</td>
+                                                                <td className="px-3">{list.user_posyandu.nama_lengkap}</td>
+                                                                <td className="px-3">Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
+                                                                <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
+                                                                <td className="px-3">{moment(list.created_at).format("YYYY-MM-DD")}</td>
+                                                                <td className="px-3">{list.berat_badan}</td>
+                                                                <td className="px-3">{list.tinggi_badan}</td>
+                                                                <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
+                                                                <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
+                                                                <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
+                                                                <td className="text-nowrap p-1 px-3">
                                                                 </td>
                                                         </tr>
                                                     ))}
@@ -833,6 +857,7 @@ class Skrining extends React.Component{
                     </Modal.Header>
                     <Formik
                         initialValues={tambah_skrining.skrining}
+                        //validationSchema={this.tambahSkriningSchema()}
                         enableReinitialize
                         onSubmit={this.addSkrining}
                     >
@@ -1211,39 +1236,39 @@ class Skrining extends React.Component{
                                     <div class="table-responsive mb-4">
                                         <table class="table table-centered table-nowrap mb-0 rounded">
                                             <thead class="thead-light">
-                                                <tr>
-                                                    <th class="border-0 rounded-start" width="30">#</th>
-                                                    <th class="border-0">NIK</th>
-                                                    <th class="border-0">Nama Anak</th>
-                                                    <th class="border-0">Tgl Lahir</th>
-                                                    <th class="border-0">Jenis Kelamin</th>
-                                                    <th class="border-0">NIK Ibu</th>
-                                                    <th class="border-0">Nama Ibu</th>
-                                                    <th class="border-0">NIK Ayah</th>
-                                                    <th class="border-0">Nama Ayah</th>
-                                                    <th class="border-0">Berat Badan Lahir</th>
-                                                    <th class="border-0">Tinggi Badan Lahir</th>
-                                                    <th class="border-0">Berat Badan</th>
-                                                    <th class="border-0 rounded-end">Tinggi Badan</th>
+                                                <tr className="text-uppercase">
+                                                    <th class="px-3 rounded-start" width="30">#</th>
+                                                    <th class="px-3">NIK</th>
+                                                    <th class="px-3">Nama Anak</th>
+                                                    <th class="px-3">Tgl Lahir</th>
+                                                    <th class="px-3">Jenis Kelamin</th>
+                                                    <th class="px-3">NIK Ibu</th>
+                                                    <th class="px-3">Nama Ibu</th>
+                                                    <th class="px-3">NIK Ayah</th>
+                                                    <th class="px-3">Nama Ayah</th>
+                                                    <th class="px-3">Berat Badan Lahir</th>
+                                                    <th class="px-3">Tinggi Badan Lahir</th>
+                                                    <th class="px-3">Berat Badan</th>
+                                                    <th class="px-3 rounded-end">Tinggi Badan</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {props.values.data.map((list, idx)=>(
                                                     <React.Fragment key={list}>
                                                         <tr className={classNames({"bg-danger":!list.found})}>
-                                                            <td>{(idx+1)}</td>
-                                                            <td>{list.data_anak.nik}</td>
-                                                            <td>{list.data_anak.nama_lengkap}</td>
-                                                            <td>{moment(list.data_anak.tgl_lahir).format("D MMM YYYY")}</td>
-                                                            <td>{list.data_anak.jenis_kelamin}</td>
-                                                            <td>{list.data_anak.ibu?.nik}</td>
-                                                            <td>{list.data_anak.ibu?.nama_lengkap}</td>
-                                                            <td>{list.data_anak.ayah?.nik}</td>
-                                                            <td>{list.data_anak.ayah?.nama_lengkap}</td>
-                                                            <td>{list.berat_badan_lahir}</td>
-                                                            <td>{list.tinggi_badan_lahir}</td>
-                                                            <td>{list.berat_badan}</td>
-                                                            <td>{list.berat_badan}</td>
+                                                            <td className="px-3">{(idx+1)}</td>
+                                                            <td className="px-3">{list.data_anak.nik}</td>
+                                                            <td className="px-3">{list.data_anak.nama_lengkap}</td>
+                                                            <td className="px-3">{moment(list.data_anak.tgl_lahir).format("D MMM YYYY")}</td>
+                                                            <td className="px-3">{list.data_anak.jenis_kelamin}</td>
+                                                            <td className="px-3">{list.data_anak.ibu?.nik}</td>
+                                                            <td className="px-3">{list.data_anak.ibu?.nama_lengkap}</td>
+                                                            <td className="px-3">{list.data_anak.ayah?.nik}</td>
+                                                            <td className="px-3">{list.data_anak.ayah?.nama_lengkap}</td>
+                                                            <td className="px-3">{list.berat_badan_lahir}</td>
+                                                            <td className="px-3">{list.tinggi_badan_lahir}</td>
+                                                            <td className="px-3">{list.berat_badan}</td>
+                                                            <td className="px-3">{list.berat_badan}</td>
                                                         </tr>
                                                     </React.Fragment>
                                                 ))}
