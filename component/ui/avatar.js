@@ -2,7 +2,7 @@ import React from 'react'
 import classNames from "classnames"
 import { akronim, BASE_URL, isUndefined } from '../../config/config'
 
-export default function Avatar({data, circle=false}) {
+export default function Avatar({data}) {
     const get_avatar_url=(avatar_url)=>{
         let avatar
         if(isUndefined(avatar_url)) avatar=""
@@ -20,7 +20,6 @@ export default function Avatar({data, circle=false}) {
                     :
                         <img 
                             src={get_avatar_url(data.avatar_url)} 
-                            className={classNames({"rounded-circle":circle})}
                         />
                     }
                 </>

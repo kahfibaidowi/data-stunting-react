@@ -1,6 +1,7 @@
 import React from "react"
 import update from "immutability-helper"
-import LayoutAdmin from "../../../component/LayoutAdmin"
+import classNames from "classnames"
+import LayoutCondensed from "../../../component/layout_condensed"
 import {AiOutlinePlus} from "react-icons/ai"
 import Avatar from "../../../component/ui/avatar"
 import { api } from "../../../config/api"
@@ -14,6 +15,9 @@ import { FiTrash, FiTrash2, FiUpload } from "react-icons/fi"
 import { ImPlus } from "react-icons/im"
 import Router from "next/router"
 import axios from "axios"
+import withAuth from "../../../component/hoc/auth"
+import { TbPlus, TbChevronLeft, TbChevronRight, TbTrash, TbUpload, TbEdit } from "react-icons/tb"
+import * as yup from "yup"
 
 class Users extends React.Component{
     state={
@@ -184,7 +188,6 @@ class Users extends React.Component{
                 user:{
                     username:"",
                     nama_lengkap:"",
-                    email:"",
                     password:"",
                     role:"admin",
                     avatar_url:"",
@@ -205,7 +208,20 @@ class Users extends React.Component{
                 localStorage.removeItem("login_data")
                 Router.push("/")
             }
-            toast.error("Insert Data Failed!", {position:"bottom-center"})
+            
+            if(err.response.data?.error=="VALIDATION_ERROR")
+                toast.error(err.response.data.data, {position:"bottom-center"})
+            else
+                toast.error("Insert Data Failed! ", {position:"bottom-center"})
+        })
+    }
+    tambahUserSchema=()=>{
+        return yup.object().shape({
+            username:yup.string().required(),
+            nama_lengkap:yup.string().required(),
+            password:yup.string().min(5).required(),
+            role:yup.string().required(),
+            status:yup.string().required()
         })
     }
 
@@ -237,7 +253,20 @@ class Users extends React.Component{
                 localStorage.removeItem("login_data")
                 Router.push("/")
             }
-            toast.error("Update Data Failed!", {position:"bottom-center"})
+            
+            if(err.response.data?.error=="VALIDATION_ERROR")
+                toast.error(err.response.data.data, {position:"bottom-center"})
+            else
+                toast.error("Update Data Failed! ", {position:"bottom-center"})
+        })
+    }
+    editUserSchema=()=>{
+        return yup.object().shape({
+            username:yup.string().required(),
+            nama_lengkap:yup.string().required(),
+            password:yup.string().optional(),
+            role:yup.string().required(),
+            status:yup.string().required()
         })
     }
 
@@ -280,27 +309,31 @@ class Users extends React.Component{
         const {kecamatan_desa_form, users, edit_user, tambah_user, hapus_user}=this.state
 
         return (
-            <LayoutAdmin
-                title="Master Users"
-            >
-                <div className="d-flex flex-column mt-5" style={{minHeight:"67vh"}}>
-                    <div className="row">
-                        <div className="col-12">
-                            <div className="card border-0 shadow mb-4">
-                                <div className="card-header py-3">
-                                    <div className="row align-items-center justify-content-start">
-                                        <div className="col">
-                                            <button 
-                                                className="btn btn-primary text-nowrap" 
-                                                onClick={this.toggleModalTambah}
-                                            >
-                                                <ImPlus/> Tambah
-                                            </button>
-                                        </div>
-                                    </div>
+            <LayoutCondensed>
+                <div class="page-header d-print-none">
+                    <div class="container-xl">
+                        <div class="row g-2 align-items-center">
+                            <div class="col">
+                                <div class="page-pretitle">Overview</div>
+                                <h2 class="page-title">Master Users</h2>
+                            </div>
+                            <div class="col-12 col-md-auto ms-auto d-print-none">
+                                <div class="btn-list">
+                                    <button type="button" class="btn btn-primary" onClick={this.toggleModalTambah}>
+                                        <TbPlus className="icon"/>
+                                        Tambah User
+                                    </button>
                                 </div>
-                                <div className="card-body">
-                                    <div className="d-flex mb-3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="page-body">
+                    <div class="container-xl">
+                        <div className="d-flex flex-column mt-3" style={{minHeight:"67vh"}}>
+                            <div className="row">
+                                <div className="col-12">
+                                    <div className="d-flex mb-3 mt-3">
                                         <div style={{width:"200px"}} className="me-2">
                                             <select name="role" value={users.role} className="form-select" onChange={this.typeFilter}>
                                                 <option value="">-- Semua Role</option>
@@ -327,60 +360,68 @@ class Users extends React.Component{
                                             />
                                         </div>
                                     </div>
-                                    <div className="table-responsive">
-                                        <table className="table table-centered table-wrap mb-0 rounded">
-                                            <thead className="thead-light">
-                                                <tr>
-                                                    <th className="border-0 rounded-start" width="50">#</th>
-                                                    <th className="border-0">User/Pengguna</th>
-                                                    <th className="border-0">Username</th>
-                                                    <th className="border-0" width="100">Role</th>
-                                                    <th className="border-0" width="150">Status</th>
-                                                    <th className="border-0 rounded-end" width="90"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {users.data.map((list, idx)=>(
-                                                    <tr key={list}>
-                                                            <td className="align-middle">{(idx+1)+((users.page-1)*users.per_page)}</td>
-                                                            <td className="py-1">
-                                                                <div className="d-flex align-items-center">
-                                                                    <div className="d-flex align-items-center">
-                                                                        <span className="avatar">
-                                                                            <Avatar 
-                                                                                data={list}
-                                                                                circle
-                                                                            />
-                                                                        </span>
-                                                                    </div>
-                                                                    <span className="fw-semibold text-capitalize ms-2">{list.nama_lengkap}</span>
-                                                                </div>
-                                                            </td>
-                                                            <td>
-                                                                {list.username}
-                                                            </td>
-                                                            <td>
-                                                                {list.role}
-                                                            </td>
-                                                            <td>
-                                                                {this.userStatus(list.status)}
-                                                            </td>
-                                                            <td className="text-nowrap p-1">
-                                                                <button className="btn btn-warning btn-sm" onClick={()=>this.showModalEdit(list)}>
-                                                                    Edit
-                                                                </button>
-                                                                <button type="button" className="btn btn-danger btn-sm ms-2" onClick={()=>this.showConfirmHapus(list)}>
-                                                                    Hapus
-                                                                </button>
-                                                            </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                    <div className="card border-0 mb-3">
+                                        <div className="card-body p-0">
+                                            <div className="table-responsive">
+                                                <table className="table table-centered table-wrap mb-0 rounded">
+                                                    <thead className="thead-light">
+                                                        <tr>
+                                                            <th className="border-0 rounded-start" width="50">#</th>
+                                                            <th className="border-0">User/Pengguna</th>
+                                                            <th className="border-0">Username</th>
+                                                            <th className="border-0" width="100">Role</th>
+                                                            <th className="border-0" width="150">Status</th>
+                                                            <th className="border-0 rounded-end" width="50"></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {users.data.map((list, idx)=>(
+                                                            <tr key={list}>
+                                                                    <td className="align-middle">{(idx+1)+((users.page-1)*users.per_page)}</td>
+                                                                    <td className="py-1 align-middle">
+                                                                        <div className="d-flex align-items-center">
+                                                                            <div className="d-flex align-items-center">
+                                                                                <span className="avatar avatar-sm">
+                                                                                    <Avatar 
+                                                                                        data={list}
+                                                                                    />
+                                                                                </span>
+                                                                            </div>
+                                                                            <span className="fw-semibold text-capitalize ms-2">{list.nama_lengkap}</span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        {list.username}
+                                                                    </td>
+                                                                    <td>
+                                                                        {list.role}
+                                                                    </td>
+                                                                    <td>
+                                                                        {this.userStatus(list.status)}
+                                                                    </td>
+                                                                    <td className="text-nowrap p-1 align-middle">
+                                                                        <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                            <TbEdit className="icon"/>
+                                                                        </button>
+                                                                        <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                            <TbTrash className="icon"/>
+                                                                        </button>
+                                                                    </td>
+                                                            </tr>
+                                                        ))}
+                                                        {users.data.length==0&&
+                                                            <tr>
+                                                                <td colSpan={6} className="text-center">Data tidak ditemukan!</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="d-flex align-items-center mt-4">
+                                    <div className="d-flex align-items-center">
                                         <div className="d-flex flex-column">
-                                            <div>Halaman {users.page} dari {users.last_page} Halaman</div>
+                                            <div>Halaman {users.page} dari {users.last_page}</div>
                                         </div>
                                         <div className="d-flex align-items-center me-auto ms-3">
                                             <select className="form-select" name="per_page" value={users.per_page} onChange={this.setPerPage}>
@@ -392,18 +433,29 @@ class Users extends React.Component{
                                         </div>
                                         <div className="d-flex ms-3">
                                             <button 
-                                                className="btn btn-gray" 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":users.page>1}
+                                                )}
                                                 disabled={users.page<=1}
                                                 onClick={()=>this.goToPage(users.page-1)}
                                             >
-                                                <FaChevronLeft/>
+                                                <TbChevronLeft/>
+                                                Prev
                                             </button>
                                             <button 
-                                                className="btn btn-gray ms-1" 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":users.page<users.last_page},
+                                                    "ms-2"
+                                                )}
                                                 disabled={users.page>=users.last_page}
                                                 onClick={()=>this.goToPage(users.page+1)}
                                             >
-                                                <FaChevronRight/>
+                                                Next
+                                                <TbChevronRight/>
                                             </button>
                                         </div>
                                     </div>
@@ -414,13 +466,14 @@ class Users extends React.Component{
                 </div>
 
                 {/* MODAL TAMBAH */}
-                <Modal show={tambah_user.is_open} onHide={this.toggleModalTambah} backdrop="static">
+                <Modal show={tambah_user.is_open} className="modal-blur" onHide={this.toggleModalTambah} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <Modal.Title>Tambah User</Modal.Title>
+                        <div className="modal-title h2 fw-bold">Tambah User</div>
                     </Modal.Header>
                     <Formik
                         initialValues={tambah_user.user}
                         onSubmit={this.addUser}
+                        validationSchema={this.tambahUserSchema()}
                     >
                         {props=>(
                             <form onSubmit={props.handleSubmit}>
@@ -497,7 +550,7 @@ class Users extends React.Component{
                                             <div>
                                                 <label>
                                                     <div className="btn btn-secondary cursor-pointer">
-                                                        <FiUpload/> Pilih Foto
+                                                        <TbUpload className="icon"/> Upload
                                                     </div>
                                                     <input
                                                         type="file"
@@ -520,10 +573,10 @@ class Users extends React.Component{
                                                 </label>
                                                 <button
                                                     type="button"
-                                                    className="btn btn-danger ms-2 px-3"
+                                                    className="btn btn-icon btn-danger ms-2 px-3"
                                                     onClick={e=>props.setFieldValue("avatar_url", "")}
                                                 >
-                                                    <FiTrash2/>
+                                                    <TbTrash className="icon"/>
                                                 </button>
                                             </div>
                                             <div className="mt-2">
@@ -549,7 +602,7 @@ class Users extends React.Component{
                                         </select>
                                     </div>
                                 </Modal.Body>
-                                <Modal.Footer className="mt-3">
+                                <Modal.Footer className="mt-3 border-top pt-2">
                                     <button 
                                         type="button" 
                                         className="btn btn-link text-gray me-auto" 
@@ -560,6 +613,7 @@ class Users extends React.Component{
                                     <button 
                                         type="submit" 
                                         className="btn btn-primary"
+                                        disabled={!(props.dirty&&props.isValid)}
                                     >
                                         Save Changes
                                     </button>
@@ -570,13 +624,14 @@ class Users extends React.Component{
                 </Modal>
 
                 {/* MODAL EDIT */}
-                <Modal show={edit_user.is_open} onHide={this.hideModalEdit} backdrop="static">
+                <Modal show={edit_user.is_open} className="modal-blur" onHide={this.hideModalEdit} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <Modal.Title>Edit User</Modal.Title>
+                        <div className="modal-title h2 fw-bold">Edit User</div>
                     </Modal.Header>
                     <Formik
                         initialValues={edit_user.user}
                         onSubmit={this.updateUser}
+                        validationSchema={this.editUserSchema()}
                     >
                         {props=>(
                             <form onSubmit={props.handleSubmit}>
@@ -654,7 +709,7 @@ class Users extends React.Component{
                                             <div>
                                                 <label>
                                                     <div className="btn btn-secondary cursor-pointer">
-                                                        <FiUpload/> Pilih Foto
+                                                        <TbUpload className="icon"/> Pilih Foto
                                                     </div>
                                                     <input
                                                         type="file"
@@ -677,10 +732,10 @@ class Users extends React.Component{
                                                 </label>
                                                 <button
                                                     type="button"
-                                                    className="btn btn-danger ms-2 px-3"
+                                                    className="btn btn-icon btn-danger ms-2 px-3"
                                                     onClick={e=>props.setFieldValue("avatar_url", "")}
                                                 >
-                                                    <FiTrash2/>
+                                                    <TbTrash className="icon"/>
                                                 </button>
                                             </div>
                                             <div className="mt-2">
@@ -706,7 +761,7 @@ class Users extends React.Component{
                                         </select>
                                     </div>
                                 </Modal.Body>
-                                <Modal.Footer className="mt-3">
+                                <Modal.Footer className="mt-3 border-top pt-2">
                                     <button 
                                         type="button" 
                                         className="btn btn-link text-gray me-auto" 
@@ -717,6 +772,7 @@ class Users extends React.Component{
                                     <button 
                                         type="submit" 
                                         className="btn btn-primary"
+                                        disabled={!(props.isValid)}
                                     >
                                         Save Changes
                                     </button>
@@ -734,9 +790,9 @@ class Users extends React.Component{
                     toggle={()=>this.hideConfirmHapus()}
                     deleteAction={()=>this.deleteUser()}
                 />
-            </LayoutAdmin>
+            </LayoutCondensed>
         )
     }
 }
 
-export default Users
+export default withAuth(Users)

@@ -34,6 +34,21 @@ export const access_token=()=>{
     }
 }
 
+//theme
+export const get_theme=()=>{
+    const theme=localStorage.getItem("preferences.theme")
+
+    if(theme!==null){
+        return theme
+    }
+    else{
+        return "light"
+    }
+}
+export const set_theme=(theme)=>{
+    localStorage.setItem("preferences.theme", theme)
+}
+
 //helper
 export const isUndefined=v=>{
     if(typeof v==="undefined") return true

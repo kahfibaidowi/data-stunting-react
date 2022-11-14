@@ -1,16 +1,17 @@
 import React from "react"
 import Animated from "../../component/ui/animate"
 import withAuth from "../../component/hoc/auth"
-import LayoutFrontpage from "../../component/LayoutFrontpage"
+//import LayoutFrontpage from "../../component/LayoutFrontpage"
+import LayoutCondensed from "../../component/layout_condensed"
 import Link from "next/link"
 
 class Frontpage extends React.Component{
     render(){
         return (
             <>
-                <LayoutFrontpage>
+                <LayoutCondensed>
                     <section className="block-slider">
-                        <div className="container px-md-4">
+                        <div className="container">
                             <div className="slider-wrapper">
                                 <div className="row">
                                     <div className="col-md-6">
@@ -53,33 +54,41 @@ class Frontpage extends React.Component{
                     </section>
 
                     <section className="block-widget mb-6">
-                        <div className="container px-4">
-                            <h2 className="block-title">Layanan Kesehatan Balita</h2>
-                            <div className="row horizontal-scrollable flex-nowrap flex-md-wrap mt-2">
+                        <div className="container d-flex flex-column">
+                            <h2 className="block-title mb-2">Layanan Kesehatan Balita</h2>
+                            <div className="row horizontal-scrollable flex-nowrap flex-md-wrap mt-3">
                                 <div className="col-5 col-md-2 mb-4">
-                                    <Link href="/frontpage/skrining_balita/add" className="d-flex flex-column align-items-center text-decoration-none box-shadow-1 p-3 rounded-2x h-100">
-                                        <div className='widget-link-img-icon rounded'>
-                                            <img src={`/6259890ee6bbd_antropometri.png`} className="img-fluid"/>
-                                        </div>
-                                        <div className="d-flex flex-column align-items-start mt-3">
-                                            <h3 className='widget-title-text text-center'>Pemeriksaan Antropometri</h3>
+                                    <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="text-decoration-none h-100">
+                                        <div className="card border-0 rounded-4">
+                                            <div className="card-body text-center py-4 px-2 rounded-4">
+                                                <div className="mb-3 d-flex justify-content-center">
+                                                    <div className="widget-link-img-icon">
+                                                    <img src={`/6259890ee6bbd_antropometri.png`} className="img-fluid"/>
+                                                    </div>
+                                                </div>
+                                                <div className="card-title fw-semibold text-muted text-truncate">Cek Antropometri</div>
+                                            </div>
                                         </div>
                                     </Link>
                                 </div>
                                 <div className="col-5 col-md-2 mb-4">
-                                    <Link href="/frontpage/skrining_balita" className="d-flex flex-column align-items-center text-decoration-none box-shadow-1 p-3 rounded-2x h-100">
-                                        <div className='widget-link-img-icon rounded'>
-                                            <img src={`/620b99ec6e8ec_ilustrasi header-01-11.png`} className="img-fluid"/>
-                                        </div>
-                                        <div className="d-flex flex-column align-items-start mt-3">
-                                            <h3 className='widget-title-text text-center'>Lihat Skrining</h3>
+                                    <Link href="/frontpage/skrining_balita" className="text-decoration-none h-100">
+                                        <div className="card border-0 rounded-4">
+                                            <div className="card-body text-center py-4 px-2 rounded-4">
+                                                <div className="mb-3 d-flex justify-content-center">
+                                                    <div className="widget-link-img-icon">
+                                                        <img src={`/620b99ec6e8ec_ilustrasi header-01-11.png`} className="img-fluid"/>
+                                                    </div>
+                                                </div>
+                                                <div className="card-title fw-semibold text-muted text-truncate">Lihat Skrining</div>
+                                            </div>
                                         </div>
                                     </Link>
                                 </div>
                             </div>
                         </div>
                     </section>
-                </LayoutFrontpage>
+                </LayoutCondensed>
             </>
         )
     }

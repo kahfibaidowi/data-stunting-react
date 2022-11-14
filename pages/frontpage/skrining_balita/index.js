@@ -3,23 +3,24 @@ import update from "immutability-helper"
 import classNames from "classnames"
 import Animated from "../../../component/ui/animate"
 import withAuth from "../../../component/hoc/auth"
-import LayoutFrontpage from "../../../component/LayoutFrontpage"
+import LayoutCondensed from "../../../component/layout_condensed"
 import Link from "next/link"
 import NumberFormat from 'react-number-format'
 import { Formik, yupToFormErrors } from "formik"
 import { api, api_kependudukan } from "../../../config/api"
 import { access_token, ceil_with_enclosure, excelToMomentDate, file_to_workbook, isUndefined, login_data } from "../../../config/config"
 import { toast } from "react-toastify"
-import Router from "next/router"
+import Router, { withRouter } from "next/router"
 import { ImFileExcel, ImPlus } from "react-icons/im"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import moment from "moment"
-import { Button, ButtonGroup, Dropdown, Modal, Spinner } from "react-bootstrap"
+import { Button, ButtonGroup, Dropdown, Modal, OverlayTrigger, Popover, Spinner } from "react-bootstrap"
 import writeXlsxFile from 'write-excel-file'
 import FileSaver from "file-saver"
 import readXlsxFile from "read-excel-file"
 import { read, utils, writeFileXLSX } from 'xlsx';
-import * as Yup from "yup"
+import * as yup from "yup"
+import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbPlus, TbUpload } from "react-icons/tb"
 
 class Skrining extends React.Component{
     state={
@@ -70,24 +71,58 @@ class Skrining extends React.Component{
     }
 
     componentDidMount=()=>{
-        this.setState({
-            login_data:login_data()!==null?login_data():{}
-        }, ()=>{
-            if(this.state.login_data.role=="posyandu"){
-                this.setState({
-                    skrining:update(this.state.skrining, {
-                        posyandu_id:{$set:this.state.login_data.id_user}
-                    })
-                }, ()=>{
-                    this.getsSkrining()
-                })
+        if(this.props.router.isReady){
+            if(this.props.router.query?.action=="cek_antropometri"){
+                this.toggleTambah()
             }
             else{
-                this.getsSkrining()
+                this.setState({
+                    login_data:login_data()!==null?login_data():{}
+                }, ()=>{
+                    if(this.state.login_data.role=="posyandu"){
+                        this.setState({
+                            skrining:update(this.state.skrining, {
+                                posyandu_id:{$set:this.state.login_data.id_user}
+                            })
+                        }, ()=>{
+                            this.getsSkrining()
+                        })
+                    }
+                    else{
+                        this.getsSkrining()
+                    }
+                })
             }
-        })
+        }
         
         this.getsKecamatanForm()
+    }
+    componentDidUpdate=(prevProps)=>{
+        if(prevProps.router.isReady!==this.props.router.isReady){
+            if(this.props.router.isReady){
+                if(this.props.router.query?.action=="cek_antropometri"){
+                    this.toggleTambah()
+                }
+                else{
+                    this.setState({
+                        login_data:login_data()!==null?login_data():{}
+                    }, ()=>{
+                        if(this.state.login_data.role=="posyandu"){
+                            this.setState({
+                                skrining:update(this.state.skrining, {
+                                    posyandu_id:{$set:this.state.login_data.id_user}
+                                })
+                            }, ()=>{
+                                this.getsSkrining()
+                            })
+                        }
+                        else{
+                            this.getsSkrining()
+                        }
+                    })
+                }
+            }
+        }
     }
     getsKecamatanForm=async()=>{
         api(access_token()).get("/region/type/kecamatan", {
@@ -150,6 +185,16 @@ class Skrining extends React.Component{
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
     }
+    getPenduduk=async(penduduk_id)=>{
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+        
+        if(token!==false){
+            return await api_kependudukan(token).get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
+    }
     goToPage=page=>{
         this.setState({
             skrining:update(this.state.skrining, {
@@ -204,6 +249,40 @@ class Skrining extends React.Component{
             return bln+" Bulan"
         }
     }
+    generateColumnPenduduk=(data, with_ayah_ibu=true)=>{
+        let data_penduduk={
+            id_penduduk:data.id_penduduk,
+            nik:data.nik,
+            no_kk:data.kartu_keluarga!==null?data.kartu_keluarga.no_kk:"",
+            nama_lengkap:data.nama_lengkap,
+            tempat_lahir:data.tempat_lahir,
+            tgl_lahir:data.tgl_lahir,
+            jenis_kelamin:data.jenis_kelamin,
+            provinsi:data.provinsi.region,
+            kabupaten_kota:data.kabupaten_kota.region,
+            kecamatan:data.kecamatan.region,
+            desa:data.desa.region,
+            alamat_detail:data.alamat_detail
+        }
+
+        if(with_ayah_ibu){
+            data_penduduk=Object.assign({}, data_penduduk, {
+                ibu:data.ibu!==null?{
+                    id_penduduk:data.ibu.id_penduduk,
+                    nik:data.ibu.nik,
+                    nama_lengkap:data.ibu.nama_lengkap
+                }:"",
+                ayah:data.ayah!==null?{
+                    id_penduduk:data.ayah.id_penduduk,
+                    nik:data.ayah.nik,
+                    nama_lengkap:data.ayah.nama_lengkap
+                }:""
+            })
+        }
+
+        return data_penduduk
+    }
+
 
     //tambah
     toggleTambah=()=>{
@@ -227,27 +306,17 @@ class Skrining extends React.Component{
             }
         })
     }
-    getPenduduk=async(penduduk_id)=>{
-        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
-        
-        if(token!==false){
-            return await api_kependudukan(token).get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
-        }
-        else{
-            toast.error(`Get data failed!`, {position:"bottom-center"})
-        }
-    }
     getsSkriningNIK=async(nik)=>{
         return await api().get(`/skrining_balita/${nik}?type=nik`).then(res=>res.data.data)
     }
     addSkrining=async (values, actions)=>{
+        //params
+        const data_anak=this.generateColumnPenduduk(values.data_anak)
+
         //insert to database
         await api(access_token()).post("/skrining_balita", {
             id_user:values.id_user,
-            data_anak:Object.assign({}, values.data_anak, {
-                ibu:values.data_anak.ibu!==null?values.data_anak.ibu:"",
-                ayah:values.data_anak.ayah!==null?values.data_anak.ayah:""
-            }),
+            data_anak:data_anak,
             berat_badan_lahir:values.berat_badan_lahir,
             tinggi_badan_lahir:values.tinggi_badan_lahir,
             berat_badan:values.berat_badan,
@@ -264,19 +333,22 @@ class Skrining extends React.Component{
                 localStorage.removeItem("login_data")
                 Router.push("/")
             }
-            toast.error("Insert Data Failed!", {position:"bottom-center"})
+            
+            if(err.response.data?.error=="VALIDATION_ERROR")
+                toast.error(err.response.data.data, {position:"bottom-center"})
+            else
+                toast.error("Insert Data Failed! ", {position:"bottom-center"})
         })
     }
-    // tambahSkriningSchema=()=>{
-    //     return Yup.object().shape({
-    //         nik_anak:Yup.string().required(),
-    //         data_anak:Yup.object().required(),
-    //         berat_badan_lahir:Yup.string().required(),
-    //         tinggi_badan_lahir:Yup.string().required(),
-    //         berat_badan:Yup.string().required(),
-    //         tinggi_badan:Yup.string().required()
-    //     })
-    // }
+    tambahSkriningSchema=()=>{
+        return yup.object().shape({
+            nik_anak:yup.string().required(),
+            berat_badan_lahir:yup.number().required(),
+            tinggi_badan_lahir:yup.number().required(),
+            berat_badan:yup.number().required(),
+            tinggi_badan:yup.number().required()
+        })
+    }
 
     //download template
     toggleDownload=()=>{
@@ -420,6 +492,10 @@ class Skrining extends React.Component{
                     fontWeight: 'bold'
                 },
                 {
+                    value: 'NO. KK',
+                    fontWeight: 'bold'
+                },
+                {
                     value: 'NAMA ANAK',
                     fontWeight: 'bold'
                 },
@@ -475,6 +551,10 @@ class Skrining extends React.Component{
                         {
                             type:String,
                             value:d.nik,
+                        },
+                        {
+                            type:String,
+                            value:d.kartu_keluarga!==null?d.kartu_keluarga.no_kk:null,
                         },
                         {
                             type:String,
@@ -550,22 +630,23 @@ class Skrining extends React.Component{
                     penduduk_data=penduduk_data.concat([{
                         data_anak:{
                             nik:!isUndefined(row[0])?row[0]:"",
-                            nama_lengkap:!isUndefined(row[1])?row[1]:"",
-                            tgl_lahir:excelToMomentDate(!isUndefined(row[2])?row[2]:""),
-                            jenis_kelamin:!isUndefined(row[3])?row[3]:"",
+                            no_kk:!isUndefined(row[1])?row[1]:"",
+                            nama_lengkap:!isUndefined(row[2])?row[2]:"",
+                            tgl_lahir:excelToMomentDate(!isUndefined(row[3])?row[3]:""),
+                            jenis_kelamin:!isUndefined(row[4])?row[4]:"",
                             ibu:{
-                                nik:!isUndefined(row[4])?row[4]:"",
-                                nama_lengkap:!isUndefined(row[5])?row[5]:""
+                                nik:!isUndefined(row[5])?row[5]:"",
+                                nama_lengkap:!isUndefined(row[6])?row[6]:""
                             },
-                            ayah:!isUndefined(row[6])?"":{
-                                nik:!isUndefined(row[6])?row[6]:"",
-                                nama_lengkap:!isUndefined(row[7])?row[7]:""
+                            ayah:!isUndefined(row[7])?"":{
+                                nik:!isUndefined(row[7])?row[7]:"",
+                                nama_lengkap:!isUndefined(row[8])?row[8]:""
                             }
                         },
-                        berat_badan_lahir:!isUndefined(row[8])?row[8]:"",
-                        tinggi_badan_lahir:!isUndefined(row[9])?row[9]:"",
-                        berat_badan:!isUndefined(row[10])?row[10]:"",
-                        tinggi_badan:!isUndefined(row[11])?row[11]:""
+                        berat_badan_lahir:!isUndefined(row[9])?row[9]:"",
+                        tinggi_badan_lahir:!isUndefined(row[10])?row[10]:"",
+                        berat_badan:!isUndefined(row[11])?row[11]:"",
+                        tinggi_badan:!isUndefined(row[12])?row[12]:""
                     }])
                 }
             })
@@ -586,11 +667,10 @@ class Skrining extends React.Component{
                     let idx=data.findIndex(d=>d.nik==x.data_anak.nik)
 
                     if(idx!=-1){
+                        const data_anak=this.generateColumnPenduduk(data[idx])
+
                         return Object.assign({}, x, {
-                            data_anak:Object.assign({}, data[idx], {
-                                ayah:data[idx].ayah!==null?data[idx].ayah:"",
-                                ibu:data[idx].ibu!==null?data[idx].ibu:"",
-                            }),
+                            data_anak:data_anak,
                             found:true
                         })
                     }
@@ -647,7 +727,11 @@ class Skrining extends React.Component{
                 localStorage.removeItem("login_data")
                 Router.push("/")
             }
-            toast.error("Import Data Failed!", {position:"bottom-center"})
+            
+            if(err.response.data?.error=="VALIDATION_ERROR")
+                toast.error(err.response.data.data, {position:"bottom-center"})
+            else
+                toast.error("Import Data Failed! ", {position:"bottom-center"})
         })
     }
 
@@ -663,36 +747,34 @@ class Skrining extends React.Component{
 
         return (
             <>
-                <LayoutFrontpage>
-                    <div className='block-blog-widget py-5'>
-                        <div className='container px-md-4'>
-                            <nav className="d-flex flex-column flex-md-row align-items-md-center justify-content-md-between">
-                                <ol className="breadcrumb mb-0">
-                                    <li className="breadcrumb-item">
-                                        <Link href="/frontpage" className='text-decoration-none'>
-                                            Frontpage
-                                        </Link>
-                                    </li>
-                                    <li className="breadcrumb-item active">List Antropometri</li>
-                                </ol>
-                            </nav>
-                            <div className='row mt-5 mb-5'>
-                                <div className='col-md-12 mx-auto'>
-                                    <div>
-                                        <div className="d-flex">
-                                            <button
-                                                type="button"
-                                                className="btn btn-primary text-nowrap me-2" 
-                                                onClick={this.toggleTambah}
-                                            >
-                                                <ImPlus/> Tambah
-                                            </button>
-                                            <Dropdown as={ButtonGroup}>
-                                                <label>
-                                                    <span className="btn btn-success d-inline-flex align-items-center" style={{borderTopRightRadius:"0", borderBottomRightRadius:"0"}} onClick={this.selectfi}>
-                                                        <ImFileExcel/>
-                                                        <span class="ms-1">Import</span>
-                                                    </span>
+                <LayoutCondensed>
+                    <div class="page-header d-print-none">
+                        <div class="container-xl">
+                            <div class="row g-2 align-items-center">
+                                <div class="col">
+                                    <div class="page-pretitle">Overview</div>
+                                    <h2 class="page-title">Skrining Balita</h2>
+                                </div>
+                                <div class="col-12 col-md-auto ms-auto d-print-none">
+                                    <div class="btn-list">
+                                        <Dropdown as={ButtonGroup}>
+                                            <label>
+                                                <span className="btn btn-success d-inline-flex align-items-center" style={{borderTopRightRadius:"0", borderBottomRightRadius:"0"}} onClick={this.selectfi}>
+                                                    <TbUpload className="icon"/>
+                                                    Import
+                                                </span>
+                                                <input
+                                                    type="file"
+                                                    name="file"
+                                                    onChange={this.selectFile}
+                                                    style={{display:"none"}}
+                                                    accept=".xlsx"
+                                                />
+                                            </label>
+                                            <Dropdown.Toggle split variant="success" className="px-2"/>
+                                            <Dropdown.Menu align="end" className="py-0 dropdown-menu-arrow">
+                                                <label class="d-block w-100 mb-0">
+                                                    <Dropdown.Item as="span" className="d-block w-100 cursor-pointer">Import Skrining</Dropdown.Item>
                                                     <input
                                                         type="file"
                                                         name="file"
@@ -701,22 +783,23 @@ class Skrining extends React.Component{
                                                         accept=".xlsx"
                                                     />
                                                 </label>
-                                                <Dropdown.Toggle split variant="success" className="px-2"/>
-                                                <Dropdown.Menu className="py-0">
-                                                    <label class="d-block w-100 mb-0">
-                                                        <Dropdown.Item as="span" className="d-block w-100 cursor-pointer">Pilih Berkas</Dropdown.Item>
-                                                        <input
-                                                            type="file"
-                                                            name="file"
-                                                            onChange={this.selectFile}
-                                                            style={{display:"none"}}
-                                                            accept=".xlsx"
-                                                        />
-                                                    </label>
-                                                    <Dropdown.Item as="span" className="d-block w-100 cursor-pointer" onClick={this.toggleDownload}>Download Template</Dropdown.Item>
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                        </div>
+                                                <Dropdown.Item as="span" className="d-block w-100 cursor-pointer" onClick={this.toggleDownload}>Download Template</Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                        <button type="button" class="btn btn-primary" onClick={this.toggleTambah}>
+                                            <TbPlus className="icon"/>
+                                            Cek Antropometri
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page-body">
+                        <div class="container-xl">
+                            <div className='row mt-3 mb-5'>
+                                <div className='col-md-12 mx-auto'>
+                                    <div>
                                         <div className="d-flex mb-3 mt-3">
                                             {login_data.role!="posyandu"&&
                                                 <div style={{width:"200px"}} className="me-2">
@@ -748,118 +831,135 @@ class Skrining extends React.Component{
                                                 />
                                             </div>
                                         </div>
-                                        <div className="table-responsive">
-                                            <table className="table table-centered table-nowrap mb-0 rounded">
-                                                <thead className="thead-light">
-                                                    <tr className="text-uppercase">
-                                                        <th className="px-3 rounded-start" width="50">#</th>
-                                                        <th className="px-3">NIK</th>
-                                                        <th className="px-3">Nama</th>
-                                                        <th className="px-3">JK</th>
-                                                        <th className="px-3">Tgl Lahir</th>
-                                                        <th className="px-3">BB Lahir</th>
-                                                        <th className="px-3">TB Lahir</th>
-                                                        <th className="px-3">Orang Tua</th>
-                                                        <th className="px-3">Prov</th>
-                                                        <th className="px-3">Kab/Kota</th>
-                                                        <th className="px-3">Kec</th>
-                                                        <th className="px-3">Desa/Kel</th>
-                                                        <th className="px-3">Posyandu</th>
-                                                        <th className="px-3">Alamat</th>
-                                                        <th className="px-3">Usia Saat Ukur</th>
-                                                        <th className="px-3">Tanggal</th>
-                                                        <th className="px-3">Berat Badan </th>
-                                                        <th className="px-3">Tinggi Badan</th>
-                                                        <th className="px-3">TB/U</th>
-                                                        <th className="px-3">BB/U</th>
-                                                        <th className="px-3">BB/TB</th>
-                                                        <th className="px-3 rounded-end" width="90"></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="border-top-0">
-                                                    {skrining.data.map((list, idx)=>(
-                                                        <tr key={list}>
-                                                                <td className="align-middle px-3">{(idx+1)+((skrining.page-1)*skrining.per_page)}</td>
-                                                                <td className="px-3">{list.data_anak.nik}</td>
-                                                                <td className="px-3">{list.data_anak.nama_lengkap}</td>
-                                                                <td className="px-3">{list.data_anak.jenis_kelamin}</td>
-                                                                <td className="px-3">{list.data_anak.tgl_lahir}</td>
-                                                                <td className="px-3">{list.berat_badan_lahir}</td>
-                                                                <td className="px-3">{list.tinggi_badan_lahir}</td>
-                                                                <td className="px-3">
-                                                                    {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
-                                                                </td>
-                                                                <td className="px-3">JAWA TIMUR</td>
-                                                                <td className="px-3">MADIUN</td>
-                                                                <td className="px-3">{list.user_posyandu.kecamatan}</td>
-                                                                <td className="px-3">{list.user_posyandu.desa}</td>
-                                                                <td className="px-3">{list.user_posyandu.nama_lengkap}</td>
-                                                                <td className="px-3">Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
-                                                                <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
-                                                                <td className="px-3">{moment(list.created_at).format("YYYY-MM-DD")}</td>
-                                                                <td className="px-3">{list.berat_badan}</td>
-                                                                <td className="px-3">{list.tinggi_badan}</td>
-                                                                <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
-                                                                <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
-                                                                <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
-                                                                <td className="text-nowrap p-1 px-3">
-                                                                </td>
-                                                        </tr>
-                                                    ))}
-                                                    {skrining.data.length==0&&
-                                                        <tr>
-                                                            <td colSpan="21" className="text-center">Data tidak ditemukan!</td>
-                                                        </tr>
-                                                    }
-                                                </tbody>
-                                            </table>
+                                        <div class="card border-0">
+                                            <div class="card-body px-0 py-0">
+                                                <div className="table-responsive">
+                                                    <table className="table table-centered table-nowrap mb-0 rounded">
+                                                        <thead className="thead-light">
+                                                            <tr className="text-uppercase">
+                                                                <th className="px-3" width="50">#</th>
+                                                                <th className="px-3">NIK</th>
+                                                                <th className="px-3">No. KK</th>
+                                                                <th className="px-3">Nama</th>
+                                                                <th className="px-3">JK</th>
+                                                                <th className="px-3">Tgl Lahir</th>
+                                                                <th className="px-3">BB Lahir</th>
+                                                                <th className="px-3">TB Lahir</th>
+                                                                <th className="px-3">Orang Tua</th>
+                                                                <th className="px-3">Prov</th>
+                                                                <th className="px-3">Kab/Kota</th>
+                                                                <th className="px-3">Kec</th>
+                                                                <th className="px-3">Desa/Kel</th>
+                                                                <th className="px-3">Posyandu</th>
+                                                                <th className="px-3">Alamat</th>
+                                                                <th className="px-3">Usia Saat Ukur</th>
+                                                                <th className="px-3">Tanggal</th>
+                                                                <th className="px-3">Berat Badan </th>
+                                                                <th className="px-3">Tinggi Badan</th>
+                                                                <th className="px-3">TB/U</th>
+                                                                <th className="px-3">BB/U</th>
+                                                                <th className="px-3">BB/TB</th>
+                                                                <th className="px-3" width="90"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="border-top-0">
+                                                            {skrining.data.map((list, idx)=>(
+                                                                <tr key={list}>
+                                                                        <td className="align-middle px-3">{(idx+1)+((skrining.page-1)*skrining.per_page)}</td>
+                                                                        <td className="px-3">{list.data_anak.nik}</td>
+                                                                        <td className="px-3">{list.data_anak.no_kk}</td>
+                                                                        <td className="px-3">{list.data_anak.nama_lengkap}</td>
+                                                                        <td className="px-3">{list.data_anak.jenis_kelamin}</td>
+                                                                        <td className="px-3">{list.data_anak.tgl_lahir}</td>
+                                                                        <td className="px-3">{list.berat_badan_lahir}</td>
+                                                                        <td className="px-3">{list.tinggi_badan_lahir}</td>
+                                                                        <td className="px-3">
+                                                                            {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
+                                                                        </td>
+                                                                        <td className="px-3">JAWA TIMUR</td>
+                                                                        <td className="px-3">MADIUN</td>
+                                                                        <td className="px-3">{list.user_posyandu.kecamatan}</td>
+                                                                        <td className="px-3">{list.user_posyandu.desa}</td>
+                                                                        <td className="px-3">{list.user_posyandu.nama_lengkap}</td>
+                                                                        <td className="px-3">Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
+                                                                        <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
+                                                                        <td className="px-3">{moment(list.created_at).format("YYYY-MM-DD")}</td>
+                                                                        <td className="px-3">{list.berat_badan}</td>
+                                                                        <td className="px-3">{list.tinggi_badan}</td>
+                                                                        <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
+                                                                        <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
+                                                                        <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
+                                                                        <td className="text-nowrap p-1 px-3">
+                                                                        </td>
+                                                                </tr>
+                                                            ))}
+                                                            {skrining.data.length==0&&
+                                                                <tr>
+                                                                    <td colSpan="22" className="text-center">Data tidak ditemukan!</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="d-flex align-items-center mt-4">
+
+                                        <div className="d-flex align-items-center mt-3">
                                             <div className="d-flex flex-column">
-                                                <div>Halaman {skrining.page} dari {skrining.last_page} Halaman</div>
+                                                <div>Halaman {skrining.page} dari {skrining.last_page}</div>
                                             </div>
                                             <div className="d-flex align-items-center me-auto ms-3">
                                                 <select className="form-select" name="per_page" value={skrining.per_page} onChange={this.setPerPage}>
                                                     <option value="10">10 Data</option>
-                                                    <option value="2">25 Data</option>
+                                                    <option value="25">25 Data</option>
                                                     <option value="50">50 Data</option>
                                                     <option value="100">100 Data</option>
                                                 </select>
                                             </div>
                                             <div className="d-flex ms-3">
                                                 <button 
-                                                    className="btn btn-gray" 
+                                                    className={classNames(
+                                                        "btn",
+                                                        "border-0",
+                                                        {"btn-primary":skrining.page>1}
+                                                    )}
                                                     disabled={skrining.page<=1}
                                                     onClick={()=>this.goToPage(skrining.page-1)}
                                                 >
-                                                    <FaChevronLeft/>
+                                                    <TbChevronLeft/>
+                                                    Prev
                                                 </button>
                                                 <button 
-                                                    className="btn btn-gray ms-1" 
+                                                    className={classNames(
+                                                        "btn",
+                                                        "border-0",
+                                                        {"btn-primary":skrining.page<skrining.last_page},
+                                                        "ms-2"
+                                                    )}
                                                     disabled={skrining.page>=skrining.last_page}
                                                     onClick={()=>this.goToPage(skrining.page+1)}
                                                 >
-                                                    <FaChevronRight/>
+                                                    Next
+                                                    <TbChevronRight/>
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div>  
                         </div>
                     </div>
-                </LayoutFrontpage>
+                </LayoutCondensed>
 
                 {/* MODAL TAMBAH */}
-                <Modal show={tambah_skrining.is_open} onHide={this.toggleTambah} backdrop="static">
+                <Modal show={tambah_skrining.is_open} className="modal-blur" onHide={this.toggleTambah} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <Modal.Title>Cek Antropometri</Modal.Title>
+                        <div className="modal-title h2 fw-bold">Cek Antropometri</div>
                     </Modal.Header>
                     <Formik
                         initialValues={tambah_skrining.skrining}
-                        //validationSchema={this.tambahSkriningSchema()}
-                        enableReinitialize
                         onSubmit={this.addSkrining}
+                        validationSchema={this.tambahSkriningSchema()}
                     >
                         {props=>(
                             <form onSubmit={props.handleSubmit}>
@@ -954,7 +1054,7 @@ class Skrining extends React.Component{
                                                                     this.setState({
                                                                         tambah_skrining:update(this.state.tambah_skrining, {
                                                                             search_data:{
-                                                                                nik_anak:{$set:data},
+                                                                                nik_anak:{$set:this.generateColumnPenduduk(data)},
                                                                                 old_data:{$set:old_data}
                                                                             }
                                                                         })
@@ -980,7 +1080,37 @@ class Skrining extends React.Component{
                                                 }
                                             </div>
                                             {!isUndefined(tambah_skrining.search_data.nik_anak.id_penduduk)&&
-                                                <span class="form-text text-success">NIK Ditemukan : {tambah_skrining.search_data.nik_anak.nama_lengkap}</span>
+                                                <table className="mt-2">
+                                                    <tr>
+                                                        <th className="fw-semibold" width="150">Nama Lengkap </th>
+                                                        <td valign="top" width="15"> : </td>
+                                                        <td>{tambah_skrining.search_data.nik_anak.nama_lengkap}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className="fw-semibold">NIK </th>
+                                                        <td valign="top"> : </td>
+                                                        <td>{tambah_skrining.search_data.nik_anak.nik}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className="fw-semibold">Nama Ibu </th>
+                                                        <td valign="top"> : </td>
+                                                        <td>{tambah_skrining.search_data.nik_anak.ibu?.nama_lengkap}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className="fw-semibold">NIK Ibu </th>
+                                                        <td valign="top"> : </td>
+                                                        <td>{tambah_skrining.search_data.nik_anak.ibu?.nik}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className="fw-semibold">Alamat </th>
+                                                        <td valign="top"> : </td>
+                                                        <td>{' '}
+                                                            {tambah_skrining.search_data.nik_anak.desa}, {' '}
+                                                            {tambah_skrining.search_data.nik_anak.kecamatan}, {' '}
+                                                            {tambah_skrining.search_data.nik_anak.kabupaten_kota}
+                                                        </td>
+                                                    </tr>
+                                                </table>
                                             }
                                         </div>
                                         {!isUndefined(props.values.data_anak.nik)&&
@@ -1019,7 +1149,7 @@ class Skrining extends React.Component{
                                                     </>
                                                 }
                                                 <div className="mb-3">
-                                                    <label className="my-1 me-2 fw-semibold" for="country">Berat Badan<span className="text-danger">*</span></label>
+                                                    <label className="my-1 me-2 fw-semibold" for="country">Berat Badan Saat Timbang<span className="text-danger">*</span></label>
                                                     <NumberFormat
                                                         displayType="input"
                                                         suffix=" Kg"
@@ -1033,7 +1163,7 @@ class Skrining extends React.Component{
                                                     />
                                                 </div>
                                                 <div className="mb-3">
-                                                    <label className="my-1 me-2 fw-semibold" for="country">Tinggi Badan<span className="text-danger">*</span></label>
+                                                    <label className="my-1 me-2 fw-semibold" for="country">Tinggi Badan Saat Timbang<span className="text-danger">*</span></label>
                                                     <NumberFormat
                                                         displayType="input"
                                                         suffix=" Cm"
@@ -1051,7 +1181,7 @@ class Skrining extends React.Component{
                                         }
                                     </div>
                                 </Modal.Body>
-                                <Modal.Footer className="mt-3">
+                                <Modal.Footer className="mt-3 border-top pt-2">
                                     <button 
                                         type="button" 
                                         className="btn btn-link text-gray me-auto" 
@@ -1062,7 +1192,7 @@ class Skrining extends React.Component{
                                     <button 
                                         type="submit" 
                                         className="btn btn-primary"
-                                        disabled={props.isSubmitting}
+                                        disabled={props.isSubmitting||!(props.dirty&&props.isValid)}
                                     >
                                         Save Changes
                                     </button>
@@ -1073,9 +1203,9 @@ class Skrining extends React.Component{
                 </Modal>
 
                 {/* MODAL DOWNLOAD TEMPLATE */}
-                <Modal show={download_template.is_open} onHide={this.toggleDownload} backdrop="static">
+                <Modal show={download_template.is_open} className="modal-blur" onHide={this.toggleDownload} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <Modal.Title>Download Template</Modal.Title>
+                        <div className="modal-title h2 fw-bold">Download Template</div>
                     </Modal.Header>
                     <Formik
                         initialValues={download_template.template}
@@ -1170,7 +1300,7 @@ class Skrining extends React.Component{
                                         <span className="text-muted"><strong>*</strong> NIK Ibu, Nama Ibu Wajib diisi!</span>
                                     </div>
                                 </Modal.Body>
-                                <Modal.Footer className="mt-3">
+                                <Modal.Footer className="mt-3 border-top pt-2">
                                     <button 
                                         type="button" 
                                         class="btn btn-link text-gray me-auto" 
@@ -1198,9 +1328,9 @@ class Skrining extends React.Component{
                 </Modal>
 
                 {/* MODAL IMPORT */}
-                <Modal show={import_skrining.is_open} onHide={this.hideImport} backdrop="static" size="xl">
+                <Modal show={import_skrining.is_open} className="modal-blur" onHide={this.hideImport} backdrop="static" size="xl">
                     <Modal.Header closeButton>
-                        <Modal.Title>Data Excel</Modal.Title>
+                        <div className="modal-title h2 fw-bold">Data Excel</div>
                     </Modal.Header>
                     <Formik
                         initialValues={import_skrining.skrining}
@@ -1268,7 +1398,7 @@ class Skrining extends React.Component{
                                                             <td className="px-3">{list.berat_badan_lahir}</td>
                                                             <td className="px-3">{list.tinggi_badan_lahir}</td>
                                                             <td className="px-3">{list.berat_badan}</td>
-                                                            <td className="px-3">{list.berat_badan}</td>
+                                                            <td className="px-3">{list.tinggi_badan}</td>
                                                         </tr>
                                                     </React.Fragment>
                                                 ))}
@@ -1280,7 +1410,7 @@ class Skrining extends React.Component{
                                         <span className="text-muted"><strong>*</strong> Jika kolom NIK Ibu kosong, proses import akan gagal!</span>
                                     </div>
                                 </Modal.Body>
-                                <Modal.Footer className="mt-3">
+                                <Modal.Footer className="mt-3 border-top pt-2">
                                     <button 
                                         type="button" 
                                         class="btn btn-link text-gray me-auto" 
@@ -1311,4 +1441,4 @@ class Skrining extends React.Component{
     }
 }
 
-export default withAuth(Skrining)
+export default withRouter(withAuth(Skrining))

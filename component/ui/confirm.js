@@ -3,27 +3,30 @@ import classNames from "classnames"
 
 export const ConfirmDelete=({show, toggle, title, sub_title, deleteAction})=>{
     return (
-        <Modal show={show} backdrop="static" onHide={toggle} className="modal-alert" dialogClassName="modal-smd" backdropClassName="backdrop-nested">
-            <Modal.Body className="p-4 text-center">
-                <h5 class="mb-2 fw-bold">{title}</h5>
-                <p class="mb-0" style={{lineHeight:"22px"}}>{sub_title}</p>
-            </Modal.Body>
-            <Modal.Footer className="mt-2 flex-nowrap p-0">
-                <button 
-                    type="button" 
-                    class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0 border-end" 
-                    onClick={toggle}
-                >
-                    Batal
-                </button>
-                <button 
-                    type="button" 
-                    class="btn btn-lg btn-link link-danger fs-6 text-decoration-none col-6 m-0 rounded-0" 
-                    onClick={deleteAction}
-                >
-                    <strong>Ya, Hapus Data</strong>
-                </button>
-            </Modal.Footer>
+        <Modal show={show} backdrop="static" onHide={toggle} className="modal-blur" size="sm" backdropClassName="backdrop-nested">
+            <button type="button" class="btn-close" onClick={toggle}></button>
+
+            <div class="modal-body text-center py-4 rounded-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon mb-2 text-danger icon-lg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v2m0 4v.01" /><path d="M5 19h14a2 2 0 0 0 1.84 -2.75l-7.1 -12.25a2 2 0 0 0 -3.5 0l-7.1 12.25a2 2 0 0 0 1.75 2.75" /></svg>
+                <h3>{title}</h3>
+                <div class="text-muted">{sub_title}</div>
+            </div>
+            <div class="modal-footer">
+                <div class="w-100">
+                <div class="row">
+                    <div class="col">
+                        <button type="button" class="btn w-100" onClick={toggle}>
+                            Batal
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-danger w-100" onClick={deleteAction}>
+                            Ya, Hapus Data
+                        </button>
+                    </div>
+                </div>
+                </div>
+            </div>
         </Modal>
     )
 }
