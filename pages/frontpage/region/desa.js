@@ -14,7 +14,7 @@ import {ConfirmDelete} from "../../../component/ui/confirm"
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa"
 import { ImFilter, ImPlus } from "react-icons/im"
 import Router from "next/router"
-import { TbChevronLeft, TbChevronRight, TbEdit, TbPlus, TbTrash } from "react-icons/tb"
+import { TbChevronLeft, TbChevronRight, TbEdit, TbPlus, TbTrash, TbUpload } from "react-icons/tb"
 import * as yup from "yup"
 
 class Desa extends React.Component{
@@ -32,7 +32,13 @@ class Desa extends React.Component{
             is_open:false,
             region:{
                 nested:"",
-                region:""
+                region:"",
+                map_center:{
+                    zoom:"",
+                    latitude:"",
+                    longitude:""
+                },
+                geo_json:{}
             }
         },
         edit_region:{
@@ -165,7 +171,13 @@ class Desa extends React.Component{
                 is_open:!this.state.tambah_region.is_open,
                 region:{
                     region:"",
-                    nested:this.state.region.district_id
+                    nested:this.state.region.district_id,
+                    map_center:{
+                        zoom:"",
+                        latitude:"",
+                        longitude:""
+                    },
+                    geo_json:{}
                 }
             }
         })
@@ -173,8 +185,7 @@ class Desa extends React.Component{
     addRegion=async (values, actions)=>{
         await api(access_token()).post("/region", {
             type:"desa",
-            nested:values.nested,
-            region:values.region
+            ...values
         })
         .then(res=>{
             this.getsRegion()
@@ -195,17 +206,27 @@ class Desa extends React.Component{
     tambahRegionSchema=()=>{
         return yup.object().shape({
             region:yup.string().required(),
-            nested:yup.string().required()
+            nested:yup.string().required(),
+            map_center:yup.object().shape({
+                zoom:yup.number().optional(),
+                latitude:yup.string().optional(),
+                longitude:yup.string().optional()
+            }),
+            geo_json:yup.object().optional()
         })
     }
 
     //edit
-    showModalEdit=(data)=>{
+    showModalEdit=(region)=>{
+        const {data, ...region_data}=region
+
         this.setState({
             edit_region:{
                 is_open:true,
-                region:Object.assign({}, data, {
-                    nested:data.nested===null?"":data.nested
+                region:Object.assign({}, region_data, {
+                    nested:region_data.nested===null?"":region_data.nested,
+                    map_center:data.map_center,
+                    geo_json:(typeof data.geo_json==='object' && data.geo_json!==null && !Array.isArray(data.geo_json))?data.geo_json:{}
                 })
             }
         })
@@ -239,7 +260,13 @@ class Desa extends React.Component{
     editRegionSchema=()=>{
         return yup.object().shape({
             region:yup.string().required(),
-            nested:yup.string().required()
+            nested:yup.string().required(),
+            map_center:yup.object().shape({
+                zoom:yup.number().optional(),
+                latitude:yup.string().optional(),
+                longitude:yup.string().optional()
+            }),
+            geo_json:yup.object().optional()
         })
     }
 
@@ -440,6 +467,81 @@ class Desa extends React.Component{
                                             value={props.values.region}
                                         />
                                     </div>
+                                    <div className="mb-3">
+                                        <label className="my-1 me-2" for="country">Map Center</label>
+                                        <div class="input-group mb-1">
+                                            <span class="input-group-text">
+                                                Zoom
+                                            </span>
+                                            <select className="form-select" name="map_center.zoom" value={props.values.map_center.zoom} onChange={props.handleChange}>
+                                                <option value="">-- Pilih Zoom</option>
+                                                <option value="8">8x</option>
+                                                <option value="9">9x</option>
+                                                <option value="10">10x</option>
+                                                <option value="11">11x</option>
+                                                <option value="12">12x</option>
+                                                <option value="13">13x</option>
+                                                <option value="14">14x</option>
+                                                <option value="15">15x</option>
+                                                <option value="16">16x</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group mb-1">
+                                            <span class="input-group-text">
+                                                Latitude
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                class="form-control" 
+                                                autocomplete="off"
+                                                name="map_center.latitude"
+                                                value={props.values.map_center.latitude}
+                                                onChange={props.handleChange}
+                                            />
+                                        </div>
+                                        <div class="input-group mb-1">
+                                            <span class="input-group-text">
+                                                Longitude
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                class="form-control" 
+                                                autocomplete="off"
+                                                name="map_center.longitude"
+                                                value={props.values.map_center.longitude}
+                                                onChange={props.handleChange}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mb-3">
+                                        <div className="d-flex mb-1">
+                                            <label className="my-1 me-2" for="country">Geo JSON</label>
+                                            <label>
+                                                <span className="btn btn-secondary btn-sm ms-2"><TbUpload className="icon"/> Pilih File</span>
+                                                <input
+                                                    type="file"
+                                                    className="d-none"
+                                                    accept=".json, .geojson"
+                                                    onChange={async e=>{
+                                                        const data=await e.target.files[0].text()
+                                                        try{
+                                                            const geo_json=JSON.parse(data)
+                                                            props.setFieldValue("geo_json", geo_json)
+                                                        }
+                                                        catch(e){
+                                                            toast.error("Geo JSON invalid!", {position:"bottom-center"})
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+                                        <textarea
+                                            className="form-control bg-light"
+                                            value={JSON.stringify(props.values.geo_json)}
+                                            rows="5"
+                                            readOnly
+                                        />
+                                    </div>
                                 </Modal.Body>
                                 <Modal.Footer className="mt-3 border-top pt-2">
                                     <button 
@@ -492,6 +594,81 @@ class Desa extends React.Component{
                                             name="region"
                                             onChange={props.handleChange}
                                             value={props.values.region}
+                                        />
+                                    </div>
+                                    <div className="mb-3">
+                                        <label className="my-1 me-2" for="country">Map Center</label>
+                                        <div class="input-group mb-1">
+                                            <span class="input-group-text">
+                                                Zoom
+                                            </span>
+                                            <select className="form-select" name="map_center.zoom" value={props.values.map_center.zoom} onChange={props.handleChange}>
+                                                <option value="">-- Pilih Zoom</option>
+                                                <option value="8">8x</option>
+                                                <option value="9">9x</option>
+                                                <option value="10">10x</option>
+                                                <option value="11">11x</option>
+                                                <option value="12">12x</option>
+                                                <option value="13">13x</option>
+                                                <option value="14">14x</option>
+                                                <option value="15">15x</option>
+                                                <option value="16">16x</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group mb-1">
+                                            <span class="input-group-text">
+                                                Latitude
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                class="form-control" 
+                                                autocomplete="off"
+                                                name="map_center.latitude"
+                                                value={props.values.map_center.latitude}
+                                                onChange={props.handleChange}
+                                            />
+                                        </div>
+                                        <div class="input-group mb-1">
+                                            <span class="input-group-text">
+                                                Longitude
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                class="form-control" 
+                                                autocomplete="off"
+                                                name="map_center.longitude"
+                                                value={props.values.map_center.longitude}
+                                                onChange={props.handleChange}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mb-3">
+                                        <div className="d-flex mb-1">
+                                            <label className="my-1 me-2" for="country">Geo JSON</label>
+                                            <label>
+                                                <span className="btn btn-secondary btn-sm ms-2"><TbUpload className="icon"/> Pilih File</span>
+                                                <input
+                                                    type="file"
+                                                    className="d-none"
+                                                    accept=".json, .geojson"
+                                                    onChange={async e=>{
+                                                        const data=await e.target.files[0].text()
+                                                        try{
+                                                            const geo_json=JSON.parse(data)
+                                                            props.setFieldValue("geo_json", geo_json)
+                                                        }
+                                                        catch(e){
+                                                            toast.error("Geo JSON invalid!", {position:"bottom-center"})
+                                                        }
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+                                        <textarea
+                                            className="form-control bg-light"
+                                            value={JSON.stringify(props.values.geo_json)}
+                                            rows="5"
+                                            readOnly
                                         />
                                     </div>
                                 </Modal.Body>

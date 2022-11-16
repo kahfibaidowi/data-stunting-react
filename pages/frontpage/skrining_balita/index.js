@@ -67,6 +67,10 @@ class Skrining extends React.Component{
                 id_user:"",
                 data:[]
             }
+        },
+        detail_kk:{
+            is_open:false,
+            data:{}
         }
     }
 
@@ -195,6 +199,16 @@ class Skrining extends React.Component{
             toast.error(`Get data failed!`, {position:"bottom-center"})
         }
     }
+    getKK=async(kk_id)=>{
+        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
+
+        if(token!==false){
+            return await api_kependudukan(token).get(`/kartu_keluarga/${kk_id}`).then(res=>res.data.data)
+        }
+        else{
+            toast.error(`Get data failed!`, {position:"bottom-center"})
+        }
+    }
     goToPage=page=>{
         this.setState({
             skrining:update(this.state.skrining, {
@@ -241,6 +255,14 @@ class Skrining extends React.Component{
     timeout=0
 
     //helpers
+    jenkel=val=>{
+        if(val=="L"){
+            return "Laki Laki"
+        }
+        else if(val=="P"){
+            return "Perempuan"
+        }
+    }
     getBulan=bln=>{
         if(bln>60){
             return "60+ Bulan"
@@ -346,7 +368,14 @@ class Skrining extends React.Component{
             berat_badan_lahir:yup.number().required(),
             tinggi_badan_lahir:yup.number().required(),
             berat_badan:yup.number().required(),
-            tinggi_badan:yup.number().required()
+            tinggi_badan:yup.number().required(),
+            data_anak:yup.object().shape({
+                ibu:yup.object().shape({
+                    nama_lengkap:yup.string().required(),
+                    nik:yup.string().required()
+                }),
+                auah:yup.mixed().optional()
+            })
         })
     }
 
@@ -735,6 +764,39 @@ class Skrining extends React.Component{
         })
     }
 
+    //detail kk
+    showDetailKK=async no_kk=>{
+        const kk=await this.getKK(no_kk).catch(err=>false)
+
+        if(kk!==false){
+            this.setState({
+                detail_kk:{
+                    is_open:true,
+                    data:kk
+                }
+            })
+        }
+        else{
+            toast.error(`No. KK tidak ditemukan!`, {position:"bottom-center"})
+        }
+    }
+    hideDetailKK=()=>{
+        this.setState({
+            detail_kk:update(this.state.detail_kk, {
+                is_open:{$set:false}
+            })
+        })
+
+        setTimeout(() => {
+            this.setState({
+                detail_kk:{
+                    is_open:false,
+                    data:{}
+                }
+            })
+        }, 200);
+    }
+
     render(){
         const {
             import_skrining,
@@ -742,7 +804,8 @@ class Skrining extends React.Component{
             kecamatan_form, 
             login_data, 
             skrining,
-            tambah_skrining
+            tambah_skrining,
+            detail_kk
         }=this.state
 
         return (
@@ -841,7 +904,7 @@ class Skrining extends React.Component{
                                                                 <th className="px-3">NIK</th>
                                                                 <th className="px-3">No. KK</th>
                                                                 <th className="px-3">Nama</th>
-                                                                <th className="px-3">JK</th>
+                                                                <th className="px-3">Jenis Kelamin</th>
                                                                 <th className="px-3">Tgl Lahir</th>
                                                                 <th className="px-3">BB Lahir</th>
                                                                 <th className="px-3">TB Lahir</th>
@@ -867,9 +930,19 @@ class Skrining extends React.Component{
                                                                 <tr key={list}>
                                                                         <td className="align-middle px-3">{(idx+1)+((skrining.page-1)*skrining.per_page)}</td>
                                                                         <td className="px-3">{list.data_anak.nik}</td>
-                                                                        <td className="px-3">{list.data_anak.no_kk}</td>
+                                                                        <td className="px-3">
+                                                                            {list.data_anak?.no_kk.trim()!=""&&
+                                                                                <button 
+                                                                                    type="button" 
+                                                                                    className="btn btn-link link-primary p-0"
+                                                                                    onClick={e=>this.showDetailKK(list.data_anak.no_kk)}
+                                                                                >
+                                                                                    {list.data_anak.no_kk}
+                                                                                </button>
+                                                                            }
+                                                                        </td>
                                                                         <td className="px-3">{list.data_anak.nama_lengkap}</td>
-                                                                        <td className="px-3">{list.data_anak.jenis_kelamin}</td>
+                                                                        <td className="px-3">{this.jenkel(list.data_anak.jenis_kelamin)}</td>
                                                                         <td className="px-3">{list.data_anak.tgl_lahir}</td>
                                                                         <td className="px-3">{list.berat_badan_lahir}</td>
                                                                         <td className="px-3">{list.tinggi_badan_lahir}</td>
@@ -1082,27 +1155,27 @@ class Skrining extends React.Component{
                                             {!isUndefined(tambah_skrining.search_data.nik_anak.id_penduduk)&&
                                                 <table className="mt-2">
                                                     <tr>
-                                                        <th className="fw-semibold" width="150">Nama Lengkap </th>
+                                                        <th valign="top" className="fw-semibold" width="150">Nama Lengkap </th>
                                                         <td valign="top" width="15"> : </td>
                                                         <td>{tambah_skrining.search_data.nik_anak.nama_lengkap}</td>
                                                     </tr>
                                                     <tr>
-                                                        <th className="fw-semibold">NIK </th>
+                                                        <th valign="top" className="fw-semibold">NIK </th>
                                                         <td valign="top"> : </td>
                                                         <td>{tambah_skrining.search_data.nik_anak.nik}</td>
                                                     </tr>
                                                     <tr>
-                                                        <th className="fw-semibold">Nama Ibu </th>
+                                                        <th valign="top" className="fw-semibold">Nama Ibu </th>
                                                         <td valign="top"> : </td>
                                                         <td>{tambah_skrining.search_data.nik_anak.ibu?.nama_lengkap}</td>
                                                     </tr>
                                                     <tr>
-                                                        <th className="fw-semibold">NIK Ibu </th>
+                                                        <th valign="top" className="fw-semibold">NIK Ibu </th>
                                                         <td valign="top"> : </td>
                                                         <td>{tambah_skrining.search_data.nik_anak.ibu?.nik}</td>
                                                     </tr>
                                                     <tr>
-                                                        <th className="fw-semibold">Alamat </th>
+                                                        <th valign="top" className="fw-semibold">Alamat </th>
                                                         <td valign="top"> : </td>
                                                         <td>{' '}
                                                             {tambah_skrining.search_data.nik_anak.desa}, {' '}
@@ -1435,6 +1508,82 @@ class Skrining extends React.Component{
                             </form>
                         )}
                     </Formik>
+                </Modal>
+
+                {/* MODAL DETAIL KK */}
+                <Modal show={detail_kk.is_open} className="modal-blur" onHide={this.hideDetailKK} backdrop="static" size="lg">
+                    <Modal.Header closeButton>
+                        <div className="modal-title h2 fw-bold">Detail Kartu Keluarga</div>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {!isUndefined(detail_kk.data.no_kk)&&
+                            <>
+                                <table className="mb-3">
+                                    <tr>
+                                        <th valign="top" width="140">No. KK</th>
+                                        <td valign="top" width="15"> : </td>
+                                        <td>{detail_kk.data?.no_kk}</td>
+                                    </tr>
+                                    <tr>
+                                        <th valign="top">Provinsi</th>
+                                        <td valign="top"> : </td>
+                                        <td>{detail_kk.data.provinsi?.region}</td>
+                                    </tr>
+                                    <tr>
+                                        <th valign="top">Kabupaten/Kota</th>
+                                        <td valign="top"> : </td>
+                                        <td>{detail_kk.data.kabupaten_kota?.region}</td>
+                                    </tr>
+                                    <tr>
+                                        <th valign="top">Kecamatan</th>
+                                        <td valign="top"> : </td>
+                                        <td>{detail_kk.data.kecamatan?.region}</td>
+                                    </tr>
+                                    <tr>
+                                        <th valign="top">getDesaForm</th>
+                                        <td valign="top"> : </td>
+                                        <td>{detail_kk.data.desa?.region}</td>
+                                    </tr>
+                                    <tr>
+                                        <th valign="top">Alamat</th>
+                                        <td valign="top"> : </td>
+                                        <td>{detail_kk.data.alamat_detail?.dusun},  RT/RW {detail_kk.data.alamat_detail?.rt}/{detail_kk.data.alamat_detail?.rw}, Jalan {detail_kk.data.alamat_detail?.jalan}</td>
+                                    </tr>
+                                </table>
+                                <div className="mb-3">
+                                    <label className="my-1 me-2 fw-semibold" for="country">Detail/Anggota</label>
+                                    <table className="table">
+                                        <thead>
+                                            <tr>
+                                                <th>NIK</th>
+                                                <th>Nama Lengkap</th>
+                                                <th>Hubungan Dalam Keluarga</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {detail_kk.data.detail.map(row=>(
+                                                <tr key={row}>
+                                                    <td className="py-1">{row.nik}</td>
+                                                    <td className="py-1">{row.penduduk.nama_lengkap}</td>
+                                                    <td className="py-1">{row.status_hubungan_keluarga}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        }
+                        
+                    </Modal.Body>
+                    <Modal.Footer className="mt-3 border-top pt-2">
+                        <button 
+                            type="button" 
+                            class="btn btn-link text-gray me-auto" 
+                            onClick={this.hideDetailKK}
+                        >
+                            Tutup
+                        </button>
+                    </Modal.Footer>
                 </Modal>
             </>
         )
