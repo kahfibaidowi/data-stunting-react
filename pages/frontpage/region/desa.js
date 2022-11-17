@@ -2,7 +2,7 @@ import React from "react"
 import classNames from "classnames"
 import withAuth from "../../../component/hoc/auth"
 import update from "immutability-helper"
-import LayoutCondensed from "../../../component/layout_condensed"
+import Layout from "../../../component/layout"
 import {AiOutlinePlus} from "react-icons/ai"
 import Avatar from "../../../component/ui/avatar"
 import { api } from "../../../config/api"
@@ -309,7 +309,7 @@ class Desa extends React.Component{
         const {kecamatan_form, region, tambah_region, edit_region, hapus_region}=this.state
 
         return (
-            <LayoutCondensed>
+            <Layout>
                 <div class="page-header d-print-none">
                     <div class="container-xl">
                         <div class="row g-2 align-items-center">
@@ -702,7 +702,7 @@ class Desa extends React.Component{
                     deleteAction={()=>this.deleteRegion()}
                 />
 
-            </LayoutCondensed>
+            </Layout>
         )
     }
 }

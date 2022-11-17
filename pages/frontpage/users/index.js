@@ -1,7 +1,7 @@
 import React from "react"
 import update from "immutability-helper"
 import classNames from "classnames"
-import LayoutCondensed from "../../../component/layout_condensed"
+import Layout from "../../../component/layout"
 import {AiOutlinePlus} from "react-icons/ai"
 import Avatar from "../../../component/ui/avatar"
 import { api } from "../../../config/api"
@@ -309,7 +309,7 @@ class Users extends React.Component{
         const {kecamatan_desa_form, users, edit_user, tambah_user, hapus_user}=this.state
 
         return (
-            <LayoutCondensed>
+            <Layout>
                 <div class="page-header d-print-none">
                     <div class="container-xl">
                         <div class="row g-2 align-items-center">
@@ -790,7 +790,7 @@ class Users extends React.Component{
                     toggle={()=>this.hideConfirmHapus()}
                     deleteAction={()=>this.deleteUser()}
                 />
-            </LayoutCondensed>
+            </Layout>
         )
     }
 }

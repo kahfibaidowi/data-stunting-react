@@ -3,7 +3,7 @@ import update from "immutability-helper"
 import classNames from "classnames"
 import Animated from "../../../component/ui/animate"
 import withAuth from "../../../component/hoc/auth"
-import LayoutCondensed from "../../../component/layout_condensed"
+import Layout from "../../../component/layout"
 import Link from "next/link"
 import NumberFormat from 'react-number-format'
 import { Formik, yupToFormErrors } from "formik"
@@ -329,7 +329,7 @@ class Skrining extends React.Component{
         })
     }
     getsSkriningNIK=async(nik)=>{
-        return await api().get(`/skrining_balita/${nik}?type=nik`).then(res=>res.data.data)
+        return await api(access_token()).get(`/skrining_balita/${nik}?type=nik`).then(res=>res.data.data)
     }
     addSkrining=async (values, actions)=>{
         //params
@@ -810,7 +810,7 @@ class Skrining extends React.Component{
 
         return (
             <>
-                <LayoutCondensed>
+                <Layout>
                     <div class="page-header d-print-none">
                         <div class="container-xl">
                             <div class="row g-2 align-items-center">
@@ -1022,7 +1022,7 @@ class Skrining extends React.Component{
                             </div>  
                         </div>
                     </div>
-                </LayoutCondensed>
+                </Layout>
 
                 {/* MODAL TAMBAH */}
                 <Modal show={tambah_skrining.is_open} className="modal-blur" onHide={this.toggleTambah} backdrop="static" size="sm">

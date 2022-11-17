@@ -198,3 +198,8 @@ label{
         height:600px;
     }
 }
+.dropdown-menu-static{
+    position: static !important;
+    inset: 0 !important;
+    transform: translate(0,0) !important;
+}

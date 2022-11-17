@@ -2,8 +2,7 @@ import React from "react"
 import update from "immutability-helper"
 import Animated from "../../component/ui/animate"
 import withAuth from "../../component/hoc/auth"
-//import LayoutFrontpage from "../../component/LayoutFrontpage"
-import LayoutCondensed from "../../component/layout_condensed"
+import Layout from "../../component/layout"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { api } from "../../config/api"
@@ -228,7 +227,7 @@ class Frontpage extends React.Component{
 
         return (
             <>
-                <LayoutCondensed>
+                <Layout>
                     <section className="block-slider">
                         <div className="container">
                             <div className="slider-wrapper">
@@ -379,7 +378,7 @@ class Frontpage extends React.Component{
                             </div>
                         </div>
                     </section>
-                </LayoutCondensed>
+                </Layout>
             </>
         )
     }

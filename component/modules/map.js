@@ -4,12 +4,17 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 
 const Map=(props)=>{
     const mapStyle=feature=>{
+        let color="#00f"
+        if(feature.properties.count_stunting>0){
+            color="#f00"
+        }
+
         return {
             stroke:true,
             color:"#FFF",
             weight:1,
             opacity:1,
-            fillColor:"#00F",
+            fillColor:color,
             fillOpacity:.7
         }
     }
