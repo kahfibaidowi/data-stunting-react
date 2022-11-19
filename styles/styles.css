@@ -203,3 +203,34 @@ label{
     inset: 0 !important;
     transform: translate(0,0) !important;
 }
+
+/* NAVBAR */
+.navbar-brand-responsive{
+    padding:30px 60px !important;
+}
+.navbar-brand-responsive .navbar-brand-image{
+    height: auto;
+}
+.navbar-layout-transparent{
+    background-color: transparent;
+    box-shadow: none !important;
+}
+@media(max-width:992px){
+    .navbar-brand-responsive{
+        position: relative;
+        width:60px;
+        height: 40px;
+        overflow: hidden;
+        padding:0 !important
+    }
+    .navbar-brand-responsive .navbar-brand-image{
+        position: absolute;
+        left: 0;
+        top:0;
+        width: 100%;
+    }
+    .navbar-layout-transparent{
+        background-color: #fff;
+        box-shadow: rgb(230, 231, 233) 0px -1px 0px 0px inset !important;
+    }
+}

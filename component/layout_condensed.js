@@ -42,7 +42,7 @@ class LayoutCondensed extends React.Component{
                         </Navbar.Toggle>
                         <h1 className="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
                             <Link href="/frontpage">
-                                <img src="/logo.svg" width="110" height="32" alt="Tabler" className="navbar-brand-image"/>
+                                <img src="/logo.png" width="110" height="32" alt="Tabler" className="navbar-brand-image"/>
                             </Link>
                         </h1>
                         <div className="navbar-nav flex-row order-md-last">
@@ -124,6 +124,22 @@ class LayoutCondensed extends React.Component{
                                             </span>
                                         </Link>
                                     </li>
+                                    <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
+                                        <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                            <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                            <span className="nav-link-title">
+                                                Skrining Balita
+                                            </span>
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu className="dropdown-menu-static">
+                                            <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
+                                                Cek Antropometri
+                                            </Link>
+                                            <Link href="/frontpage/skrining_balita" className="dropdown-item">
+                                                Lihat Skrining
+                                            </Link>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
                                     {login_data.role=="admin"&&
                                         <>
                                             <Dropdown as="li" className="nav-item dropdown">

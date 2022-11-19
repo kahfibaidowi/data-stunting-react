@@ -2,7 +2,7 @@ import React from "react"
 import { Dropdown, Navbar } from "react-bootstrap"
 import { access_token, login_data, set_theme } from "../config/config"
 import ThemeContext from "../store/theme_context"
-import {TbAlertCircle, TbEdit, TbExclamationMark, TbHome, TbLogout, TbMap2, TbUsers} from "react-icons/tb"
+import {TbAlertCircle, TbEdit, TbExclamationMark, TbHome, TbLogout, TbMap2, TbMoodKid, TbUsers} from "react-icons/tb"
 import Avatar from "./ui/avatar"
 import { api } from "../config/api"
 import Router from "next/router"
@@ -35,14 +35,14 @@ class LayoutTransparent extends React.Component{
 
         return (
             <>
-                <aside class="navbar navbar-vertical navbar-expand-lg navbar-transparent">
+                <Navbar as="aside" className="navbar navbar-vertical navbar-layout-transparent" expand="lg">
                     <div class="container-fluid">
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <h1 className="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                        <Navbar.Toggle className="navbar-toggler" as="button" type="button">
+                            <span className="navbar-toggler-icon"></span>
+                        </Navbar.Toggle>
+                        <h1 className="navbar-brand navbar-brand-responsive navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
                             <Link href="/frontpage">
-                                <img src="/logo.svg" width="110" height="32" alt="Tabler" className="navbar-brand-image"/>
+                                <img src="/logo.png" alt="Tabler" className="navbar-brand-image"/>
                             </Link>
                         </h1>
                         <div className="navbar-nav flex-row order-md-last d-lg-none">
@@ -113,7 +113,7 @@ class LayoutTransparent extends React.Component{
                                 </Dropdown.Menu>
                             </Dropdown>
                         </div>
-                        <div class="collapse navbar-collapse" id="sidebar-menu">
+                        <Navbar.Collapse id="toggle-nav-menu">
                             <ul className="navbar-nav pt-lg-3">
                                 <li className="nav-item">
                                     <Link href="/frontpage" className="nav-link">
@@ -123,6 +123,22 @@ class LayoutTransparent extends React.Component{
                                         </span>
                                     </Link>
                                 </li>
+                                <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
+                                    <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                        <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                        <span className="nav-link-title">
+                                            Skrining Balita
+                                        </span>
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu className="dropdown-menu-static">
+                                        <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
+                                            Cek Antropometri
+                                        </Link>
+                                        <Link href="/frontpage/skrining_balita" className="dropdown-item">
+                                            Lihat Skrining
+                                        </Link>
+                                    </Dropdown.Menu>
+                                </Dropdown>
                                 {login_data.role=="admin"&&
                                     <>
                                         <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
@@ -152,20 +168,15 @@ class LayoutTransparent extends React.Component{
                                     </>
                                 }
                             </ul>
-                        </div>
+                        </Navbar.Collapse>
                     </div>
-                </aside>
+                </Navbar>
 
                 <Navbar as="header" className="navbar navbar-light d-none d-lg-flex" expand="md">
                     <div className="container-xl">
                         <Navbar.Toggle className="navbar-toggler" as="button" type="button">
                             <span className="navbar-toggler-icon"></span>
                         </Navbar.Toggle>
-                        <h1 className="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3 d-lg-none">
-                            <Link href="/frontpage">
-                                <img src="/logo.svg" width="110" height="32" alt="Tabler" className="navbar-brand-image"/>
-                            </Link>
-                        </h1>
                         <div className="navbar-nav flex-row order-md-last ms-auto">
                             <ThemeContext.Consumer>
                                 {tc_value=>(
