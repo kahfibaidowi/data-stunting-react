@@ -59,6 +59,7 @@ class Frontpage extends React.Component{
                     type:"Feature",
                     properties:{
                         region:data.region,
+                        type:data.type,
                         count_stunting:data.count_stunting
                     },
                     geometry:Object.keys(data.data.geo_json).length>0?data.data.geo_json:{type:"MultiPolygon", coordinates:[]}

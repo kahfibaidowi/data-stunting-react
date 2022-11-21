@@ -18,6 +18,16 @@ const Map=(props)=>{
             fillOpacity:.7
         }
     }
+    getType=type=>{
+        switch(type){
+            case "kecamatan":
+                return "Kecamatan"
+            break
+            case "desa":
+                return "Desa"
+            break
+        }
+    }
 
     return (
         <MapContainer 
@@ -38,7 +48,7 @@ const Map=(props)=>{
                 onEachFeature={(feature, layer)=>{
                     let popupContent=`
                         <div class='d-flex flex-column'>
-                            <span>Kecamatan : ${feature.properties.region}</span>
+                            <span>${getType(feature.properties.type)} : ${feature.properties.region}</span>
                             <span>Jumlah Anak Penderita Stunting : <strong>${feature.properties.count_stunting}</strong></span>
                         </div>
                     `
