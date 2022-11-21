@@ -40,9 +40,9 @@ class LayoutTransparent extends React.Component{
                         <Navbar.Toggle className="navbar-toggler" as="button" type="button">
                             <span className="navbar-toggler-icon"></span>
                         </Navbar.Toggle>
-                        <h1 className="navbar-brand navbar-brand-responsive navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                        <h1 className="navbar-brand navbar-brand-autodark d-none-navbar-horizontal navbar-brand-responsive">
                             <Link href="/frontpage">
-                                <img src="/logo.png" alt="Tabler" className="navbar-brand-image"/>
+                                <img src="/logo.png" alt="Stunting" className="navbar-brand-image"/>
                             </Link>
                         </h1>
                         <div className="navbar-nav flex-row order-md-last d-lg-none">
@@ -131,10 +131,10 @@ class LayoutTransparent extends React.Component{
                                         </span>
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu className="dropdown-menu-static">
-                                        <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
+                                        <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item" shallow={false}>
                                             Cek Antropometri
                                         </Link>
-                                        <Link href="/frontpage/skrining_balita" className="dropdown-item">
+                                        <Link href="/frontpage/skrining_balita" className="dropdown-item" shallow={false}>
                                             Lihat Skrining
                                         </Link>
                                     </Dropdown.Menu>

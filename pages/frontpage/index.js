@@ -230,70 +230,67 @@ class Frontpage extends React.Component{
                 <Layout>
                     <section className="block-widget mb-5 mt-5">
                         <div className="container d-flex flex-column">
-                            <h2 className="block-title mb-2">Pemetaan Stunting</h2>
-                                <div className="d-flex mb-4">
-                                    <div style={{width:"200px"}} className="me-2">
-                                        <select name="type" value={pemetaan.type} className="form-select" onChange={this.typeFilterPemetaan}>
-                                            <option value="kecamatan">Kecamatan</option>
-                                            <option value="desa">Desa</option>
-                                        </select>
-                                    </div>
-                                    {pemetaan.type=="desa"&&
-                                        <div style={{width:"200px"}} className="me-2">
-                                            <select name="district_id" value={pemetaan.district_id} className="form-select" onChange={this.typeFilterPemetaan}>
-                                                <option value="">-- Pilih Kecamatan</option>
-                                                {kecamatan_form.map(kf=>(
-                                                    <option key={kf} value={kf.id_region}>{kf.region}</option>
-                                                ))}
-                                            </select>
+                            <div className="row">
+                                <div className="col-lg-6">
+                                    <div className="card w-100 rounded-4 overflow-hidden">
+                                        <div className="card-header">
+                                            <h3 className="card-title fw-semibold">Pemetaan Stunting</h3>
                                         </div>
-                                    }
-                                </div>
-                            <div 
-                                className="d-flex flex-column align-items-center justify-content-between"
-                            >
-                                <div className="card w-100 rounded-4 overflow-hidden">
-                                    <div className="card-body p-0">
-                                        <Map data={pemetaan.data} center={pemetaan.center}/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className="block-widget mb-5">
-                        <div className="container d-flex flex-column">
-                            <h2 className="block-title mb-2">Grafik Anak Penderita Stunting</h2>
-                                <div className="d-flex mb-4">
-                                    <div style={{width:"200px"}} className="me-2">
-                                        <select name="type" value={bar_chart.type} className="form-select" onChange={this.typeFilterChart}>
-                                            <option value="kecamatan">Kecamatan</option>
-                                            <option value="desa">Desa</option>
-                                        </select>
-                                    </div>
-                                    {bar_chart.type=="desa"&&
-                                        <div style={{width:"200px"}} className="me-2">
-                                            <select name="district_id" value={bar_chart.district_id} className="form-select" onChange={this.typeFilterChart}>
-                                                <option value="">-- Pilih Kecamatan</option>
-                                                {kecamatan_form.map(kf=>(
-                                                    <option key={kf} value={kf.id_region}>{kf.region}</option>
-                                                ))}
-                                            </select>
+                                        <div className="card-body p-3 border-top-0">
+                                            <div className="d-flex mb-3">
+                                                <div style={{width:"200px"}} className="me-2">
+                                                    <select name="type" value={pemetaan.type} className="form-select" onChange={this.typeFilterPemetaan}>
+                                                        <option value="kecamatan">Kecamatan</option>
+                                                        <option value="desa">Desa</option>
+                                                    </select>
+                                                </div>
+                                                {pemetaan.type=="desa"&&
+                                                    <div style={{width:"200px"}} className="me-2">
+                                                        <select name="district_id" value={pemetaan.district_id} className="form-select" onChange={this.typeFilterPemetaan}>
+                                                            <option value="">-- Pilih Kecamatan</option>
+                                                            {kecamatan_form.map(kf=>(
+                                                                <option key={kf} value={kf.id_region}>{kf.region}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <Map data={pemetaan.data} center={pemetaan.center}/>
                                         </div>
-                                    }
+                                    </div>
                                 </div>
-                            <div 
-                                className="d-flex flex-column align-items-center justify-content-between"
-                            >
-                                <div className="card w-100 rounded-4 overflow-hidden">
-                                    <div className="card-body p-0 graph-responsive">
-                                        <Chart
-                                            options={bar_chart.options}
-                                            series={bar_chart.series}
-                                            type="bar"
-                                            width="100%"
-                                            height="100%"
-                                        />
+                                <div className="col-lg-6">
+                                    <div className="card w-100 rounded-4 overflow-hidden">
+                                        <div className="card-header">
+                                            <h3 className="card-title fw-semibold">Grafik Anak Penderita Stunting</h3>
+                                        </div>
+                                        <div className="card-body p-3 border-top-0">
+                                            <div className="d-flex mb-3">
+                                                <div style={{width:"200px"}} className="me-2">
+                                                    <select name="type" value={bar_chart.type} className="form-select" onChange={this.typeFilterChart}>
+                                                        <option value="kecamatan">Kecamatan</option>
+                                                        <option value="desa">Desa</option>
+                                                    </select>
+                                                </div>
+                                                {bar_chart.type=="desa"&&
+                                                    <div style={{width:"200px"}} className="me-2">
+                                                        <select name="district_id" value={bar_chart.district_id} className="form-select" onChange={this.typeFilterChart}>
+                                                            <option value="">-- Pilih Kecamatan</option>
+                                                            {kecamatan_form.map(kf=>(
+                                                                <option key={kf} value={kf.id_region}>{kf.region}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <Chart
+                                                options={bar_chart.options}
+                                                series={bar_chart.series}
+                                                type="bar"
+                                                width="100%"
+                                                height="100%"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

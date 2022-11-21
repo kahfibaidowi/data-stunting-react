@@ -127,6 +127,31 @@ class Skrining extends React.Component{
                 }
             }
         }
+        if(JSON.stringify(prevProps.router)!=JSON.stringify(this.props.router)){
+            if(this.props.router.isReady){
+                if(this.props.router.query?.action=="cek_antropometri"){
+                    this.toggleTambah()
+                }
+                else{
+                    this.setState({
+                        login_data:login_data()!==null?login_data():{}
+                    }, ()=>{
+                        if(this.state.login_data.role=="posyandu"){
+                            this.setState({
+                                skrining:update(this.state.skrining, {
+                                    posyandu_id:{$set:this.state.login_data.id_user}
+                                })
+                            }, ()=>{
+                                this.getsSkrining()
+                            })
+                        }
+                        else{
+                            this.getsSkrining()
+                        }
+                    })
+                }
+            }
+        }
     }
     getsKecamatanForm=async()=>{
         api(access_token()).get("/region/type/kecamatan", {
@@ -168,8 +193,7 @@ class Skrining extends React.Component{
                 page:reset?1:skrining.page,
                 per_page:skrining.per_page,
                 q:skrining.q,
-                posyandu_id:skrining.posyandu_id,
-                nik:skrining.nik
+                posyandu_id:skrining.posyandu_id
             }
         })
         .then(res=>{

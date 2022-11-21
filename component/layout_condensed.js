@@ -2,7 +2,7 @@ import React from "react"
 import { Dropdown, Navbar } from "react-bootstrap"
 import { access_token, login_data, set_theme } from "../config/config"
 import ThemeContext from "../store/theme_context"
-import {TbAlertCircle, TbEdit, TbExclamationMark, TbHome, TbLogout, TbMap2, TbUsers} from "react-icons/tb"
+import {TbAlertCircle, TbEdit, TbExclamationMark, TbHome, TbLogout, TbMap2, TbMoodKid, TbUsers} from "react-icons/tb"
 import Avatar from "./ui/avatar"
 import { api } from "../config/api"
 import Router from "next/router"
@@ -40,9 +40,9 @@ class LayoutCondensed extends React.Component{
                         <Navbar.Toggle className="navbar-toggler" as="button" type="button">
                             <span className="navbar-toggler-icon"></span>
                         </Navbar.Toggle>
-                        <h1 className="navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                        <h1 className="navbar-brand navbar-brand-layout-condensed navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
                             <Link href="/frontpage">
-                                <img src="/logo.png" width="110" height="32" alt="Tabler" className="navbar-brand-image"/>
+                                <img src="/logo.png" alt="Stunting" className="navbar-brand-image"/>
                             </Link>
                         </h1>
                         <div className="navbar-nav flex-row order-md-last">
@@ -124,22 +124,22 @@ class LayoutCondensed extends React.Component{
                                             </span>
                                         </Link>
                                     </li>
-                                    <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
-                                        <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
-                                            <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
-                                            <span className="nav-link-title">
-                                                Skrining Balita
-                                            </span>
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu className="dropdown-menu-static">
-                                            <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
-                                                Cek Antropometri
-                                            </Link>
-                                            <Link href="/frontpage/skrining_balita" className="dropdown-item">
-                                                Lihat Skrining
-                                            </Link>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
+                                <Dropdown as="li" className="nav-item dropdown">
+                                    <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                        <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                        <span className="nav-link-title">
+                                            Skrining Balita
+                                        </span>
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu className="dropdown-menu-arrow">
+                                        <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
+                                            Cek Antropometri
+                                        </Link>
+                                        <Link href="/frontpage/skrining_balita" className="dropdown-item">
+                                            Lihat Skrining
+                                        </Link>
+                                    </Dropdown.Menu>
+                                </Dropdown>
                                     {login_data.role=="admin"&&
                                         <>
                                             <Dropdown as="li" className="nav-item dropdown">
