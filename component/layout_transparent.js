@@ -137,6 +137,9 @@ class LayoutTransparent extends React.Component{
                                         <Link href="/frontpage/skrining_balita" className="dropdown-item" shallow={false}>
                                             Lihat Skrining
                                         </Link>
+                                        <Link href="/frontpage/skrining_balita/stunting" className="dropdown-item" shallow={false}>
+                                            Data Stunting
+                                        </Link>
                                     </Dropdown.Menu>
                                 </Dropdown>
                                 {login_data.role=="admin"&&

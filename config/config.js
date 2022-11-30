@@ -5,10 +5,10 @@ import { read, utils, writeFileXLSX } from 'xlsx';
 //url
 export const BASE_URL=process.env.NODE_ENV==="development"?
     "http://localhost/data-stunting/public":
-    "https://api.stunting.garapan.id";
+    "https://api.stunting.tifpsdku.com";
 export const BASE_URL_KEPENDUDUKAN=process.env.NODE_ENV==="development"?
     "http://localhost/data-kependudukan/public":
-    "https://api.kependudukan.garapan.id";
+    "https://api.kependudukan.tifpsdku.com";
 
 //login storage
 export const login_data=()=>{
@@ -50,6 +50,12 @@ export const set_theme=(theme)=>{
 }
 
 //helper
+export const is_object=v=>{
+    if(typeof v==='object' && v!=null){
+        return true
+    }
+    return false
+}
 export const isUndefined=v=>{
     if(typeof v==="undefined") return true
     else return false

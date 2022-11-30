@@ -5,8 +5,17 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
 const Map=(props)=>{
     const mapStyle=feature=>{
         let color="#00f"
-        if(feature.properties.count_stunting>0){
-            color="#f00"
+        if(feature.properties.count_stunting<=49){
+            color="#34eb83"
+        }
+        else if(feature.properties.count_stunting<=100){
+            color="#d3eb34"
+        }
+        else if(feature.properties.count_stunting<=200){
+            color="#ebab34"
+        }
+        else{
+            color="#eb3434"
         }
 
         return {
@@ -18,7 +27,7 @@ const Map=(props)=>{
             fillOpacity:.7
         }
     }
-    getType=type=>{
+    const getType=type=>{
         switch(type){
             case "kecamatan":
                 return "Kecamatan"

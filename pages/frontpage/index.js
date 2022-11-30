@@ -31,7 +31,26 @@ class Frontpage extends React.Component{
                 },
                 xaxis:{
                     categories:[]
-                }
+                },
+                tooltip: {
+                    theme: 'dark'
+                },
+                colors:[
+                    function ({value, seriesIndex, dataPointIndex, w}){
+                        if(value<=49) {
+                            return "#34eb83"
+                        }
+                        else if(value<=100){
+                            return "#d3eb34"
+                        }
+                        else if(value<=200){
+                            return "#ebab34"
+                        }
+                        else{
+                            return "#eb3434"
+                        }
+                    }
+                ]
             },
             series:[]
         }
@@ -45,7 +64,7 @@ class Frontpage extends React.Component{
     getsPemetaan=async ()=>{
         const {pemetaan}=this.state
 
-        await api(access_token()).get("/stunting", {
+        await api(access_token()).get("/stunting/summary_region", {
             params:{
                 per_page:"",
                 q:"",
@@ -88,7 +107,7 @@ class Frontpage extends React.Component{
     getsBarChart=async ()=>{
         const {bar_chart}=this.state
 
-        await api(access_token()).get("/stunting", {
+        await api(access_token()).get("/stunting/summary_region", {
             params:{
                 per_page:"",
                 q:"",
@@ -232,7 +251,7 @@ class Frontpage extends React.Component{
                     <section className="block-widget mb-5 mt-5">
                         <div className="container d-flex flex-column">
                             <div className="row">
-                                <div className="col-lg-6">
+                                <div className="col-lg-6 mb-3">
                                     <div className="card w-100 rounded-4 overflow-hidden">
                                         <div className="card-header">
                                             <h3 className="card-title fw-semibold">Pemetaan Stunting</h3>
@@ -260,7 +279,7 @@ class Frontpage extends React.Component{
                                         </div>
                                     </div>
                                 </div>
-                                <div className="col-lg-6">
+                                <div className="col-lg-6 mb-3">
                                     <div className="card w-100 rounded-4 overflow-hidden">
                                         <div className="card-header">
                                             <h3 className="card-title fw-semibold">Grafik Anak Penderita Stunting</h3>
@@ -289,7 +308,7 @@ class Frontpage extends React.Component{
                                                 series={bar_chart.series}
                                                 type="bar"
                                                 width="100%"
-                                                height="100%"
+                                                height="385px"
                                             />
                                         </div>
                                     </div>

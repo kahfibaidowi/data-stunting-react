@@ -329,7 +329,6 @@ class Skrining extends React.Component{
         return data_penduduk
     }
 
-
     //tambah
     toggleTambah=()=>{
         this.setState({
@@ -670,6 +669,8 @@ class Skrining extends React.Component{
         else{
             toast.error(`Get data failed!`, {position:"bottom-center"})
         }
+
+        this.toggleDownload()
     }
 
     //import
@@ -691,10 +692,10 @@ class Skrining extends React.Component{
                                 nik:!isUndefined(row[5])?row[5]:"",
                                 nama_lengkap:!isUndefined(row[6])?row[6]:""
                             },
-                            ayah:!isUndefined(row[7])?"":{
+                            ayah:!isUndefined(row[7])?{
                                 nik:!isUndefined(row[7])?row[7]:"",
                                 nama_lengkap:!isUndefined(row[8])?row[8]:""
-                            }
+                            }:""
                         },
                         berat_badan_lahir:!isUndefined(row[9])?row[9]:"",
                         tinggi_badan_lahir:!isUndefined(row[10])?row[10]:"",

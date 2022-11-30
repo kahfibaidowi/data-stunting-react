@@ -35,7 +35,7 @@ class LayoutCondensed extends React.Component{
 
         return (
             <>
-                <Navbar as="header" className="navbar navbar-light d-print-none" expand="md">
+                <Navbar as="header" className="navbar navbar-light d-print-none fixed-top" expand="md">
                     <div className="container-xl">
                         <Navbar.Toggle className="navbar-toggler" as="button" type="button">
                             <span className="navbar-toggler-icon"></span>
@@ -124,24 +124,43 @@ class LayoutCondensed extends React.Component{
                                             </span>
                                         </Link>
                                     </li>
-                                <Dropdown as="li" className="nav-item dropdown">
-                                    <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
-                                        <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
-                                        <span className="nav-link-title">
-                                            Skrining Balita
-                                        </span>
-                                    </Dropdown.Toggle>
-                                    <Dropdown.Menu className="dropdown-menu-arrow">
-                                        <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
-                                            Cek Antropometri
-                                        </Link>
-                                        <Link href="/frontpage/skrining_balita" className="dropdown-item">
-                                            Lihat Skrining
-                                        </Link>
-                                    </Dropdown.Menu>
-                                </Dropdown>
+                                    <Dropdown as="li" className="nav-item dropdown">
+                                        <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                            <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                            <span className="nav-link-title">
+                                                Skrining Balita
+                                            </span>
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu className="dropdown-menu-arrow">
+                                            <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
+                                                Cek Antropometri
+                                            </Link>
+                                            <Link href="/frontpage/skrining_balita" className="dropdown-item">
+                                                Lihat Skrining
+                                            </Link>
+                                            <Link href="/frontpage/skrining_balita/stunting" className="dropdown-item">
+                                                Data Stunting
+                                            </Link>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
                                     {login_data.role=="admin"&&
                                         <>
+                                            <Dropdown as="li" className="nav-item dropdown">
+                                                <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                                    <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                                    <span className="nav-link-title">
+                                                        Stunting 4118
+                                                    </span>
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu className="dropdown-menu-arrow">
+                                                    <Link href="/frontpage/stunting_4118" className="dropdown-item">
+                                                        Lihat Data
+                                                    </Link>
+                                                    {/* <Link href="/frontpage/stunting_4118/graph_chart" className="dropdown-item">
+                                                        Graph & Chart
+                                                    </Link> */}
+                                                </Dropdown.Menu>
+                                            </Dropdown>
                                             <Dropdown as="li" className="nav-item dropdown">
                                                 <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
                                                     <TbMap2 className="nav-link-icon d-md-none d-lg-inline-block"/>
@@ -174,7 +193,7 @@ class LayoutCondensed extends React.Component{
                     </div>
                 </Navbar>
 
-                <div className="page-wrapper">
+                <div className="page-wrapper mt-5">
                     {this.props.children}
                 </div>
             </>
