@@ -339,6 +339,7 @@ class Users extends React.Component{
                                                 <option value="">-- Semua Role</option>
                                                 <option value="admin">Super Admin</option>
                                                 <option value="dinkes">Dinas Kesehatan</option>
+                                                <option value="dinas">Dinas</option>
                                                 <option value="posyandu">Posyandu</option>
                                             </select>
                                         </div>
@@ -491,6 +492,7 @@ class Users extends React.Component{
                                         >
                                             <option value="admin">Admin</option>
                                             <option value="dinkes">Dinas Kesehatan</option>
+                                            <option value="dinas">Dinas</option>
                                             <option value="posyandu">Posyandu</option>
                                         </select>
                                     </div>
