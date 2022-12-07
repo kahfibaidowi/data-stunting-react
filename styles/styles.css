@@ -241,3 +241,6 @@ label{
         box-shadow: rgb(230, 231, 233) 0px -1px 0px 0px inset !important;
     }
 }
+.text-pre-wrap{
+    white-space: pre-wrap !important;
+}

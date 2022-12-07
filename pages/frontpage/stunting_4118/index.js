@@ -343,11 +343,10 @@ class Stunting4118 extends React.Component{
                                 jalan:!isUndefined(row[14])?row[14]:"",
                             }
                         },
-                        usia_saat_ukur:!isUndefined(row[15])?row[15]:"",
-                        berat_badan_lahir:!isUndefined(row[16])?row[16]:"",
-                        tinggi_badan_lahir:!isUndefined(row[17])?row[17]:"",
-                        berat_badan:!isUndefined(row[18])?row[18]:"",
-                        tinggi_badan:!isUndefined(row[19])?row[19]:""
+                        berat_badan_lahir:!isUndefined(row[15])?row[15]:"",
+                        tinggi_badan_lahir:!isUndefined(row[16])?row[16]:"",
+                        berat_badan:!isUndefined(row[17])?row[17]:"",
+                        tinggi_badan:!isUndefined(row[18])?row[18]:""
                     }])
                 }
             })
@@ -358,7 +357,7 @@ class Stunting4118 extends React.Component{
                     is_open:!this.state.import_stunting_4118.is_open,
                     kecamatan_form:this.state.kecamatan_form,
                     stunting_4118:{
-                        id_kecamatan:this.state.stunting_4118.district_id,
+                        id_kecamatan:"",
                         data:penduduk_data
                     }
                 }
@@ -436,8 +435,6 @@ class Stunting4118 extends React.Component{
         .then(res=>res.data.data)
         .catch(err=>[])
 
-        console.log(data)
-
         const header=[
             {
                 value:"NO",
@@ -497,10 +494,6 @@ class Stunting4118 extends React.Component{
             },
             {
                 value: 'JALAN',
-                fontWeight: 'bold'
-            },
-            {
-                value: 'USIA SAAT UKUR',
                 fontWeight: 'bold'
             },
             {
@@ -586,10 +579,6 @@ class Stunting4118 extends React.Component{
                 {
                     type:String,
                     value:is_object(d.alamat_detail)?d.alamat_detail.jalan.toString():null
-                },
-                {
-                    type:Number,
-                    value:list.usia_saat_ukur
                 },
                 {
                     type:Number,
@@ -912,7 +901,6 @@ class Stunting4118 extends React.Component{
                 <Modal show={import_stunting_4118.is_open} className="modal-blur" onHide={this.hideImport} backdrop="static" size="xl">
                     <Formik
                         initialValues={import_stunting_4118.stunting_4118}
-                        enableReinitialize
                         onSubmit={this.importStunting4118}
                         validationSchema={this.importStunting4118Schema()}
                     >
@@ -954,7 +942,6 @@ class Stunting4118 extends React.Component{
                                                     <th class="px-3">Nama Ibu</th>
                                                     <th class="px-3">NIK Ayah</th>
                                                     <th class="px-3">Nama Ayah</th>
-                                                    <th class="px-3">Usia Saat Ukur</th>
                                                     <th class="px-3">Berat Badan Lahir</th>
                                                     <th class="px-3">Tinggi Badan Lahir</th>
                                                     <th class="px-3">Berat Badan</th>
@@ -975,7 +962,6 @@ class Stunting4118 extends React.Component{
                                                             <td className="px-3">{list.data_anak.ibu?.nama_lengkap}</td>
                                                             <td className="px-3">{list.data_anak.ayah?.nik}</td>
                                                             <td className="px-3">{list.data_anak.ayah?.nama_lengkap}</td>
-                                                            <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
                                                             <td className="px-3">{list.berat_badan_lahir}</td>
                                                             <td className="px-3">{list.tinggi_badan_lahir}</td>
                                                             <td className="px-3">{list.berat_badan}</td>

@@ -2,7 +2,7 @@ import React from "react"
 import { Dropdown, Navbar } from "react-bootstrap"
 import { access_token, login_data, set_theme } from "../config/config"
 import ThemeContext from "../store/theme_context"
-import {TbAlertCircle, TbEdit, TbExclamationMark, TbHome, TbLogout, TbMap2, TbMoodKid, TbUsers} from "react-icons/tb"
+import {TbAlertCircle, TbBuildingFactory, TbEdit, TbExclamationMark, TbHome, TbLogout, TbMap2, TbMoodKid, TbUsers} from "react-icons/tb"
 import Avatar from "./ui/avatar"
 import { api } from "../config/api"
 import Router from "next/router"
@@ -143,6 +143,27 @@ class LayoutCondensed extends React.Component{
                                             </Link>
                                         </Dropdown.Menu>
                                     </Dropdown>
+                                    {["admin", "dinas"].includes(login_data.role)&&
+                                        <Dropdown as="li" className="nav-item dropdown">
+                                            <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                                <TbBuildingFactory className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                                <span className="nav-link-title">
+                                                    Intervensi
+                                                </span>
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu className="dropdown-menu-arrow">
+                                                <Link href="/frontpage/intervensi/rencana_kegiatan" className="dropdown-item">
+                                                    Rencana Kegiatan
+                                                </Link>
+                                                <Link href="/frontpage/intervensi/rencana_bantuan" className="dropdown-item">
+                                                    Rencana Bantuan
+                                                </Link>
+                                                <Link href="/frontpage/intervensi/realisasi_bantuan" className="dropdown-item">
+                                                    Realisasi Bantuan
+                                                </Link>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    }
                                     {login_data.role=="admin"&&
                                         <>
                                             <Dropdown as="li" className="nav-item dropdown">

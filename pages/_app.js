@@ -4,6 +4,7 @@ import "../styles/tabler.min.css"
 import "../styles/styles.css"
 import 'react-toastify/dist/ReactToastify.css';
 import 'leaflet/dist/leaflet.css'
+import 'react-bootstrap-typeahead/css/Typeahead.css'
 import { ToastContainer } from "react-toastify"
 import Head from "next/head";
 import { useEffect } from 'react';
