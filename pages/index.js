@@ -17,7 +17,12 @@ class Login extends React.Component{
         await api().post("/auth/login", values)
         .then(res=>{
             localStorage.setItem("login_data", JSON.stringify(res.data.data))
-            Router.push("/frontpage")
+            if(res.data.data.role=="dinas"){
+                Router.push("/frontpage/stunting_4118")
+            }
+            else{
+                Router.push("/frontpage")
+            }
         })
         .catch(err=>{
             toast.error("Login Gagal!", {position:"bottom-center"})

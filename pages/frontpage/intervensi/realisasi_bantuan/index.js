@@ -457,6 +457,7 @@ class RealisasiBantuan extends React.Component{
                                                             this.typeFilter({target:{name:"id_user", value:e.value}})
                                                         }}
                                                         value={this.findDinas(realisasi_bantuan.id_user, dinas_form)}
+                                                        placeholder="Pilih Dinas"
                                                     />
                                                 </div>
                                             }
@@ -467,6 +468,7 @@ class RealisasiBantuan extends React.Component{
                                                         this.typeFilter({target:{name:"tahun", value:e.value}})
                                                     }}
                                                     value={this.findTahun(realisasi_bantuan.tahun)}
+                                                    placeholder="Pilih Tahun"
                                                 />
                                             </div>
                                             <div style={{width:"200px"}} className="me-2">

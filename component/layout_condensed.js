@@ -41,7 +41,7 @@ class LayoutCondensed extends React.Component{
                             <span className="navbar-toggler-icon"></span>
                         </Navbar.Toggle>
                         <h1 className="navbar-brand navbar-brand-layout-condensed navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
-                            <Link href="/frontpage">
+                            <Link href={`/frontpage/${login_data.role=="dinas"?"/stunting_4118":""}`}>
                                 <img src="/logo.png" alt="Stunting" className="navbar-brand-image"/>
                             </Link>
                         </h1>
@@ -116,55 +116,74 @@ class LayoutCondensed extends React.Component{
                         <Navbar.Collapse id="toggle-nav-menu">
                             <div className="d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center">
                                 <ul className="navbar-nav">
-                                    <li className="nav-item">
-                                        <Link href="/frontpage" className="nav-link">
-                                            <TbHome className="nav-link-icon d-md-none d-lg-inline-block"/>
-                                            <span className="nav-link-title">
-                                                Frontpage
-                                            </span>
-                                        </Link>
-                                    </li>
-                                    <Dropdown as="li" className="nav-item dropdown">
-                                        <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
-                                            <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
-                                            <span className="nav-link-title">
-                                                Skrining Balita
-                                            </span>
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu className="dropdown-menu-arrow">
-                                            <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
-                                                Cek Antropometri
-                                            </Link>
-                                            <Link href="/frontpage/skrining_balita" className="dropdown-item">
-                                                Lihat Skrining
-                                            </Link>
-                                            <Link href="/frontpage/skrining_balita/stunting" className="dropdown-item">
-                                                Data Stunting
-                                            </Link>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
-                                    {["admin", "dinas"].includes(login_data.role)&&
-                                        <Dropdown as="li" className="nav-item dropdown">
-                                            <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
-                                                <TbBuildingFactory className="nav-link-icon d-md-none d-lg-inline-block"/>
-                                                <span className="nav-link-title">
-                                                    Intervensi
-                                                </span>
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu className="dropdown-menu-arrow">
-                                                <Link href="/frontpage/intervensi/rencana_kegiatan" className="dropdown-item">
-                                                    Rencana Kegiatan
+                                    {login_data.role!="dinas"&&
+                                        <>
+                                            <li className="nav-item">
+                                                <Link href="/frontpage" className="nav-link">
+                                                    <TbHome className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                                    <span className="nav-link-title">
+                                                        Frontpage
+                                                    </span>
                                                 </Link>
-                                                <Link href="/frontpage/intervensi/rencana_bantuan" className="dropdown-item">
-                                                    Rencana Bantuan
-                                                </Link>
-                                                <Link href="/frontpage/intervensi/realisasi_bantuan" className="dropdown-item">
-                                                    Realisasi Bantuan
-                                                </Link>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
+                                            </li>
+                                            <Dropdown as="li" className="nav-item dropdown">
+                                                <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                                    <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                                    <span className="nav-link-title">
+                                                        Skrining Balita
+                                                    </span>
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu className="dropdown-menu-arrow">
+                                                    <Link href="/frontpage/skrining_balita/?action=cek_antropometri" className="dropdown-item">
+                                                        Cek Antropometri
+                                                    </Link>
+                                                    <Link href="/frontpage/skrining_balita" className="dropdown-item">
+                                                        Lihat Skrining
+                                                    </Link>
+                                                    <Link href="/frontpage/skrining_balita/stunting" className="dropdown-item">
+                                                        Data Stunting
+                                                    </Link>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                        </>
                                     }
-                                    {login_data.role=="admin"&&
+                                    {["admin", "dinas"].includes(login_data.role)&&
+                                        <>
+                                            <Dropdown as="li" className="nav-item dropdown">
+                                                <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                                    <TbBuildingFactory className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                                    <span className="nav-link-title">
+                                                        Rencana Intervensi
+                                                    </span>
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu className="dropdown-menu-arrow">
+                                                    <Link href="/frontpage/intervensi/rencana_kegiatan" className="dropdown-item">
+                                                        Rencana Kegiatan
+                                                    </Link>
+                                                    <Link href="/frontpage/intervensi/rencana_bantuan" className="dropdown-item">
+                                                        Rencana Bantuan
+                                                    </Link>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                            <Dropdown as="li" className="nav-item dropdown">
+                                                <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
+                                                    <TbBuildingFactory className="nav-link-icon d-md-none d-lg-inline-block"/>
+                                                    <span className="nav-link-title">
+                                                        Realisasi Intervensi
+                                                    </span>
+                                                </Dropdown.Toggle>
+                                                <Dropdown.Menu className="dropdown-menu-arrow">
+                                                    {/* <Link href="/frontpage/intervensi/rencana_kegiatan" className="dropdown-item">
+                                                        Realisasi Kegiatan
+                                                    </Link> */}
+                                                    <Link href="/frontpage/intervensi/realisasi_bantuan" className="dropdown-item">
+                                                        Realisasi Bantuan
+                                                    </Link>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+                                        </>
+                                    }
+                                    {["admin", "dinas"].includes(login_data.role)&&
                                         <>
                                             <Dropdown as="li" className="nav-item dropdown">
                                                 <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
@@ -182,6 +201,10 @@ class LayoutCondensed extends React.Component{
                                                     </Link> */}
                                                 </Dropdown.Menu>
                                             </Dropdown>
+                                        </>
+                                    }
+                                    {login_data.role=="admin"&&
+                                        <>
                                             <Dropdown as="li" className="nav-item dropdown">
                                                 <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
                                                     <TbMap2 className="nav-link-icon d-md-none d-lg-inline-block"/>
