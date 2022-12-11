@@ -338,15 +338,15 @@ class Stunting4118 extends React.Component{
                             alamat_detail:{
                                 desa:!isUndefined(row[10])?row[10]:"",
                                 dusun:!isUndefined(row[11])?row[11]:"",
-                                rw:!isUndefined(row[12])?row[12]:"",
-                                rt:!isUndefined(row[13])?row[13]:"",
+                                rw:!isUndefined(row[12])?row[12].toString():"",
+                                rt:!isUndefined(row[13])?row[13].toString():"",
                                 jalan:!isUndefined(row[14])?row[14]:"",
                             }
                         },
-                        berat_badan_lahir:!isUndefined(row[15])?row[15]:"",
-                        tinggi_badan_lahir:!isUndefined(row[16])?row[16]:"",
-                        berat_badan:!isUndefined(row[17])?row[17]:"",
-                        tinggi_badan:!isUndefined(row[18])?row[18]:""
+                        berat_badan_lahir:!isUndefined(row[15])?Number(row[15]):"",
+                        tinggi_badan_lahir:!isUndefined(row[16])?Number(row[16]):"",
+                        berat_badan:!isUndefined(row[17])?Number(row[17]):"",
+                        tinggi_badan:!isUndefined(row[18])?Number(row[18]):""
                     }])
                 }
             })
