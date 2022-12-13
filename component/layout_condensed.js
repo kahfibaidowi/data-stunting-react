@@ -173,9 +173,9 @@ class LayoutCondensed extends React.Component{
                                                     </span>
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu className="dropdown-menu-arrow">
-                                                    {/* <Link href="/frontpage/intervensi/rencana_kegiatan" className="dropdown-item">
+                                                    <Link href="/frontpage/intervensi/realisasi_kegiatan" className="dropdown-item">
                                                         Realisasi Kegiatan
-                                                    </Link> */}
+                                                    </Link>
                                                     <Link href="/frontpage/intervensi/realisasi_bantuan" className="dropdown-item">
                                                         Realisasi Bantuan
                                                     </Link>
@@ -196,9 +196,16 @@ class LayoutCondensed extends React.Component{
                                                     <Link href="/frontpage/stunting_4118" className="dropdown-item">
                                                         Lihat Data
                                                     </Link>
-                                                    {/* <Link href="/frontpage/stunting_4118/graph_chart" className="dropdown-item">
-                                                        Graph & Chart
-                                                    </Link> */}
+                                                    {login_data.role=="admin"&&
+                                                        <>
+                                                            <Link href="/frontpage/stunting_4118/realisasi_anggaran_dinas" className="dropdown-item">
+                                                                Realisasi Anggaran Dinas
+                                                            </Link>
+                                                            <Link href="/frontpage/stunting_4118/sebaran_bantuan_stunting" className="dropdown-item">
+                                                                Sebaran Bantuan Stunting
+                                                            </Link>
+                                                        </>
+                                                    }
                                                 </Dropdown.Menu>
                                             </Dropdown>
                                         </>

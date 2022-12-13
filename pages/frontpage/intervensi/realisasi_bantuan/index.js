@@ -30,6 +30,7 @@ class RealisasiBantuan extends React.Component{
     state={
         login_data:{},
         dinas_form:[],
+        rencana_bantuan_form:[],
         realisasi_bantuan:{
             data:[],
             page:1,
@@ -42,12 +43,12 @@ class RealisasiBantuan extends React.Component{
         tambah_realisasi_bantuan:{
             is_open:false,
             dinas_form:[],
+            rencana_bantuan_form:[],
             realisasi_bantuan:{
                 id_user:"",
                 tahun:"",
                 id_skrining_balita:"",
                 id_rencana_bantuan:"",
-                nominal:"",
                 dokumen:""
             },
             options_skrining:[],
@@ -58,6 +59,7 @@ class RealisasiBantuan extends React.Component{
         edit_realisasi_bantuan:{
             is_open:false,
             dinas_form:[],
+            rencana_bantuan_form:[],
             realisasi_bantuan:{}
         },
         hapus_realisasi_bantuan:{
@@ -94,6 +96,32 @@ class RealisasiBantuan extends React.Component{
         .then(res=>{
             this.setState({
                 dinas_form:res.data.data
+            })
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/")
+            }
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
+        })
+    }
+    getsRencanaBantuanForm=async()=>{
+        const {realisasi_bantuan}=this.state
+
+        if(realisasi_bantuan.id_user==""||realisasi_bantuan.tahun=="") return
+
+        await api(access_token()).get("/intervensi_rencana_bantuan", {
+            params:{
+                per_page:"",
+                q:"",
+                id_user:realisasi_bantuan.id_user,
+                tahun:realisasi_bantuan.tahun
+            }
+        })
+        .then(res=>{
+            this.setState({
+                rencana_bantuan_form:res.data.data
             })
         })
         .catch(err=>{
@@ -175,6 +203,11 @@ class RealisasiBantuan extends React.Component{
                 break
                 default:
                     this.getsRealisasiBantuan(true)
+                    this.setState({
+                        rencana_bantuan_form:[]
+                    }, ()=>{
+                        this.getsRencanaBantuanForm()
+                    })
             }
         })
     }
@@ -206,6 +239,14 @@ class RealisasiBantuan extends React.Component{
     findDinas=(value, source)=>{
         return this.listDinas(source).find(f=>f.value==value)
     }
+    listRencanaBantuan=(source)=>{
+        return source.map(d=>{
+            return {label:d.bantuan, value:d.id_rencana_bantuan}
+        })
+    }
+    findRencanaBantuan=(value, source)=>{
+        return this.listRencanaBantuan(source).find(f=>f.value==value)
+    }
     uploadDokumen=async(e)=>{
         const files=e.target.files
 
@@ -227,12 +268,12 @@ class RealisasiBantuan extends React.Component{
             tambah_realisasi_bantuan:{
                 is_open:!this.state.tambah_realisasi_bantuan.is_open,
                 dinas_form:this.state.dinas_form,
+                rencana_bantuan_form:this.state.rencana_bantuan_form,
                 realisasi_bantuan:{
                     id_user:this.state.realisasi_bantuan.id_user,
                     tahun:this.state.realisasi_bantuan.tahun,
                     id_skrining_balita:"",
                     id_rencana_bantuan:"",
-                    nominal:"",
                     dokumen:""
                 },
                 options_skrining:[],
@@ -249,7 +290,6 @@ class RealisasiBantuan extends React.Component{
         await api(access_token()).post("/intervensi_realisasi_bantuan", {
             id_skrining_balita:values.id_skrining_balita,
             id_rencana_bantuan:values.id_rencana_bantuan,
-            nominal:values.nominal,
             dokumen:values.dokumen
         })
         .then(res=>{
@@ -272,7 +312,6 @@ class RealisasiBantuan extends React.Component{
         return yup.object().shape({
             id_skrining_balita:yup.string().required(),
             id_rencana_bantuan:yup.string().required(),
-            nominal:yup.number().required(),
             dokumen:yup.string().optional()
         })
     }
@@ -367,7 +406,6 @@ class RealisasiBantuan extends React.Component{
     }
     editRealisasiBantuanSchema=()=>{
         return yup.object().shape({
-            nominal:yup.number().required(),
             dokumen:yup.string().optional()
         })
     }
@@ -496,7 +534,6 @@ class RealisasiBantuan extends React.Component{
                                                                 <th className="px-3">Alamat</th>
                                                                 <th className="px-3">Jenis Bantuan</th>
                                                                 <th className="px-3">Tanggal</th>
-                                                                <th className="px-3">Nominal</th>
                                                                 <th className="px-3">Dokumen</th>
                                                                 <th className="px-3" width="90"></th>
                                                             </tr>
@@ -512,13 +549,6 @@ class RealisasiBantuan extends React.Component{
                                                                         <td className="px-3"></td>
                                                                         <td className="px-3">{list.rencana_bantuan.bantuan}</td>
                                                                         <td className="px-3">{moment(list.created_at).format("D MMM YYYY")}</td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={list.nominal}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
                                                                         <td>
                                                                             {list.dokumen!=""&&
                                                                                 <div className="d-block text-truncate" style={{maxWidth:"100%"}}>
@@ -544,7 +574,7 @@ class RealisasiBantuan extends React.Component{
                                                             ))}
                                                             {realisasi_bantuan.data.length==0&&
                                                                 <tr>
-                                                                    <td colSpan="11" className="text-center">Data tidak ditemukan!</td>
+                                                                    <td colSpan="10" className="text-center">Data tidak ditemukan!</td>
                                                                 </tr>
                                                             }
                                                         </tbody>
@@ -665,45 +695,13 @@ class RealisasiBantuan extends React.Component{
                                         </div>
                                         <div className="mb-3">
                                             <label className="my-1 me-2 fw-semibold" for="country">Rencana Bantuan</label>
-                                            <AsyncTypeahead
-                                                filterBy={option=>true}
-                                                id="search-rencana-bantuan"
-                                                isLoading={tambah_realisasi_bantuan.is_loading_rencana_bantuan}
-                                                labelKey={option=>option.bantuan}
-                                                minLength="2"
-                                                onSearch={e=>{
-                                                    this.searchRencanaBantuan(e, props.values.id_user, props.values.tahun)
-                                                }}
-                                                options={tambah_realisasi_bantuan.options_rencana_bantuan}
-                                                placeholder="Cari Data Rencana Bantuan..."
-                                                emptyLabel="Data Rencana Bantuan tidak ditemukan!"
+                                            <Select
+                                                options={this.listRencanaBantuan(tambah_realisasi_bantuan.rencana_bantuan_form)}
+                                                value={this.findRencanaBantuan(props.values.id_rencana_bantuan, this.listRencanaBantuan(tambah_realisasi_bantuan.rencana_bantuan_form))}
                                                 onChange={e=>{
-                                                    if(e.length>0){
-                                                        props.setFieldValue("id_rencana_bantuan", e[0].id_rencana_bantuan)
-                                                    }
-                                                    else{
-                                                        props.setFieldValue("id_rencana_bantuan", "")
-                                                    }
+                                                    props.setFieldValue("id_rencana_bantuan", e.value)
                                                 }}
-                                                renderMenuItemChildren={(option, props, index)=>(
-                                                    <div className='rbt-item d-flex flex-column pb-1 w-100' style={{borderBottom:"1px solid #e1e1e1"}} key={index}>
-                                                        <span className='fs-16px fw-semibold text-dark'>{option.bantuan}</span>
-                                                        <span className='mt-0 text-muted'>{option.detail_kegiatan}</span>
-                                                    </div>
-                                                )}
-                                            />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Nominal</label>
-                                            <NumberFormat
-                                                displayType="input"
-                                                value={props.values.nominal}
-                                                thousandSeparator
-                                                onValueChange={values=>{
-                                                    const {value}=values
-                                                    props.setFieldValue("nominal", value)
-                                                }}
-                                                className="form-control"
+                                                placeholder="Pilih Rencana Bantuan"
                                             />
                                         </div>
                                         <div className="mb-3">
@@ -793,19 +791,6 @@ class RealisasiBantuan extends React.Component{
                         {props=>(
                             <form onSubmit={props.handleSubmit}>
                                 <Modal.Body>
-                                    <div className="mb-3">
-                                        <label className="my-1 me-2 fw-semibold" for="country">Nominal</label>
-                                        <NumberFormat
-                                            displayType="input"
-                                            value={props.values.nominal}
-                                            thousandSeparator
-                                            onValueChange={values=>{
-                                                const {value}=values
-                                                props.setFieldValue("nominal", value)
-                                            }}
-                                            className="form-control"
-                                        />
-                                    </div>
                                     <div className="mb-3">
                                         <label className="my-1 me-2 fw-semibold" for="country">Dokumen</label>
                                         <div className="p-0">
