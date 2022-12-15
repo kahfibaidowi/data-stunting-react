@@ -99,7 +99,7 @@ class Frontpage extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
@@ -125,6 +125,9 @@ class Frontpage extends React.Component{
                         chart:{
                             id:"graph-stunting"
                         },
+                        tooltip: {
+                            theme: 'dark'
+                        },
                         xaxis:{
                             categories:xaxis
                         }
@@ -139,7 +142,7 @@ class Frontpage extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
@@ -162,7 +165,7 @@ class Frontpage extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })

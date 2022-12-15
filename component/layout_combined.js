@@ -1,22 +1,33 @@
 import React from "react"
+import classNames from "classnames"
 import { Dropdown, Navbar } from "react-bootstrap"
 import { access_token, login_data, set_theme } from "../config/config"
 import ThemeContext from "../store/theme_context"
-import {TbAlertCircle, TbBuildingFactory, TbEdit, TbExclamationMark, TbHome, TbLogout, TbMap2, TbMoodKid, TbUsers} from "react-icons/tb"
+import {TbAlertCircle, TbArrowsLeftRight, TbBuildingFactory, TbEdit, TbExclamationMark, TbHome, TbLogout, TbMap2, TbMoodKid, TbUsers} from "react-icons/tb"
 import Avatar from "./ui/avatar"
 import { api } from "../config/api"
 import Router from "next/router"
 import { toast } from "react-toastify"
 import Link from "next/link"
 
-class LayoutTransparent extends React.Component{
+class LayoutCombined extends React.Component{
     state={
-        login_data:{}
+        login_data:{},
+        sidebar:{
+            is_open:true
+        }
     }
 
     componentDidMount=()=>{
         this.setState({
             login_data:login_data()!=null?login_data():{}
+        })
+    }
+    toggleSidebar=()=>{
+        this.setState({
+            sidebar:{
+                is_open:!this.state.sidebar.is_open
+            }
         })
     }
 
@@ -31,19 +42,19 @@ class LayoutTransparent extends React.Component{
     }
 
     render(){
-        const {login_data}=this.state
+        const {login_data, sidebar}=this.state
 
         return (
             <>
-                <Navbar as="aside" className="navbar navbar-vertical navbar-layout-transparent" expand="lg">
+                <Navbar as="aside" className={classNames("navbar navbar-vertical navbar-dark", {"sidebar-collapsed":!sidebar.is_open})} expand="lg">
                     <div class="container-fluid">
                         <Navbar.Toggle className="navbar-toggler" as="button" type="button">
                             <span className="navbar-toggler-icon"></span>
                         </Navbar.Toggle>
                         <h1 className="navbar-brand navbar-brand-autodark d-none-navbar-horizontal navbar-brand-responsive">
-                            <Link href={`/frontpage/${login_data.role=="dinas"?"/stunting_4118":""}`}>
+                            {/* <Link href={`/frontpage/${login_data.role=="dinas"?"/stunting_4118":""}`}>
                                 <img src="/logo.png" alt="Stunting" className="navbar-brand-image"/>
-                            </Link>
+                            </Link> */}
                         </h1>
                         <div className="navbar-nav flex-row order-md-last d-lg-none">
                             <ThemeContext.Consumer>
@@ -125,7 +136,7 @@ class LayoutTransparent extends React.Component{
                                                 </span>
                                             </Link>
                                         </li>
-                                        <Dropdown as="li" className="nav-item dropdown">
+                                        <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
                                             <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
                                                 <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
                                                 <span className="nav-link-title">
@@ -148,7 +159,7 @@ class LayoutTransparent extends React.Component{
                                 }
                                 {["admin", "dinas"].includes(login_data.role)&&
                                     <>
-                                        <Dropdown as="li" className="nav-item dropdown">
+                                        <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
                                             <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
                                                 <TbBuildingFactory className="nav-link-icon d-md-none d-lg-inline-block"/>
                                                 <span className="nav-link-title">
@@ -164,7 +175,7 @@ class LayoutTransparent extends React.Component{
                                                 </Link>
                                             </Dropdown.Menu>
                                         </Dropdown>
-                                        <Dropdown as="li" className="nav-item dropdown">
+                                        <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
                                             <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
                                                 <TbBuildingFactory className="nav-link-icon d-md-none d-lg-inline-block"/>
                                                 <span className="nav-link-title">
@@ -184,7 +195,7 @@ class LayoutTransparent extends React.Component{
                                 }
                                 {["admin", "dinas"].includes(login_data.role)&&
                                     <>
-                                        <Dropdown as="li" className="nav-item dropdown">
+                                        <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
                                             <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
                                                 <TbMoodKid className="nav-link-icon d-md-none d-lg-inline-block"/>
                                                 <span className="nav-link-title">
@@ -211,7 +222,7 @@ class LayoutTransparent extends React.Component{
                                 }
                                 {login_data.role=="admin"&&
                                     <>
-                                        <Dropdown as="li" className="nav-item dropdown">
+                                        <Dropdown as="li" className="nav-item dropdown" autoClose={false}>
                                             <Dropdown.Toggle as="a" className="nav-link dropdown-toggle" href="#">
                                                 <TbMap2 className="nav-link-icon d-md-none d-lg-inline-block"/>
                                                 <span className="nav-link-title">
@@ -242,8 +253,11 @@ class LayoutTransparent extends React.Component{
                     </div>
                 </Navbar>
 
-                <Navbar as="header" className="navbar navbar-light d-none d-lg-flex" expand="md">
+                <Navbar as="header" className={classNames("navbar navbar-light d-none d-lg-flex", {"sidebar-collapsed":!sidebar.is_open})} expand="md">
                     <div className="container-xl">
+                        <button className="btn btn-icon" type="button" onClick={this.toggleSidebar}>
+                            <TbArrowsLeftRight className="icon"/>
+                        </button>
                         <Navbar.Toggle className="navbar-toggler" as="button" type="button">
                             <span className="navbar-toggler-icon"></span>
                         </Navbar.Toggle>
@@ -318,7 +332,7 @@ class LayoutTransparent extends React.Component{
                     </div>
                 </Navbar>
 
-                <div className="page-wrapper">
+                <div className={classNames("page-wrapper", {"sidebar-collapsed":!sidebar.is_open})}>
                     {this.props.children}
                 </div>
             </>
@@ -326,4 +340,4 @@ class LayoutTransparent extends React.Component{
     }
 }
 
-export default LayoutTransparent
+export default LayoutCombined

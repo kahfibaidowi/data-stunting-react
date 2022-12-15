@@ -1,5 +1,6 @@
 import React from "react"
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet"
+import { isUndefined } from "../../config/config"
 
 
 const Map=(props)=>{
@@ -43,7 +44,7 @@ const Map=(props)=>{
             center={[props.center.latitude, props.center.longitude]} 
             zoom={props.center.zoom} 
             scrollWheelZoom={false}
-            className="map-responsive"
+            className={!isUndefined(props.className)?props.className:"map-responsive"}
         >
             <ChangeView center={[props.center.latitude, props.center.longitude]} zoom={props.center.zoom} />
             <TileLayer

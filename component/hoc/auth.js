@@ -14,7 +14,7 @@ export default function withAuth(WrappedComponent, data){
                 this.tokenVerify()
             }
             else{
-                Router.push("/")
+                Router.push("/login")
             }
         }
         tokenVerify=()=>{
@@ -27,7 +27,7 @@ export default function withAuth(WrappedComponent, data){
             .catch(err=>{
                 if(err.response.status===401){
                     localStorage.removeItem("login_data")
-                    Router.push("/")
+                    Router.push("/login")
                 }
             })
         }

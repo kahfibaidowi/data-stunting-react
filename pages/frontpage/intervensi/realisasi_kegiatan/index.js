@@ -95,7 +95,7 @@ class RealisasiKegiatan extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
@@ -126,7 +126,7 @@ class RealisasiKegiatan extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
@@ -241,7 +241,7 @@ class RealisasiKegiatan extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             
             if(err.response.data?.error=="VALIDATION_ERROR")
@@ -288,7 +288,7 @@ class RealisasiKegiatan extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             
             if(err.response.data?.error=="VALIDATION_ERROR")
@@ -336,7 +336,7 @@ class RealisasiKegiatan extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Remove Data Failed!", {position:"bottom-center"})
         })

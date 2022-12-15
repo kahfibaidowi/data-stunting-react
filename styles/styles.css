@@ -172,6 +172,7 @@ label{
 /* MAP RESPONSIVE */
 @media (max-width:992px) {
     .map-responsive,
+    .map-responsive-full,
     .graph-responsive{
         width:100%;
         height:500px;
@@ -179,6 +180,7 @@ label{
 }
 @media (max-width:1199px) {
     .map-responsive,
+    .map-responsive-full,
     .graph-responsive{
         width:100%;
         height:500px;
@@ -186,6 +188,7 @@ label{
 }
 @media (max-width:1199px) {
     .map-responsive,
+    .map-responsive-full,
     .graph-responsive{
         width:100%;
         height:500px;
@@ -196,6 +199,9 @@ label{
     .graph-responsive{
         width:100%;
         height:400px;
+    }
+    .map-responsive-full{
+        height:600px;
     }
 }
 .dropdown-menu-static{
@@ -243,4 +249,24 @@ label{
 }
 .text-pre-wrap{
     white-space: pre-wrap !important;
+}
+
+/* SIDEBAR COLLAPSE */
+@media (min-width: 992px){
+    .navbar-expand-lg.navbar-vertical ~ .navbar, .navbar-expand-lg.navbar-vertical ~ .page-wrapper {
+        margin-left: 15rem !important;
+        transition: margin .3s ease !important;
+    }
+    .navbar-expand-lg.navbar-vertical ~ .navbar.sidebar-collapsed, .navbar-expand-lg.navbar-vertical ~ .page-wrapper.sidebar-collapsed {
+        margin-left: 0 !important;
+        transition: margin .3s ease !important;
+    }
+    .navbar-vertical.navbar-expand-lg{
+        margin-left: 0 !important;
+        transition: margin .3s ease !important;
+    }
+    .navbar-vertical.navbar-expand-lg.sidebar-collapsed{
+        margin-left: -15rem !important;
+        transition: margin .3s ease !important;
+    }
 }

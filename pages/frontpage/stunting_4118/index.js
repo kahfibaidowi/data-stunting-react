@@ -133,7 +133,7 @@ class Stunting4118 extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
@@ -152,6 +152,9 @@ class Stunting4118 extends React.Component{
                         chart:{
                             id:"graph-stunting"
                         },
+                        tooltip: {
+                            theme: 'dark'
+                        },
                         xaxis:{
                             categories:xaxis
                         }
@@ -166,7 +169,7 @@ class Stunting4118 extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
@@ -188,7 +191,7 @@ class Stunting4118 extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
@@ -216,7 +219,7 @@ class Stunting4118 extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
@@ -388,7 +391,7 @@ class Stunting4118 extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             
             if(err.response.data?.error=="VALIDATION_ERROR")

@@ -69,7 +69,7 @@ class RealisasiAnggaran extends React.Component{
         .catch(err=>{
             if(err.response.status===401){
                 localStorage.removeItem("login_data")
-                Router.push("/")
+                Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })

@@ -1,4 +1,6 @@
 import { Formik } from "formik"
+import update from "immutability-helper"
+import dynamic from "next/dynamic"
 import React from "react"
 import Router from "next/router"
 import {toast} from "react-toastify"
@@ -6,132 +8,320 @@ import { api } from "../config/api"
 import { BASE_URL, login_data } from "../config/config"
 import {BsArrowRight} from "react-icons/bs"
 import * as yup from "yup"
+import { Carousel, Navbar } from "react-bootstrap"
+import { TbLogin } from "react-icons/tb"
+import Link from "next/link"
+import NumberFormat from "react-number-format"
+import CreatableSelect from "react-select/creatable"
 
-class Login extends React.Component{
+const Map=dynamic(()=>import("../component/modules/map"), {ssr:false})
+const Chart=dynamic(()=>import("react-apexcharts"), {ssr:false})
+
+class Homepage extends React.Component{
+    state={
+        last_year_form:[
+            {value:5, label:"5 tahun terakhir"},
+            {value:10, label:"10 tahun terakhir"},
+            {value:15, label:"15 tahun terakhir"},
+            {value:20, label:"20 tahun terakhir"}
+        ],
+        pemetaan:{
+            type:"kecamatan",
+            district_id:"",
+            data:[],
+            center:{latitude:0,longitude:0,zoom:0}
+        },
+        bar_chart:{
+            type:"kecamatan",
+            district_id:"",
+            options:{
+                chart:{
+                    id:"graph-stunting"
+                },
+                xaxis:{
+                    categories:[]
+                },
+                tooltip: {
+                    theme: 'dark'
+                },
+                colors:[
+                    function ({value, seriesIndex, dataPointIndex, w}){
+                        if(value<=49) {
+                            return "#34eb83"
+                        }
+                        else if(value<=100){
+                            return "#d3eb34"
+                        }
+                        else if(value<=200){
+                            return "#ebab34"
+                        }
+                        else{
+                            return "#eb3434"
+                        }
+                    }
+                ]
+            },
+            series:[]
+        },
+        bar_chart_realisasi_bantuan:{
+            tahun:"",
+            options:{
+                chart:{
+                    id:"graph-realisasi-bantuan"
+                },
+                xaxis:{
+                    categories:[]
+                },
+                tooltip: {
+                    theme: 'dark'
+                },
+                colors:[
+                    function ({value, seriesIndex, dataPointIndex, w}){
+                        return "#34eb83"
+                    }
+                ]
+            },
+            series:[]
+        }
+    }
 
     componentDidMount=()=>{
+        this.getsPemetaan()
+        this.getsBarChart()
+        this.getsBarChartRealisasiBantuan()
     }
+    getsPemetaan=async ()=>{
+        const {pemetaan}=this.state
 
-    //login
-    login=async (values, actions)=>{
-        await api().post("/auth/login", values)
+        await api().get("/home/stunting_4118/summary_kecamatan")
         .then(res=>{
-            localStorage.setItem("login_data", JSON.stringify(res.data.data))
-            if(res.data.data.role=="dinas"){
-                Router.push("/frontpage/stunting_4118")
+            const geo_features=res.data.data.map(data=>{
+                return {
+                    type:"Feature",
+                    properties:{
+                        region:data.region,
+                        type:data.type,
+                        count_stunting:data.count_stunting
+                    },
+                    geometry:Object.keys(data.data.geo_json).length>0?data.data.geo_json:{type:"MultiPolygon", coordinates:[]}
+                }
+            })
+            const geo_json={
+                type:"FeatureCollection",
+                name:"pemetaan",
+                features:geo_features
             }
-            else{
-                Router.push("/frontpage")
-            }
+            this.setState({
+                pemetaan:update(this.state.pemetaan, {
+                    data:{$set:geo_json},
+                    center:{$set:res.data.center}
+                })
+            })
         })
         .catch(err=>{
-            toast.error("Login Gagal!", {position:"bottom-center"})
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
-
-        actions.setIsSubmitting(false)
     }
-    loginValidationSchema=()=>{
-        return yup.object().shape({
-            username:yup.string().required(),
-            password:yup.string().required()
+    getsBarChart=async ()=>{
+        const {bar_chart}=this.state
+
+        await api().get("/home/stunting_4118/summary_kecamatan")
+        .then(res=>{
+            const xaxis=res.data.data.map(d=>d.region)
+            const series1=res.data.data.map(d=>d.count_stunting)
+
+            this.setState({
+                bar_chart:update(this.state.bar_chart, {
+                    options:{$set:{
+                        chart:{
+                            id:"graph-stunting"
+                        },
+                        tooltip: {
+                            theme: 'dark'
+                        },
+                        xaxis:{
+                            categories:xaxis
+                        }
+                    }},
+                    series:{$set:[{
+                        name:"stunting",
+                        data:series1
+                    }]}
+                })
+            })
         })
+        .catch(err=>{
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
+        })
+    }
+    getsBarChartRealisasiBantuan=async ()=>{
+        const {bar_chart_realisasi_bantuan}=this.state
+
+        await api().get("home/stunting_4118/summary_realisasi_bantuan_per_dinas", {
+            params:{
+                tahun:bar_chart_realisasi_bantuan.tahun
+            }
+        })
+        .then(res=>{
+            const xaxis=res.data.data.map(d=>d.nama_lengkap)
+            const series1=res.data.data.map(d=>d.total_realisasi_bantuan)
+
+            this.setState({
+                bar_chart_realisasi_bantuan:update(this.state.bar_chart_realisasi_bantuan, {
+                    options:{$set:{
+                        chart:{
+                            id:"graph-realisasi-bantuan"
+                        },
+                        tooltip: {
+                            theme: 'dark'
+                        },
+                        yaxis:{
+                            labels:{
+                                formatter:function(value){
+                                    return value.toLocaleString("en-US")
+                                }
+                            }
+                        },
+                        xaxis:{
+                            categories:xaxis
+                        }
+                    }},
+                    series:{$set:[{
+                        name:"Realisasi Bantuan",
+                        data:series1
+                    }]}
+                })
+            })
+        })
+        .catch(err=>{
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
+        })
+    }
+
+    //type
+    typeFilterBarChartRealisasiBantuan=e=>{
+        const target=e.target
+
+        this.setState({
+            bar_chart_realisasi_bantuan:update(this.state.bar_chart_realisasi_bantuan, {
+                [target.name]:{$set:target.value}
+            })
+        }, ()=>{
+            this.getsBarChartRealisasiBantuan()
+        })
+    }
+
+    //helpers
+    listTahun=()=>{
+        const year=(new Date()).getFullYear()
+
+        let years=[]
+        years=years.concat([{value:"", label:"Semua Tahun"}])
+        for(var i=year-5; i<=year+5; i++){
+            years=years.concat([{value:i, label:i}])
+        }
+
+        return years
+    }
+    findTahun=(value)=>{
+        if(value=="") return {value:"", label:"Semua Tahun"}
+        return {label:value, value:value}
     }
 
     render(){
+        const {pemetaan, bar_chart, bar_chart_realisasi_bantuan, last_year_form}=this.state
+
         return  (
-            <div className="border-top-wide border-primary d-flex flex-column" style={{height:"100vh"}}>
-                <div className="page page-center">
-                    <div className="container container-normal py-4">
-                        <div className="row align-items-center g-4">
-                            <div className="col-lg">
-                                <div className="container-tight">
-                                    <div className="text-center mb-4">
-                                        <a href="." className="navbar-brand navbar-brand-autodark"><img src="/logo.svg" height="36" alt=""/></a>
+            <>
+                <Navbar as="header" className="navbar navbar-light d-print-none fixed-top" expand="md">
+                    <div className="container-xl">
+                        <h1 className="navbar-brand navbar-brand-layout-condensed navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
+                            <Link href="">
+                                <img src="/logo.png" alt="Stunting" className="navbar-brand-image"/>
+                            </Link>
+                        </h1>
+                        <div className="navbar-nav flex-row order-md-last py-2">
+                            <Link href="/login" class="btn btn-primary btn-pill">
+                                <TbLogin className="icon"/>
+                                Login Admin
+                            </Link>
+                        </div>
+                    </div>
+                </Navbar>
+                <div className="page-wrapper mt-5">
+                    <div className="container">
+                        {/* <div className="row">
+                            <div className="col-12 mt-4">
+                                <Carousel fade>
+                                    <Carousel.Item>
+                                        <img src="/carousel-1.png" className="d-block w-100  rounded-4" alt="Carousel 1"/>
+                                    </Carousel.Item>
+                                </Carousel>
+                            </div>
+                        </div> */}
+                        <div className="row">
+                            <div className="col-12 mt-4">
+                                <div className="card w-100 rounded-4 overflow-hidden">
+                                    <div className="card-header">
+                                        <h3 className="card-title fw-semibold">Pemetaan Stunting</h3>
                                     </div>
-                                    <Formik
-                                        initialValues={{
-                                            username:"",
-                                            password:"",
-                                            remember:false
-                                        }}
-                                        validationSchema={this.loginValidationSchema()}
-                                        onSubmit={this.login}
-                                    >
-                                        {props=>(
-                                            <form className="card card-md" onSubmit={props.handleSubmit}>
-                                                <div className="card-body">
-                                                    <h2 className="h2 text-center mb-4">Login Data Stunting</h2>
-                                                    <div className="mb-3">
-                                                        <label className="form-label">Username</label>
-                                                        <input 
-                                                            type="text" 
-                                                            className="form-control py-2half rounded" 
-                                                            placeholder="" 
-                                                            name="username"
-                                                            onChange={props.handleChange}
-                                                            value={props.values.username}
-                                                            autoComplete="off"
-                                                        />
-                                                    </div>
-                                                    <div className="mb-2">
-                                                        <label className="form-label">Password</label>
-                                                        <div className="input-group input-group-flat">
-                                                            <input 
-                                                                type="password" 
-                                                                className="form-control py-2half" 
-                                                                placeholder="" 
-                                                                name="password"
-                                                                onChange={props.handleChange}
-                                                                value={props.values.password}
-                                                                autoComplete="off"
-                                                            />
-                                                            <span className="input-group-text">
-                                                                <a href="#" className="link-secondary" title="Show password" data-bs-toggle="tooltip">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="2" /><path d="M22 12c-2.667 4.667 -6 7 -10 7s-7.333 -2.333 -10 -7c2.667 -4.667 6 -7 10 -7s7.333 2.333 10 7" /></svg>
-                                                                </a>
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="mb-2">
-                                                        <label className="form-check">
-                                                            <input 
-                                                                className="form-check-input" 
-                                                                type="checkbox" 
-                                                                name="remember"
-                                                                id="remember"
-                                                                checked={props.values.remember}
-                                                                onChange={()=>props.setFieldValue("remember", !props.values.remember)}
-                                                            />
-                                                            <span className="form-check-label">Remember me</span>
-                                                        </label>
-                                                    </div>
-                                                    <div className="form-footer">
-                                                        <button 
-                                                            type="submit" 
-                                                            className="btn btn-primary w-100"
-                                                            disabled={!(props.dirty&&props.isValid)}
-                                                        >
-                                                            Sign in
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        )}
-                                    </Formik>
-                                    <div className="text-center text-muted mt-3">
-                                        Dengan Login anda telah menyetujui <a href="">Term & Condition</a>
+                                    <div className="card-body p-3 border-top-0">
+                                        <Map data={pemetaan.data} center={pemetaan.center} className="map-responsive-full"/>
                                     </div>
                                 </div>
                             </div>
-                            <div className="col-lg d-none d-lg-block">
-                                <img src="/undraw_secure_login_pdn4.svg" height="300" className="d-block mx-auto" alt=""/>
+                        </div>
+                        <div className="row mb-4">
+                            <div className="col-md-6 mt-4">
+                                <div className="card w-100 rounded-4 overflow-hidden">
+                                    <div className="card-header">
+                                        <h3 className="card-title fw-semibold">Grafik Anak Penderita Stunting</h3>
+                                    </div>
+                                    <div className="card-body p-3 border-top-0">
+                                        <Chart
+                                            options={bar_chart.options}
+                                            series={bar_chart.series}
+                                            type="bar"
+                                            width="100%"
+                                            height="395px"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-md-6 mt-4">
+                                <div className="card w-100 rounded-4 overflow-hidden">
+                                    <div className="card-header">
+                                        <h3 className="card-title fw-semibold">Realisasi Bantuan Dalam Tahun</h3>
+                                    </div>
+                                    <div className="card-body p-3 border-top-0">
+                                        <div className="d-flex mb-3 mt-3">
+                                            <div style={{width:"200px"}} className="me-2">
+                                                <CreatableSelect
+                                                    options={this.listTahun()}
+                                                    onChange={e=>{
+                                                        this.typeFilterBarChartRealisasiBantuan({target:{name:"tahun", value:e.value}})
+                                                    }}
+                                                    value={this.findTahun(bar_chart_realisasi_bantuan.tahun)}
+                                                    placeholder="Pilih Tahun"
+                                                />
+                                            </div>
+                                        </div>
+                                        <Chart
+                                            options={bar_chart_realisasi_bantuan.options}
+                                            series={bar_chart_realisasi_bantuan.series}
+                                            type="bar"
+                                            width="100%"
+                                            height="325px"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </>
         )
     }
 }
 
-export default Login
+export default Homepage
