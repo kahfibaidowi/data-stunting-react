@@ -6,9 +6,10 @@ import { read, utils, writeFileXLSX } from 'xlsx';
 export const BASE_URL=process.env.NODE_ENV==="development"?
     "http://localhost/data-stunting/public":
     "https://api.stunting.tifpsdku.com";
+
 export const BASE_URL_KEPENDUDUKAN=process.env.NODE_ENV==="development"?
-    "http://localhost/data-kependudukan/public":
-    "https://api.kependudukan.tifpsdku.com";
+    "https://api.stunting.madiunkab.go.id/api":
+    "https://api.stunting.madiunkab.go.id/api";
 
 //login storage
 export const login_data=()=>{

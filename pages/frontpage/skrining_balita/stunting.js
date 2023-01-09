@@ -120,25 +120,11 @@ class Stunting extends React.Component{
             toast.error("Gets Data Failed!", {position:"bottom-center"})
         })
     }
-    getPenduduk=async(penduduk_id)=>{
-        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
-        
-        if(token!==false){
-            return await api_kependudukan(token).get(`/penduduk/${penduduk_id}`).then(res=>res.data.data)
-        }
-        else{
-            toast.error(`Get data failed!`, {position:"bottom-center"})
-        }
-    }
     getKK=async(kk_id)=>{
-        const token=await api(access_token()).get("/auth/generate_kependudukan_system_token").then(res=>res.data.data).catch(err=>false)
-
-        if(token!==false){
-            return await api_kependudukan(token).get(`/kartu_keluarga/${kk_id}`).then(res=>res.data.data)
-        }
-        else{
-            toast.error(`Get data failed!`, {position:"bottom-center"})
-        }
+        return await api_kependudukan().post(`/view-penduduk`, {
+            query:"kk",
+            data:kk_id
+        }).then(res=>res.data.data)
     }
     goToPage=page=>{
         this.setState({
@@ -207,7 +193,7 @@ class Stunting extends React.Component{
     showDetailKK=async no_kk=>{
         const kk=await this.getKK(no_kk).catch(err=>false)
 
-        if(kk!==false){
+        if(kk!==false&&kk.length>0){
             this.setState({
                 detail_kk:{
                     is_open:true,

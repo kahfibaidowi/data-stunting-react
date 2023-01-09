@@ -8,7 +8,7 @@ import Link from "next/link"
 import NumberFormat from 'react-number-format'
 import { Formik, yupToFormErrors } from "formik"
 import { api, api_kependudukan } from "../../../../config/api"
-import { access_token, ceil_with_enclosure, excelToMomentDate, file_to_workbook, isUndefined, login_data } from "../../../../config/config"
+import { access_token, BASE_URL, ceil_with_enclosure, excelToMomentDate, file_to_workbook, get_file, isUndefined, login_data } from "../../../../config/config"
 import { toast } from "react-toastify"
 import {ConfirmDelete} from "../../../../component/ui/confirm"
 import Router, { withRouter } from "next/router"
@@ -29,6 +29,7 @@ class RealisasiKegiatan extends React.Component{
     state={
         login_data:{},
         dinas_form:[],
+        rencana_kegiatan_form:[],
         realisasi_kegiatan:{
             data:[],
             page:1,
@@ -41,19 +42,20 @@ class RealisasiKegiatan extends React.Component{
         tambah_realisasi_kegiatan:{
             is_open:false,
             dinas_form:[],
+            rencana_kegiatan_form:[],
             realisasi_kegiatan:{
                 id_user:"",
                 tahun:"",
-                kegiatan:"",
-                sasaran:"",
-                anggaran:"",
-                satuan:"",
-                detail_kegiatan:""
-            }
+                id_rencana_kegiatan:"",
+                dokumen:""
+            },
+            options_rencana_kegiatan:[],
+            is_loading_rencana_kegiatan:false
         },
         edit_realisasi_kegiatan:{
             is_open:false,
             dinas_form:[],
+            rencana_kegiatan_form:[],
             realisasi_kegiatan:{}
         },
         hapus_realisasi_kegiatan:{
@@ -90,6 +92,32 @@ class RealisasiKegiatan extends React.Component{
         .then(res=>{
             this.setState({
                 dinas_form:res.data.data
+            })
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/login")
+            }
+            toast.error("Gets Data Failed!", {position:"bottom-center"})
+        })
+    }
+    getsRencanaKegiatanForm=async()=>{
+        const {realisasi_kegiatan}=this.state
+
+        if(realisasi_kegiatan.id_user==""||realisasi_kegiatan.tahun=="") return
+
+        await api(access_token()).get("/intervensi_rencana_kegiatan", {
+            params:{
+                per_page:"",
+                q:"",
+                id_user:realisasi_kegiatan.id_user,
+                tahun:realisasi_kegiatan.tahun
+            }
+        })
+        .then(res=>{
+            this.setState({
+                rencana_kegiatan_form:res.data.data
             })
         })
         .catch(err=>{
@@ -171,6 +199,11 @@ class RealisasiKegiatan extends React.Component{
                 break
                 default:
                     this.getsRealisasiKegiatan(true)
+                    this.setState({
+                        rencana_kegiatan_form:[]
+                    }, ()=>{
+                        this.getsRencanaKegiatanForm()
+                    })
             }
         })
     }
@@ -202,6 +235,28 @@ class RealisasiKegiatan extends React.Component{
     findDinas=(value, source)=>{
         return this.listDinas(source).find(f=>f.value==value)
     }
+    listRealisasiKegiatan=(source)=>{
+        return source.map(d=>{
+            return {label:d.kegiatan, value:d.id_rencana_kegiatan}
+        })
+    }
+    findRealisasiKegiatan=(value, source)=>{
+        return this.listRealisasiKegiatan(source).find(f=>f.value==value)
+    }
+    uploadDokumen=async(e)=>{
+        const files=e.target.files
+
+        let formData=new FormData()
+        formData.append("dokumen", files[0])
+
+        return await api(access_token()).post("/file/upload", formData, {
+            headers:{
+                'Content-type':"multipart/form-data"
+            }
+        })
+        .then(res=>res.data.data)
+        .catch(err=>false)
+    }
 
     //tambah
     toggleTambah=()=>{
@@ -209,15 +264,15 @@ class RealisasiKegiatan extends React.Component{
             tambah_realisasi_kegiatan:{
                 is_open:!this.state.tambah_realisasi_kegiatan.is_open,
                 dinas_form:this.state.dinas_form,
+                rencana_kegiatan_form:this.state.rencana_kegiatan_form,
                 realisasi_kegiatan:{
                     id_user:this.state.realisasi_kegiatan.id_user,
                     tahun:this.state.realisasi_kegiatan.tahun,
-                    kegiatan:"",
-                    sasaran:"",
-                    anggaran:"",
-                    satuan:"",
-                    detail_kegiatan:""
-                }
+                    id_rencana_kegiatan:"",
+                    dokumen:""
+                },
+                options_rencana_kegiatan:[],
+                is_loading_rencana_kegiatan:false
             }
         })
     }
@@ -226,13 +281,8 @@ class RealisasiKegiatan extends React.Component{
 
         //insert to database
         await api(access_token()).post("/intervensi_realisasi_kegiatan", {
-            id_user:values.id_user,
-            tahun:values.tahun,
-            kegiatan:values.kegiatan,
-            sasaran:values.sasaran,
-            anggaran:values.anggaran,
-            satuan:values.satuan,
-            detail_kegiatan:values.detail_kegiatan
+            id_rencana_kegiatan:values.id_rencana_kegiatan,
+            dokumen:values.dokumen
         })
         .then(res=>{
             this.toggleTambah()
@@ -252,13 +302,8 @@ class RealisasiKegiatan extends React.Component{
     }
     tambahRealisasiKegiatanSchema=()=>{
         return yup.object().shape({
-            id_user:yup.string().required(),
-            tahun:yup.string().required(),
-            kegiatan:yup.string().required(),
-            sasaran:yup.string().optional(),
-            anggaran:yup.number().required(),
-            satuan:yup.string().required(),
-            detail_kegiatan:yup.string().optional()
+            id_rencana_kegiatan:yup.string().required(),
+            dokumen:yup.string().optional()
         })
     }
 
@@ -299,11 +344,7 @@ class RealisasiKegiatan extends React.Component{
     }
     editRealisasiKegiatanSchema=()=>{
         return yup.object().shape({
-            kegiatan:yup.string().required(),
-            sasaran:yup.string().optional(),
-            anggaran:yup.number().required(),
-            satuan:yup.string().required(),
-            detail_kegiatan:yup.string().optional()
+            dokumen:yup.string().optional()
         })
     }
 
@@ -425,7 +466,6 @@ class RealisasiKegiatan extends React.Component{
                                                             <tr className="text-uppercase">
                                                                 <th className="px-3" width="50">#</th>
                                                                 <th className="px-3">Bentuk Kegiatan Koordinasi</th>
-                                                                <th className="px-3">Sasaran</th>
                                                                 <th className="px-3">Realisasi Anggaran</th>
                                                                 <th className="px-3">Satuan</th>
                                                                 <th className="px-3 text-wrap">Detail Kegiatan</th>
@@ -437,20 +477,19 @@ class RealisasiKegiatan extends React.Component{
                                                             {realisasi_kegiatan.data.map((list, idx)=>(
                                                                 <tr key={list}>
                                                                         <td className="align-middle px-3">{(idx+1)+((realisasi_kegiatan.page-1)*realisasi_kegiatan.per_page)}</td>
-                                                                        <td className="px-3">{list.kegiatan}</td>
-                                                                        <td className="px-3">{list.sasaran}</td>
+                                                                        <td className="px-3">{list.rencana_kegiatan.kegiatan}</td>
                                                                         <td className="px-3">
                                                                             <NumberFormat
-                                                                                value={list.anggaran}
+                                                                                value={list.rencana_kegiatan.anggaran}
                                                                                 displayType="text"
                                                                                 thousandSeparator={true}
                                                                             />
                                                                         </td>
-                                                                        <td className="px-3">{list.satuan}</td>
+                                                                        <td className="px-3">{list.rencana_kegiatan.satuan}</td>
                                                                         <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
                                                                         <td className="px-3">
                                                                             <NumberFormat
-                                                                                value={list.jumlah}
+                                                                                value={list.rencana_kegiatan.jumlah}
                                                                                 displayType="text"
                                                                                 thousandSeparator={true}
                                                                             />
@@ -467,7 +506,7 @@ class RealisasiKegiatan extends React.Component{
                                                             ))}
                                                             {realisasi_kegiatan.data.length==0&&
                                                                 <tr>
-                                                                    <td colSpan="8" className="text-center">Data tidak ditemukan!</td>
+                                                                    <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
                                                                 </tr>
                                                             }
                                                         </tbody>
@@ -562,57 +601,66 @@ class RealisasiKegiatan extends React.Component{
                                             />
                                         </div>
                                         <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Kegiatan</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="kegiatan"
-                                                onChange={props.handleChange}
-                                                value={props.values.kegiatan}
-                                            />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Sasaran</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="sasaran"
-                                                onChange={props.handleChange}
-                                                value={props.values.sasaran}
-                                            />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Anggaran</label>
-                                            <NumberFormat
-                                                displayType="input"
-                                                value={props.values.anggaran}
-                                                thousandSeparator
-                                                onValueChange={values=>{
-                                                    const {value}=values
-                                                    props.setFieldValue("anggaran", value)
+                                            <label className="my-1 me-2 fw-semibold" for="country">Rencana Kegiatan</label>
+                                            <Select
+                                                options={this.listRealisasiKegiatan(tambah_realisasi_kegiatan.rencana_kegiatan_form)}
+                                                value={this.findRealisasiKegiatan(props.values.id_rencana_kegiatan, this.listRealisasiKegiatan(tambah_realisasi_kegiatan.rencana_kegiatan_form))}
+                                                onChange={e=>{
+                                                    props.setFieldValue("id_rencana_kegiatan", e.value)
                                                 }}
-                                                className="form-control"
+                                                placeholder="Pilih Rencana Kegiatan"
                                             />
                                         </div>
                                         <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Satuan</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="satuan"
-                                                onChange={props.handleChange}
-                                                value={props.values.satuan}
-                                            />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Detail Kegiatan</label>
-                                            <textarea
-                                                rows="3"
-                                                className="form-control"
-                                                name="detail_kegiatan"
-                                                onChange={props.handleChange}
-                                                value={props.values.detail_kegiatan}
-                                            />
+                                            <label className="my-1 me-2 fw-semibold" for="country">Dokumen</label>
+                                            <div className="p-0">
+                                                {props.values.dokumen!=""&&
+                                                    <div className="d-block text-truncate" style={{maxWidth:"100%"}}>
+                                                        <a 
+                                                            href={BASE_URL+"/file/show/"+props.values.dokumen} 
+                                                            target="_blank" 
+                                                            rel="noreferrer"
+                                                        >
+                                                            {get_file(props.values.dokumen)}
+                                                        </a>
+                                                    </div>
+                                                }
+                                                <div className="mt-1">
+                                                    <label>
+                                                        <input
+                                                            type="file"
+                                                            style={{display:"none"}}
+                                                            accept=".pdf, .doc, .docx"
+                                                            onChange={async e=>{
+                                                                const data=await this.uploadDokumen(e)
+                                                                if(data!==false){
+                                                                    props.setFieldValue("dokumen", data.file)
+                                                                }
+                                                                else{
+                                                                    toast.error("Upload File Failed!", {position:"bottom-center"})
+                                                                }
+                                                            }}
+                                                        />
+                                                        <div
+                                                            className="btn btn-secondary"
+                                                            type="button"
+                                                        >
+                                                            <TbUpload className="icon"/> Pilih Dokumen
+                                                        </div>
+                                                    </label>
+                                                    {props.values.dokumen!=""&&
+                                                        <button 
+                                                            className="btn btn-icon btn-danger ms-1" 
+                                                            type="button"
+                                                            onClick={e=>{
+                                                                props.setFieldValue("dokumen", "")
+                                                            }}
+                                                        >
+                                                            <TbTrash className="icon"/>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </Modal.Body>
@@ -652,57 +700,55 @@ class RealisasiKegiatan extends React.Component{
                                 <Modal.Body>
                                     <div className='w-100 d-flex flex-column'>
                                         <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Kegiatan</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="kegiatan"
-                                                onChange={props.handleChange}
-                                                value={props.values.kegiatan}
-                                            />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Sasaran</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="sasaran"
-                                                onChange={props.handleChange}
-                                                value={props.values.sasaran}
-                                            />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Anggaran</label>
-                                            <NumberFormat
-                                                displayType="input"
-                                                value={props.values.anggaran}
-                                                thousandSeparator
-                                                onValueChange={values=>{
-                                                    const {value}=values
-                                                    props.setFieldValue("anggaran", value)
-                                                }}
-                                                className="form-control"
-                                            />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Satuan</label>
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="satuan"
-                                                onChange={props.handleChange}
-                                                value={props.values.satuan}
-                                            />
-                                        </div>
-                                        <div className="mb-3">
-                                            <label className="my-1 me-2 fw-semibold" for="country">Detail Kegiatan</label>
-                                            <textarea
-                                                rows="3"
-                                                className="form-control"
-                                                name="detail_kegiatan"
-                                                onChange={props.handleChange}
-                                                value={props.values.detail_kegiatan}
-                                            />
+                                            <label className="my-1 me-2 fw-semibold" for="country">Dokumen</label>
+                                            <div className="p-0">
+                                                {props.values.dokumen!=""&&
+                                                    <div className="d-block text-truncate" style={{maxWidth:"100%"}}>
+                                                        <a 
+                                                            href={BASE_URL+"/file/show/"+props.values.dokumen} 
+                                                            target="_blank" 
+                                                            rel="noreferrer"
+                                                        >
+                                                            {get_file(props.values.dokumen)}
+                                                        </a>
+                                                    </div>
+                                                }
+                                                <div className="mt-1">
+                                                    <label>
+                                                        <input
+                                                            type="file"
+                                                            style={{display:"none"}}
+                                                            accept=".pdf, .doc, .docx"
+                                                            onChange={async e=>{
+                                                                const data=await this.uploadDokumen(e)
+                                                                if(data!==false){
+                                                                    props.setFieldValue("dokumen", data.file)
+                                                                }
+                                                                else{
+                                                                    toast.error("Upload File Failed!", {position:"bottom-center"})
+                                                                }
+                                                            }}
+                                                        />
+                                                        <div
+                                                            className="btn btn-secondary"
+                                                            type="button"
+                                                        >
+                                                            <TbUpload className="icon"/> Pilih Dokumen
+                                                        </div>
+                                                    </label>
+                                                    {props.values.dokumen!=""&&
+                                                        <button 
+                                                            className="btn btn-icon btn-danger ms-1" 
+                                                            type="button"
+                                                            onClick={e=>{
+                                                                props.setFieldValue("dokumen", "")
+                                                            }}
+                                                        >
+                                                            <TbTrash className="icon"/>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </Modal.Body>
