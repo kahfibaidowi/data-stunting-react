@@ -17,7 +17,7 @@ export default function Error404(){
                             />
                             <h1 className="fw-bolder mb-22 mt-2 tx-80 text-muted">404</h1>
                             <h4 className="mb-2">Page Not Found</h4>
-                            <h6 className="text-muted mb-3 text-center">Oopps!! The page you were looking for doesn't exist.</h6>
+                            <h6 className="text-muted mb-3 text-center">{"Oopps!! The page you were looking for doesn't exist."}</h6>
                             <Link href="/">Back to Homepage</Link>
                         </div>
                     </div>

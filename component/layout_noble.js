@@ -84,7 +84,7 @@ const LayoutNoble=(props)=>{
     return (
         <div 
             className={classNames(
-                "main-wrapper sidebar-dark", 
+                "main-wrapper", 
                 {"sidebar-folded":sidebar_toggler.is_open}, 
                 {"open-sidebar-folded overflow-hidden":sidebar_toggler.is_folded},
                 {"sidebar-open":sidebar_mobile_toggler}
