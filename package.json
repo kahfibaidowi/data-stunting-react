@@ -32,6 +32,8 @@
     "react-table": "^7.8.0",
     "react-toastify": "^9.0.8",
     "read-excel-file": "^5.5.3",
+    "sweetalert2": "^11.6.16",
+    "sweetalert2-react-content": "^5.0.7",
     "write-excel-file": "^1.4.14",
     "xlsx": "^0.18.5",
     "yup": "^0.32.11"

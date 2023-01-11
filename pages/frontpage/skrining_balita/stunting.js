@@ -21,6 +21,7 @@ import readXlsxFile from "read-excel-file"
 import { read, utils, writeFileXLSX } from 'xlsx';
 import * as yup from "yup"
 import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbPlus, TbUpload } from "react-icons/tb"
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi"
 
 class Stunting extends React.Component{
     state={
@@ -233,180 +234,168 @@ class Stunting extends React.Component{
         return (
             <>
                 <Layout>
-                    <div class="page-header d-print-none">
-                        <div class="container-xl">
-                            <div class="row g-2 align-items-center">
-                                <div class="col">
-                                    <div class="page-pretitle">Overview</div>
-                                    <h2 class="page-title">Balita Stunting</h2>
-                                </div>
-                                <div class="col-12 col-md-auto ms-auto d-print-none">
-                                </div>
-                            </div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                        <div>
+                            <h4 class="mb-3 mb-md-0">Balita Stunting</h4>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap text-nowrap">
                         </div>
                     </div>
-                    <div class="page-body">
-                        <div class="container-xl">
-                            <div className='row mt-3 mb-5'>
-                                <div className='col-md-12 mx-auto'>
-                                    <div>
-                                        <div className="d-flex mb-3 mt-3">
-                                            {login_data.role!="posyandu"&&
-                                                <div style={{width:"200px"}} className="me-2">
-                                                    <select 
-                                                        name="posyandu_id" 
-                                                        value={stunting.posyandu_id} 
-                                                        className="form-select" 
-                                                        onChange={this.typeFilter}
-                                                    >
-                                                        <option value="">-- Pilih Posyandu</option>
-                                                        {kecamatan_form.map(kec=>(
-                                                            <optgroup label={kec.region} key={kec}>
-                                                                {kec.posyandu.map(pos=>(
-                                                                    <option value={pos.id_user} key={pos}>{pos.nama_lengkap}</option>
-                                                                ))}
-                                                            </optgroup>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            }
+                    <div className="row">
+                        <div className="col-12">
+                            <div className="card">
+                                <div className="card-body">
+                                    <div className="d-flex mb-3 mt-3">
+                                        {login_data.role!="posyandu"&&
                                             <div style={{width:"200px"}} className="me-2">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    name="q"
+                                                <select 
+                                                    name="posyandu_id" 
+                                                    value={stunting.posyandu_id} 
+                                                    className="form-select" 
                                                     onChange={this.typeFilter}
-                                                    value={stunting.q}
-                                                    placeholder="Cari ..."
-                                                />
-                                            </div>
-                                        </div>
-                                        <div class="card border-0">
-                                            <div class="card-body px-0 py-0">
-                                                <div className="table-responsive">
-                                                    <table className="table table-centered table-nowrap mb-0 rounded">
-                                                        <thead className="thead-light">
-                                                            <tr className="text-uppercase">
-                                                                <th className="px-3" width="50">#</th>
-                                                                <th className="px-3">NIK</th>
-                                                                <th className="px-3">No. KK</th>
-                                                                <th className="px-3">Nama</th>
-                                                                <th className="px-3">Jenis Kelamin</th>
-                                                                <th className="px-3">Tgl Lahir</th>
-                                                                <th className="px-3">BB Lahir</th>
-                                                                <th className="px-3">TB Lahir</th>
-                                                                <th className="px-3">Orang Tua</th>
-                                                                <th className="px-3">Prov</th>
-                                                                <th className="px-3">Kab/Kota</th>
-                                                                <th className="px-3">Kec</th>
-                                                                <th className="px-3">Desa/Kel</th>
-                                                                <th className="px-3">Posyandu</th>
-                                                                <th className="px-3">Alamat</th>
-                                                                <th className="px-3">Usia Saat Ukur</th>
-                                                                <th className="px-3">Tanggal</th>
-                                                                <th className="px-3">Berat Badan </th>
-                                                                <th className="px-3">Tinggi Badan</th>
-                                                                <th className="px-3">TB/U</th>
-                                                                <th className="px-3">BB/U</th>
-                                                                <th className="px-3">BB/TB</th>
-                                                                <th className="px-3" width="90"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="border-top-0">
-                                                            {stunting.data.map((list, idx)=>(
-                                                                <tr key={list}>
-                                                                        <td className="align-middle px-3">{(idx+1)+((stunting.page-1)*stunting.per_page)}</td>
-                                                                        <td className="px-3">{list.data_anak.nik}</td>
-                                                                        <td className="px-3">
-                                                                            {list.data_anak?.no_kk.trim()!=""&&
-                                                                                <button 
-                                                                                    type="button" 
-                                                                                    className="btn btn-link link-primary p-0"
-                                                                                    onClick={e=>this.showDetailKK(list.data_anak.no_kk)}
-                                                                                >
-                                                                                    {list.data_anak.no_kk}
-                                                                                </button>
-                                                                            }
-                                                                        </td>
-                                                                        <td className="px-3">{list.data_anak.nama_lengkap}</td>
-                                                                        <td className="px-3">{this.jenkel(list.data_anak.jenis_kelamin)}</td>
-                                                                        <td className="px-3">{list.data_anak.tgl_lahir}</td>
-                                                                        <td className="px-3">{list.berat_badan_lahir}</td>
-                                                                        <td className="px-3">{list.tinggi_badan_lahir}</td>
-                                                                        <td className="px-3">
-                                                                            {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
-                                                                        </td>
-                                                                        <td className="px-3">JAWA TIMUR</td>
-                                                                        <td className="px-3">MADIUN</td>
-                                                                        <td className="px-3">{list.user_posyandu.kecamatan}</td>
-                                                                        <td className="px-3">{list.user_posyandu.desa}</td>
-                                                                        <td className="px-3">{list.user_posyandu.nama_lengkap}</td>
-                                                                        <td className="px-3">Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
-                                                                        <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
-                                                                        <td className="px-3">{moment(list.created_at).format("YYYY-MM-DD")}</td>
-                                                                        <td className="px-3">{list.berat_badan}</td>
-                                                                        <td className="px-3">{list.tinggi_badan}</td>
-                                                                        <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
-                                                                        <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
-                                                                        <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
-                                                                        <td className="text-nowrap p-1 px-3">
-                                                                        </td>
-                                                                </tr>
+                                                >
+                                                    <option value="">-- Pilih Posyandu</option>
+                                                    {kecamatan_form.map(kec=>(
+                                                        <optgroup label={kec.region} key={kec}>
+                                                            {kec.posyandu.map(pos=>(
+                                                                <option value={pos.id_user} key={pos}>{pos.nama_lengkap}</option>
                                                             ))}
-                                                            {stunting.data.length==0&&
-                                                                <tr>
-                                                                    <td colSpan="22" className="text-center">Data tidak ditemukan!</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="d-flex align-items-center mt-3">
-                                            <div className="d-flex flex-column">
-                                                <div>Halaman {stunting.page} dari {stunting.last_page}</div>
-                                            </div>
-                                            <div className="d-flex align-items-center me-auto ms-3">
-                                                <select className="form-select" name="per_page" value={stunting.per_page} onChange={this.setPerPage}>
-                                                    <option value="10">10 Data</option>
-                                                    <option value="25">25 Data</option>
-                                                    <option value="50">50 Data</option>
-                                                    <option value="100">100 Data</option>
+                                                        </optgroup>
+                                                    ))}
                                                 </select>
                                             </div>
-                                            <div className="d-flex ms-3">
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":stunting.page>1}
-                                                    )}
-                                                    disabled={stunting.page<=1}
-                                                    onClick={()=>this.goToPage(stunting.page-1)}
-                                                >
-                                                    <TbChevronLeft/>
-                                                    Prev
-                                                </button>
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":stunting.page<stunting.last_page},
-                                                        "ms-2"
-                                                    )}
-                                                    disabled={stunting.page>=stunting.last_page}
-                                                    onClick={()=>this.goToPage(stunting.page+1)}
-                                                >
-                                                    Next
-                                                    <TbChevronRight/>
-                                                </button>
-                                            </div>
+                                        }
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="q"
+                                                onChange={this.typeFilter}
+                                                value={stunting.q}
+                                                placeholder="Cari ..."
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="table-responsive">
+                                        <table className="table table-hover table-custom table-nowrap mb-0 rounded">
+                                            <thead className="thead-light">
+                                                <tr className="text-uppercase">
+                                                    <th className="px-3" width="50">#</th>
+                                                    <th className="px-3">NIK</th>
+                                                    <th className="px-3">No. KK</th>
+                                                    <th className="px-3">Nama</th>
+                                                    <th className="px-3">Jenis Kelamin</th>
+                                                    <th className="px-3">Tgl Lahir</th>
+                                                    <th className="px-3">BB Lahir</th>
+                                                    <th className="px-3">TB Lahir</th>
+                                                    <th className="px-3">Orang Tua</th>
+                                                    <th className="px-3">Prov</th>
+                                                    <th className="px-3">Kab/Kota</th>
+                                                    <th className="px-3">Kec</th>
+                                                    <th className="px-3">Desa/Kel</th>
+                                                    <th className="px-3">Posyandu</th>
+                                                    <th className="px-3">Alamat</th>
+                                                    <th className="px-3">Usia Saat Ukur</th>
+                                                    <th className="px-3">Tanggal</th>
+                                                    <th className="px-3">Berat Badan </th>
+                                                    <th className="px-3">Tinggi Badan</th>
+                                                    <th className="px-3">TB/U</th>
+                                                    <th className="px-3">BB/U</th>
+                                                    <th className="px-3">BB/TB</th>
+                                                    <th className="px-3" width="90"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="border-top-0">
+                                                {stunting.data.map((list, idx)=>(
+                                                    <tr key={list}>
+                                                            <td className="align-middle px-3">{(idx+1)+((stunting.page-1)*stunting.per_page)}</td>
+                                                            <td className="px-3">{list.data_anak.nik}</td>
+                                                            <td className="px-3">
+                                                                {list.data_anak?.no_kk.trim()!=""&&
+                                                                    <button 
+                                                                        type="button" 
+                                                                        className="btn btn-link link-primary p-0"
+                                                                        onClick={e=>this.showDetailKK(list.data_anak.no_kk)}
+                                                                    >
+                                                                        {list.data_anak.no_kk}
+                                                                    </button>
+                                                                }
+                                                            </td>
+                                                            <td className="px-3">{list.data_anak.nama_lengkap}</td>
+                                                            <td className="px-3">{this.jenkel(list.data_anak.jenis_kelamin)}</td>
+                                                            <td className="px-3">{list.data_anak.tgl_lahir}</td>
+                                                            <td className="px-3">{list.berat_badan_lahir}</td>
+                                                            <td className="px-3">{list.tinggi_badan_lahir}</td>
+                                                            <td className="px-3">
+                                                                {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
+                                                            </td>
+                                                            <td className="px-3">JAWA TIMUR</td>
+                                                            <td className="px-3">MADIUN</td>
+                                                            <td className="px-3">{list.user_posyandu.kecamatan}</td>
+                                                            <td className="px-3">{list.user_posyandu.desa}</td>
+                                                            <td className="px-3">{list.user_posyandu.nama_lengkap}</td>
+                                                            <td className="px-3">Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
+                                                            <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
+                                                            <td className="px-3">{moment(list.created_at).format("YYYY-MM-DD")}</td>
+                                                            <td className="px-3">{list.berat_badan}</td>
+                                                            <td className="px-3">{list.tinggi_badan}</td>
+                                                            <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
+                                                            <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
+                                                            <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
+                                                            <td className="text-nowrap p-1 px-3">
+                                                            </td>
+                                                    </tr>
+                                                ))}
+                                                {stunting.data.length==0&&
+                                                    <tr>
+                                                        <td colSpan="22" className="text-center">Data tidak ditemukan!</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="d-flex align-items-center mt-3">
+                                        <div className="d-flex flex-column">
+                                            <div>Halaman {stunting.page} dari {stunting.last_page}</div>
+                                        </div>
+                                        <div className="d-flex align-items-center me-auto ms-3">
+                                            <select className="form-select" name="per_page" value={stunting.per_page} onChange={this.setPerPage}>
+                                                <option value="10">10 Data</option>
+                                                <option value="25">25 Data</option>
+                                                <option value="50">50 Data</option>
+                                                <option value="100">100 Data</option>
+                                            </select>
+                                        </div>
+                                        <div className="d-flex ms-3">
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":stunting.page>1}
+                                                )}
+                                                disabled={stunting.page<=1}
+                                                onClick={()=>this.goToPage(stunting.page-1)}
+                                            >
+                                                <FiChevronLeft/>
+                                                Prev
+                                            </button>
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":stunting.page<stunting.last_page},
+                                                    "ms-2"
+                                                )}
+                                                disabled={stunting.page>=stunting.last_page}
+                                                onClick={()=>this.goToPage(stunting.page+1)}
+                                            >
+                                                Next
+                                                <FiChevronRight/>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>  
+                            </div>
                         </div>
                     </div>
                 </Layout>
@@ -414,7 +403,7 @@ class Stunting extends React.Component{
                 {/* MODAL DETAIL KK */}
                 <Modal show={detail_kk.is_open} className="modal-blur" onHide={this.hideDetailKK} backdrop="static" size="lg">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Detail Kartu Keluarga</div>
+                        <h4 className="modal-title">Detail Kartu Keluarga</h4>
                     </Modal.Header>
                     <Modal.Body>
                         {!isUndefined(detail_kk.data.no_kk)&&

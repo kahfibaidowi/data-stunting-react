@@ -3,7 +3,7 @@ import classNames from "classnames"
 
 export const ConfirmDelete=({show, toggle, title, sub_title, deleteAction})=>{
     return (
-        <Modal show={show} backdrop="static" onHide={toggle} className="modal-blur" size="sm" backdropClassName="backdrop-nested">
+        <Modal show={show} backdrop="static" onHide={toggle} className="modal-blur" size="sm">
             <button type="button" class="btn-close" onClick={toggle}></button>
 
             <div class="modal-body text-center py-4 rounded-0">

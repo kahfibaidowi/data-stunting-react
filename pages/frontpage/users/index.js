@@ -11,13 +11,18 @@ import { Formik } from "formik"
 import {Modal} from "react-bootstrap"
 import {ConfirmDelete} from "../../../component/ui/confirm"
 import { FaChevronLeft, FaChevronRight, FaSadCry } from "react-icons/fa"
-import { FiTrash, FiTrash2, FiUpload } from "react-icons/fi" 
+import { FiChevronLeft, FiChevronRight, FiPlus, FiTrash, FiTrash2, FiUpload } from "react-icons/fi" 
 import { ImPlus } from "react-icons/im"
 import Router from "next/router"
 import axios from "axios"
 import withAuth from "../../../component/hoc/auth"
 import { TbPlus, TbChevronLeft, TbChevronRight, TbTrash, TbUpload, TbEdit } from "react-icons/tb"
 import * as yup from "yup"
+import swal from "sweetalert2"
+import withReactContent from 'sweetalert2-react-content'
+
+
+const MySwal=withReactContent(swal)
 
 class Users extends React.Component{
     state={
@@ -46,10 +51,6 @@ class Users extends React.Component{
         edit_user:{
             is_open:false,
             user:{}
-        },
-        hapus_user:{
-            is_open:false,
-            id_user:""
         }
     }
 
@@ -272,28 +273,28 @@ class Users extends React.Component{
 
     //hapus user
     showConfirmHapus=(data)=>{
-        this.setState({
-            hapus_user:{
-                is_open:true,
-                id_user:data.id_user
+        MySwal.fire({
+            title: "Apakah anda Yakin?",
+            text: "Data yang sudah dihapus mungkin tidak bisa dikembalikan lagi!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus Data!',
+            cancelButtonText: 'Batal!',
+            reverseButtons: true,
+            customClass:{
+                popup:"w-auto"
+            }
+        })
+        .then(result=>{
+            if(result.isConfirmed){
+                this.deleteUser(data.id_user)
             }
         })
     }
-    hideConfirmHapus=()=>{
-        this.setState({
-            hapus_user:{
-                is_open:false,
-                id_user:""
-            }
-        })
-    }
-    deleteUser=()=>{
-        const {hapus_user}=this.state
-
-        api(access_token()).delete(`/user/${hapus_user.id_user}`)
+    deleteUser=(id)=>{
+        api(access_token()).delete(`/user/${id}`)
         .then(res=>{
             this.getsUser()
-            this.hideConfirmHapus()
             toast.warn("User dihapus!")
         })
         .catch(err=>{
@@ -310,155 +311,146 @@ class Users extends React.Component{
 
         return (
             <Layout>
-                <div class="page-header d-print-none">
-                    <div class="container-xl">
-                        <div class="row g-2 align-items-center">
-                            <div class="col">
-                                <div class="page-pretitle">Overview</div>
-                                <h2 class="page-title">Master Users</h2>
-                            </div>
-                            <div class="col-12 col-md-auto ms-auto d-print-none">
-                                <div class="btn-list">
-                                    <button type="button" class="btn btn-primary" onClick={this.toggleModalTambah}>
-                                        <TbPlus className="icon"/>
-                                        Tambah User
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                    <div>
+                        <h4 class="mb-3 mb-md-0">Master Users</h4>
+                    </div>
+                    <div class="d-flex align-items-center flex-wrap text-nowrap">
+                        <button 
+                            type="button" 
+                            class="btn btn-primary btn-icon-text mb-2 mb-md-0"
+                            onClick={this.toggleModalTambah}
+                        >
+                            <FiPlus className="btn-icon-prepend"/>
+                            Tambah User
+                        </button>
                     </div>
                 </div>
-                <div class="page-body">
-                    <div class="container-xl">
-                        <div className="d-flex flex-column mt-3" style={{minHeight:"67vh"}}>
-                            <div className="row">
-                                <div className="col-12">
-                                    <div className="d-flex mb-3 mt-3">
-                                        <div style={{width:"200px"}} className="me-2">
-                                            <select name="role" value={users.role} className="form-select" onChange={this.typeFilter}>
-                                                <option value="">-- Semua Role</option>
-                                                <option value="admin">Super Admin</option>
-                                                <option value="dinkes">Dinas Kesehatan</option>
-                                                <option value="dinas">Dinas</option>
-                                                <option value="posyandu">Posyandu</option>
-                                            </select>
-                                        </div>
-                                        <div style={{width:"200px"}} className="me-2">
-                                            <select name="status" value={users.status} className="form-select" onChange={this.typeFilter}>
-                                                <option value="">-- Semua Status</option>
-                                                <option value="active">Aktif</option>
-                                                <option value="suspend">Disuspend</option>
-                                            </select>
-                                        </div>
-                                        <div style={{width:"200px"}} className="me-2">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="q"
-                                                onChange={this.typeFilter}
-                                                value={users.q}
-                                                placeholder="Cari ..."
-                                            />
-                                        </div>
+                <div className="row">
+                    <div className="col-12">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="d-flex mb-3 mt-3">
+                                    <div style={{width:"200px"}} className="me-2">
+                                        <select name="role" value={users.role} className="form-select" onChange={this.typeFilter}>
+                                            <option value="">-- Semua Role</option>
+                                            <option value="admin">Super Admin</option>
+                                            <option value="dinkes">Dinas Kesehatan</option>
+                                            <option value="dinas">Dinas</option>
+                                            <option value="posyandu">Posyandu</option>
+                                        </select>
                                     </div>
-                                    <div className="card border-0 mb-3">
-                                        <div className="card-body p-0">
-                                            <div className="table-responsive">
-                                                <table className="table table-centered table-wrap mb-0 rounded">
-                                                    <thead className="thead-light">
-                                                        <tr>
-                                                            <th className="border-0 rounded-start" width="50">#</th>
-                                                            <th className="border-0">User/Pengguna</th>
-                                                            <th className="border-0">Username</th>
-                                                            <th className="border-0" width="100">Role</th>
-                                                            <th className="border-0" width="150">Status</th>
-                                                            <th className="border-0 rounded-end" width="50"></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {users.data.map((list, idx)=>(
-                                                            <tr key={list}>
-                                                                    <td className="align-middle">{(idx+1)+((users.page-1)*users.per_page)}</td>
-                                                                    <td className="py-1 align-middle">
-                                                                        <div className="d-flex align-items-center">
-                                                                            <div className="d-flex align-items-center">
-                                                                                <span className="avatar avatar-sm">
-                                                                                    <Avatar 
-                                                                                        data={list}
-                                                                                    />
-                                                                                </span>
-                                                                            </div>
-                                                                            <span className="fw-semibold text-capitalize ms-2">{list.nama_lengkap}</span>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td>
-                                                                        {list.username}
-                                                                    </td>
-                                                                    <td>
-                                                                        {list.role}
-                                                                    </td>
-                                                                    <td>
-                                                                        {this.userStatus(list.status)}
-                                                                    </td>
-                                                                    <td className="text-nowrap p-1 align-middle">
-                                                                        <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                            <TbEdit className="icon"/>
-                                                                        </button>
-                                                                        <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                            <TbTrash className="icon"/>
-                                                                        </button>
-                                                                    </td>
-                                                            </tr>
-                                                        ))}
-                                                        {users.data.length==0&&
-                                                            <tr>
-                                                                <td colSpan={6} className="text-center">Data tidak ditemukan!</td>
-                                                            </tr>
-                                                        }
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
+                                    <div style={{width:"200px"}} className="me-2">
+                                        <select name="status" value={users.status} className="form-select" onChange={this.typeFilter}>
+                                            <option value="">-- Semua Status</option>
+                                            <option value="active">Aktif</option>
+                                            <option value="suspend">Disuspend</option>
+                                        </select>
                                     </div>
-                                    <div className="d-flex align-items-center">
-                                        <div className="d-flex flex-column">
-                                            <div>Halaman {users.page} dari {users.last_page}</div>
-                                        </div>
-                                        <div className="d-flex align-items-center me-auto ms-3">
-                                            <select className="form-select" name="per_page" value={users.per_page} onChange={this.setPerPage}>
-                                                <option value="10">10 Data</option>
-                                                <option value="25">25 Data</option>
-                                                <option value="50">50 Data</option>
-                                                <option value="100">100 Data</option>
-                                            </select>
-                                        </div>
-                                        <div className="d-flex ms-3">
-                                            <button 
-                                                className={classNames(
-                                                    "btn",
-                                                    "border-0",
-                                                    {"btn-primary":users.page>1}
-                                                )}
-                                                disabled={users.page<=1}
-                                                onClick={()=>this.goToPage(users.page-1)}
-                                            >
-                                                <TbChevronLeft/>
-                                                Prev
-                                            </button>
-                                            <button 
-                                                className={classNames(
-                                                    "btn",
-                                                    "border-0",
-                                                    {"btn-primary":users.page<users.last_page},
-                                                    "ms-2"
-                                                )}
-                                                disabled={users.page>=users.last_page}
-                                                onClick={()=>this.goToPage(users.page+1)}
-                                            >
-                                                Next
-                                                <TbChevronRight/>
-                                            </button>
-                                        </div>
+                                    <div style={{width:"200px"}} className="me-2">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            name="q"
+                                            onChange={this.typeFilter}
+                                            value={users.q}
+                                            placeholder="Cari ..."
+                                        />
+                                    </div>
+                                </div>
+                                <div className="table-responsive">
+                                    <table className="table table-hover table-custom table-wrap mb-0 rounded">
+                                        <thead className="thead-light">
+                                            <tr>
+                                                <th className="border-0 rounded-start" width="50">#</th>
+                                                <th className="border-0">User/Pengguna</th>
+                                                <th className="border-0">Username</th>
+                                                <th className="border-0" width="100">Role</th>
+                                                <th className="border-0" width="150">Status</th>
+                                                <th className="border-0 rounded-end" width="50"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {users.data.map((list, idx)=>(
+                                                <tr key={list}>
+                                                        <td className="align-middle">{(idx+1)+((users.page-1)*users.per_page)}</td>
+                                                        <td className="py-1 align-middle">
+                                                            <div className="d-flex align-items-center">
+                                                                <div className="d-flex align-items-center">
+                                                                    <span className="avatar avatar-sm">
+                                                                        <Avatar 
+                                                                            data={list}
+                                                                        />
+                                                                    </span>
+                                                                </div>
+                                                                <span className="fw-semibold text-capitalize ms-2">{list.nama_lengkap}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            {list.username}
+                                                        </td>
+                                                        <td>
+                                                            {list.role}
+                                                        </td>
+                                                        <td>
+                                                            {this.userStatus(list.status)}
+                                                        </td>
+                                                        <td className="text-nowrap p-1 align-middle">
+                                                            <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                <TbEdit className="icon"/>
+                                                            </button>
+                                                            <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                <TbTrash className="icon"/>
+                                                            </button>
+                                                        </td>
+                                                </tr>
+                                            ))}
+                                            {users.data.length==0&&
+                                                <tr>
+                                                    <td colSpan={6} className="text-center">Data tidak ditemukan!</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="d-flex align-items-center mt-3">
+                                    <div className="d-flex flex-column">
+                                        <div>Halaman {users.page} dari {users.last_page}</div>
+                                    </div>
+                                    <div className="d-flex align-items-center me-auto ms-3">
+                                        <select className="form-select" name="per_page" value={users.per_page} onChange={this.setPerPage}>
+                                            <option value="10">10 Data</option>
+                                            <option value="25">25 Data</option>
+                                            <option value="50">50 Data</option>
+                                            <option value="100">100 Data</option>
+                                        </select>
+                                    </div>
+                                    <div className="d-flex ms-3">
+                                        <button 
+                                            className={classNames(
+                                                "btn",
+                                                "border-0",
+                                                {"btn-primary":users.page>1}
+                                            )}
+                                            disabled={users.page<=1}
+                                            onClick={()=>this.goToPage(users.page-1)}
+                                        >
+                                            <FiChevronLeft/>
+                                            Prev
+                                        </button>
+                                        <button 
+                                            className={classNames(
+                                                "btn",
+                                                "border-0",
+                                                {"btn-primary":users.page<users.last_page},
+                                                "ms-2"
+                                            )}
+                                            disabled={users.page>=users.last_page}
+                                            onClick={()=>this.goToPage(users.page+1)}
+                                        >
+                                            Next
+                                            <FiChevronRight/>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -469,7 +461,7 @@ class Users extends React.Component{
                 {/* MODAL TAMBAH */}
                 <Modal show={tambah_user.is_open} className="modal-blur" onHide={this.toggleModalTambah} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Tambah User</div>
+                        <h4 className="modal-title">Tambah User</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={tambah_user.user}
@@ -628,7 +620,7 @@ class Users extends React.Component{
                 {/* MODAL EDIT */}
                 <Modal show={edit_user.is_open} className="modal-blur" onHide={this.hideModalEdit} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Edit User</div>
+                        <h4 className="modal-title">Edit User</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={edit_user.user}
@@ -783,15 +775,6 @@ class Users extends React.Component{
                         )}
                     </Formik>
                 </Modal>
-
-                {/* CONFIRM HAPUS */}
-                <ConfirmDelete
-                    show={hapus_user.is_open}
-                    title="Apakah anda Yakin?"
-                    sub_title="Data yang sudah dihapus tidak bisa dikembalikan lagi!"
-                    toggle={()=>this.hideConfirmHapus()}
-                    deleteAction={()=>this.deleteUser()}
-                />
             </Layout>
         )
     }

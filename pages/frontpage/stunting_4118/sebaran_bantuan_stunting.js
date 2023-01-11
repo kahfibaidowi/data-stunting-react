@@ -24,6 +24,7 @@ import * as yup from "yup"
 import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbEdit, TbPlus, TbTrash, TbUpload } from "react-icons/tb"
 import CreatableSelect from "react-select/creatable"
 import Select from "react-select"
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi"
 
 class SebaranBantuanStunting extends React.Component{
     state={
@@ -145,154 +146,139 @@ class SebaranBantuanStunting extends React.Component{
         return (
             <>
                 <Layout>
-                    <div class="page-header d-print-none">
-                        <div class="container-xl">
-                            <div class="row g-2 align-items-center">
-                                <div class="col">
-                                    <div class="page-pretitle">Intervensi</div>
-                                    <h2 class="page-title">Sebaran Bantuan Stunting</h2>
-                                </div>
-                                <div class="col-12 col-md-auto ms-auto d-print-none">
-                                    <div class="btn-list">
-                                        
+                    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                        <div>
+                            <h4 class="mb-3 mb-md-0">Sebaran Bantuan Stunting</h4>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap text-nowrap">
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-12">
+                            <div className="card">
+                                <div className="card-body">
+                                    <div className="d-flex mb-3 mt-3">
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <CreatableSelect
+                                                options={this.listTahun()}
+                                                onChange={e=>{
+                                                    this.typeFilter({target:{name:"tahun", value:e.value}})
+                                                }}
+                                                value={this.findTahun(sebaran_bantuan.tahun)}
+                                                placeholder="Semua Tahun"
+                                            />
+                                        </div>
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="q"
+                                                onChange={this.typeFilter}
+                                                value={sebaran_bantuan.q}
+                                                placeholder="Cari ..."
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="table-responsive">
+                                        <table className="table table-hover table-custom table-nowrap mb-0 rounded">
+                                            <thead className="thead-light">
+                                                <tr className="text-uppercase">
+                                                    <th className="px-3" width="50">#</th>
+                                                    <th className="px-3">Kecamatan</th>
+                                                    <th className="px-3">Jumlah Anak Stunting</th>
+                                                    <th className="px-3">Jumlah Penerima Bantuan</th>
+                                                    <th className="px-3">Penerima dari Total(%)</th>
+                                                    <th className="px-3">Total Bantuan(Rp)</th>
+                                                    <th className="px-3" width="90"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="border-top-0">
+                                                {sebaran_bantuan.data.map((list, idx)=>(
+                                                    <tr key={list}>
+                                                            <td className="align-middle px-3">{(idx+1)+((sebaran_bantuan.page-1)*sebaran_bantuan.per_page)}</td>
+                                                            <td className="px-3">{list.region}</td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={list.count_stunting}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={list.count_penerima_bantuan}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td>
+                                                                <NumberFormat
+                                                                    value={(list.count_penerima_bantuan/(list.count_stunting>0?list.count_stunting:1))*100}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                    decimalScale={2}
+                                                                />
+                                                            </td>
+                                                            <td>
+                                                                <NumberFormat
+                                                                    value={list.total_bantuan}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td></td>
+                                                    </tr>
+                                                ))}
+                                                {sebaran_bantuan.data.length==0&&
+                                                    <tr>
+                                                        <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="d-flex align-items-center mt-3">
+                                        <div className="d-flex flex-column">
+                                            <div>Halaman {sebaran_bantuan.page} dari {sebaran_bantuan.last_page}</div>
+                                        </div>
+                                        <div className="d-flex align-items-center me-auto ms-3">
+                                            <select className="form-select" name="per_page" value={sebaran_bantuan.per_page} onChange={this.setPerPage}>
+                                                <option value="10">10 Data</option>
+                                                <option value="25">25 Data</option>
+                                                <option value="50">50 Data</option>
+                                                <option value="100">100 Data</option>
+                                            </select>
+                                        </div>
+                                        <div className="d-flex ms-3">
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":sebaran_bantuan.page>1}
+                                                )}
+                                                disabled={sebaran_bantuan.page<=1}
+                                                onClick={()=>this.goToPage(sebaran_bantuan.page-1)}
+                                            >
+                                                <FiChevronLeft/>
+                                                Prev
+                                            </button>
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":sebaran_bantuan.page<sebaran_bantuan.last_page},
+                                                    "ms-2"
+                                                )}
+                                                disabled={sebaran_bantuan.page>=sebaran_bantuan.last_page}
+                                                onClick={()=>this.goToPage(sebaran_bantuan.page+1)}
+                                            >
+                                                Next
+                                                <FiChevronRight/>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="page-body">
-                        <div class="container-xl">
-                            <div className='row mt-3 mb-5'>
-                                <div className='col-md-12 mx-auto'>
-                                    <div>
-                                        <div className="d-flex mb-3 mt-3">
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <CreatableSelect
-                                                    options={this.listTahun()}
-                                                    onChange={e=>{
-                                                        this.typeFilter({target:{name:"tahun", value:e.value}})
-                                                    }}
-                                                    value={this.findTahun(sebaran_bantuan.tahun)}
-                                                    placeholder="Semua Tahun"
-                                                />
-                                            </div>
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    name="q"
-                                                    onChange={this.typeFilter}
-                                                    value={sebaran_bantuan.q}
-                                                    placeholder="Cari ..."
-                                                />
-                                            </div>
-                                        </div>
-                                        <div class="card border-0">
-                                            <div class="card-body px-0 py-0">
-                                                <div className="table-responsive">
-                                                    <table className="table table-centered table-nowrap mb-0 rounded">
-                                                        <thead className="thead-light">
-                                                            <tr className="text-uppercase">
-                                                                <th className="px-3" width="50">#</th>
-                                                                <th className="px-3">Kecamatan</th>
-                                                                <th className="px-3">Jumlah Anak Stunting</th>
-                                                                <th className="px-3">Jumlah Penerima Bantuan</th>
-                                                                <th className="px-3">Penerima dari Total(%)</th>
-                                                                <th className="px-3">Total Bantuan(Rp)</th>
-                                                                <th className="px-3" width="90"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="border-top-0">
-                                                            {sebaran_bantuan.data.map((list, idx)=>(
-                                                                <tr key={list}>
-                                                                        <td className="align-middle px-3">{(idx+1)+((sebaran_bantuan.page-1)*sebaran_bantuan.per_page)}</td>
-                                                                        <td className="px-3">{list.region}</td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={list.count_stunting}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={list.count_penerima_bantuan}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td>
-                                                                            <NumberFormat
-                                                                                value={(list.count_penerima_bantuan/(list.count_stunting>0?list.count_stunting:1))*100}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                                decimalScale={2}
-                                                                            />
-                                                                        </td>
-                                                                        <td>
-                                                                            <NumberFormat
-                                                                                value={list.total_bantuan}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td></td>
-                                                                </tr>
-                                                            ))}
-                                                            {sebaran_bantuan.data.length==0&&
-                                                                <tr>
-                                                                    <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="d-flex align-items-center mt-3">
-                                            <div className="d-flex flex-column">
-                                                <div>Halaman {sebaran_bantuan.page} dari {sebaran_bantuan.last_page}</div>
-                                            </div>
-                                            <div className="d-flex align-items-center me-auto ms-3">
-                                                <select className="form-select" name="per_page" value={sebaran_bantuan.per_page} onChange={this.setPerPage}>
-                                                    <option value="10">10 Data</option>
-                                                    <option value="25">25 Data</option>
-                                                    <option value="50">50 Data</option>
-                                                    <option value="100">100 Data</option>
-                                                </select>
-                                            </div>
-                                            <div className="d-flex ms-3">
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":sebaran_bantuan.page>1}
-                                                    )}
-                                                    disabled={sebaran_bantuan.page<=1}
-                                                    onClick={()=>this.goToPage(sebaran_bantuan.page-1)}
-                                                >
-                                                    <TbChevronLeft/>
-                                                    Prev
-                                                </button>
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":sebaran_bantuan.page<sebaran_bantuan.last_page},
-                                                        "ms-2"
-                                                    )}
-                                                    disabled={sebaran_bantuan.page>=sebaran_bantuan.last_page}
-                                                    onClick={()=>this.goToPage(sebaran_bantuan.page+1)}
-                                                >
-                                                    Next
-                                                    <TbChevronRight/>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>  
                         </div>
                     </div>
                 </Layout>

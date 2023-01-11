@@ -233,22 +233,25 @@ class Homepage extends React.Component{
 
         return  (
             <>
-                <Navbar as="header" className="navbar navbar-light d-print-none fixed-top" expand="md">
-                    <div className="container-xl">
-                        <h1 className="navbar-brand navbar-brand-layout-condensed navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3">
-                            <Link href="">
-                                <img src="/logo.png" alt="Stunting" className="navbar-brand-image"/>
-                            </Link>
-                        </h1>
-                        <div className="navbar-nav flex-row order-md-last py-2">
-                            <Link href="/login" class="btn btn-primary btn-pill">
-                                <TbLogin className="icon"/>
-                                Login Admin
-                            </Link>
-                        </div>
+                <nav 
+                    className="navbar navbar-expand-lg"
+                    style={{
+                        left:0,
+                        top:0,
+                        width:"100%",
+                        zIndex:99999999
+                    }}
+                >
+                    <div className="container">
+                        <Link href="" className="navbar-brand">
+                            <img src="/logo.png" alt="Stunting" className="navbar-brand-image"/>
+                        </Link>
+                        <Link href="/login" className="btn btn-primary btn-pill">
+                            Login Admin
+                        </Link>
                     </div>
-                </Navbar>
-                <div className="page-wrapper mt-5">
+                </nav>
+                <div className="d-flex" style={{marginTop:"70px"}}>
                     <div className="container">
                         {/* <div className="row">
                             <div className="col-12 mt-4">
@@ -262,10 +265,8 @@ class Homepage extends React.Component{
                         <div className="row">
                             <div className="col-12 mt-4">
                                 <div className="card w-100 rounded-4 overflow-hidden">
-                                    <div className="card-header">
-                                        <h3 className="card-title fw-semibold">Pemetaan Stunting</h3>
-                                    </div>
                                     <div className="card-body p-3 border-top-0">
+                                        <h3 className="card-title fw-semibold mb-4">Pemetaan Stunting</h3>
                                         <Map data={pemetaan.data} center={pemetaan.center} className="map-responsive-full"/>
                                     </div>
                                 </div>
@@ -274,10 +275,8 @@ class Homepage extends React.Component{
                         <div className="row mb-4">
                             <div className="col-md-6 mt-4">
                                 <div className="card w-100 rounded-4 overflow-hidden">
-                                    <div className="card-header">
-                                        <h3 className="card-title fw-semibold">Grafik Anak Penderita Stunting</h3>
-                                    </div>
                                     <div className="card-body p-3 border-top-0">
+                                        <h3 className="card-title fw-semibold mb-4">Grafik Anak Penderita Stunting</h3>
                                         <Chart
                                             options={bar_chart.options}
                                             series={bar_chart.series}
@@ -290,10 +289,8 @@ class Homepage extends React.Component{
                             </div>
                             <div className="col-md-6 mt-4">
                                 <div className="card w-100 rounded-4 overflow-hidden">
-                                    <div className="card-header">
-                                        <h3 className="card-title fw-semibold">Realisasi Bantuan Dalam Tahun</h3>
-                                    </div>
                                     <div className="card-body p-3 border-top-0">
+                                        <h3 className="card-title fw-semibold mb-4">Realisasi Bantuan Dalam Tahun</h3>
                                         <div className="d-flex mb-3 mt-3">
                                             <div style={{width:"200px"}} className="me-2">
                                                 <CreatableSelect

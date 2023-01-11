@@ -24,6 +24,12 @@ import * as yup from "yup"
 import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbEdit, TbPlus, TbTrash, TbUpload } from "react-icons/tb"
 import CreatableSelect from "react-select/creatable"
 import Select from "react-select"
+import swal from "sweetalert2"
+import withReactContent from 'sweetalert2-react-content'
+import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi"
+
+
+const MySwal=withReactContent(swal)
 
 class RencanaBantuan extends React.Component{
     state={
@@ -55,10 +61,6 @@ class RencanaBantuan extends React.Component{
             is_open:false,
             dinas_form:[],
             rencana_bantuan:{}
-        },
-        hapus_rencana_bantuan:{
-            is_open:false,
-            id_rencana_bantuan:""
         }
     }
 
@@ -309,28 +311,28 @@ class RencanaBantuan extends React.Component{
 
     //hapus
     showConfirmHapus=(data)=>{
-        this.setState({
-            hapus_rencana_bantuan:{
-                is_open:true,
-                id_rencana_bantuan:data.id_rencana_bantuan
+        MySwal.fire({
+            title: "Apakah anda Yakin?",
+            text: "Data yang sudah dihapus mungkin tidak bisa dikembalikan lagi!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus Data!',
+            cancelButtonText: 'Batal!',
+            reverseButtons: true,
+            customClass:{
+                popup:"w-auto"
+            }
+        })
+        .then(result=>{
+            if(result.isConfirmed){
+                this.deleteRencanaBantuan(data.id_rencana_bantuan)
             }
         })
     }
-    hideConfirmHapus=()=>{
-        this.setState({
-            hapus_rencana_bantuan:{
-                is_open:false,
-                id_rencana_bantuan:""
-            }
-        })
-    }
-    deleteRencanaBantuan=()=>{
-        const {hapus_rencana_bantuan}=this.state
-
-        api(access_token()).delete(`/intervensi_rencana_bantuan/${hapus_rencana_bantuan.id_rencana_bantuan}`)
+    deleteRencanaBantuan=(id)=>{
+        api(access_token()).delete(`/intervensi_rencana_bantuan/${id}`)
         .then(res=>{
             this.getsRencanaBantuan()
-            this.hideConfirmHapus()
             toast.warn("Rencana Bantuan dihapus!")
         })
         .catch(err=>{
@@ -355,176 +357,162 @@ class RencanaBantuan extends React.Component{
         return (
             <>
                 <Layout>
-                    <div class="page-header d-print-none">
-                        <div class="container-xl">
-                            <div class="row g-2 align-items-center">
-                                <div class="col">
-                                    <div class="page-pretitle">Intervensi</div>
-                                    <h2 class="page-title">Rencana Bantuan</h2>
-                                </div>
-                                <div class="col-12 col-md-auto ms-auto d-print-none">
-                                    <div class="btn-list">
-                                        <button 
-                                            type="button" 
-                                            class="btn btn-primary" 
-                                            onClick={this.toggleTambah}
-                                            disabled={rencana_bantuan.id_user==""||rencana_bantuan.tahun==""}
-                                        >
-                                            <TbPlus className="icon"/>
-                                            Tambah Bantuan
-                                        </button>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                        <div>
+                            <h4 class="mb-3 mb-md-0">Rencana Bantuan</h4>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap text-nowrap">
+                            <button 
+                                type="button" 
+                                class="btn btn-primary btn-icon-text mb-2 mb-md-0"
+                                onClick={this.toggleTambah}
+                                disabled={rencana_bantuan.id_user==""||rencana_bantuan.tahun==""}
+                            >
+                                <FiPlus className="btn-icon-prepend"/>
+                                Tambah Bantuan
+                            </button>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-12">
+                            <div className="card">
+                                <div className="card-body">
+                                    <div className="d-flex mb-3 mt-3">
+                                        {login_data.role!="dinas"&&
+                                            <div style={{width:"200px"}} className="me-2">
+                                                <Select
+                                                    options={this.listDinas(dinas_form)}
+                                                    onChange={e=>{
+                                                        this.typeFilter({target:{name:"id_user", value:e.value}})
+                                                    }}
+                                                    value={this.findDinas(rencana_bantuan.id_user, dinas_form)}
+                                                    placeholder="Pilih Dinas"
+                                                />
+                                            </div>
+                                        }
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <CreatableSelect
+                                                options={this.listTahun()}
+                                                onChange={e=>{
+                                                    this.typeFilter({target:{name:"tahun", value:e.value}})
+                                                }}
+                                                value={this.findTahun(rencana_bantuan.tahun)}
+                                                placeholder="Pilih Tahun"
+                                            />
+                                        </div>
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="q"
+                                                onChange={this.typeFilter}
+                                                value={rencana_bantuan.q}
+                                                placeholder="Cari ..."
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="table-responsive">
+                                        <table className="table table-hover table-custom table-nowrap mb-0 rounded">
+                                            <thead className="thead-light">
+                                                <tr className="text-uppercase">
+                                                    <th className="px-3" width="50">#</th>
+                                                    <th className="px-3">Bantuan</th>
+                                                    <th className="px-3">Harga Satuan</th>
+                                                    <th className="px-3">Satuan</th>
+                                                    <th className="px-3">Qty</th>
+                                                    <th className="px-3 text-wrap">Detail Kegiatan</th>
+                                                    <th className="px-3">Jumlah</th>
+                                                    <th className="px-3" width="90"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="border-top-0">
+                                                {rencana_bantuan.data.map((list, idx)=>(
+                                                    <tr key={list}>
+                                                            <td className="align-middle px-3">{(idx+1)+((rencana_bantuan.page-1)*rencana_bantuan.per_page)}</td>
+                                                            <td className="px-3">{list.bantuan}</td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={list.harga_satuan}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td className="px-3">{list.satuan}</td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={list.qty}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={list.jumlah}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td className="text-nowrap p-1 px-3">
+                                                                <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                    <TbEdit className="icon"/>
+                                                                </button>
+                                                                <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                    <TbTrash className="icon"/>
+                                                                </button>
+                                                            </td>
+                                                    </tr>
+                                                ))}
+                                                {rencana_bantuan.data.length==0&&
+                                                    <tr>
+                                                        <td colSpan="8" className="text-center">Data tidak ditemukan!</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="d-flex align-items-center mt-3">
+                                        <div className="d-flex flex-column">
+                                            <div>Halaman {rencana_bantuan.page} dari {rencana_bantuan.last_page}</div>
+                                        </div>
+                                        <div className="d-flex align-items-center me-auto ms-3">
+                                            <select className="form-select" name="per_page" value={rencana_bantuan.per_page} onChange={this.setPerPage}>
+                                                <option value="10">10 Data</option>
+                                                <option value="25">25 Data</option>
+                                                <option value="50">50 Data</option>
+                                                <option value="100">100 Data</option>
+                                            </select>
+                                        </div>
+                                        <div className="d-flex ms-3">
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":rencana_bantuan.page>1}
+                                                )}
+                                                disabled={rencana_bantuan.page<=1}
+                                                onClick={()=>this.goToPage(rencana_bantuan.page-1)}
+                                            >
+                                                <FiChevronLeft/>
+                                                Prev
+                                            </button>
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":rencana_bantuan.page<rencana_bantuan.last_page},
+                                                    "ms-2"
+                                                )}
+                                                disabled={rencana_bantuan.page>=rencana_bantuan.last_page}
+                                                onClick={()=>this.goToPage(rencana_bantuan.page+1)}
+                                            >
+                                                Next
+                                                <FiChevronRight/>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="page-body">
-                        <div class="container-xl">
-                            <div className='row mt-3 mb-5'>
-                                <div className='col-md-12 mx-auto'>
-                                    <div>
-                                        <div className="d-flex mb-3 mt-3">
-                                            {login_data.role!="dinas"&&
-                                                <div style={{width:"200px"}} className="me-2">
-                                                    <Select
-                                                        options={this.listDinas(dinas_form)}
-                                                        onChange={e=>{
-                                                            this.typeFilter({target:{name:"id_user", value:e.value}})
-                                                        }}
-                                                        value={this.findDinas(rencana_bantuan.id_user, dinas_form)}
-                                                        placeholder="Pilih Dinas"
-                                                    />
-                                                </div>
-                                            }
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <CreatableSelect
-                                                    options={this.listTahun()}
-                                                    onChange={e=>{
-                                                        this.typeFilter({target:{name:"tahun", value:e.value}})
-                                                    }}
-                                                    value={this.findTahun(rencana_bantuan.tahun)}
-                                                    placeholder="Pilih Tahun"
-                                                />
-                                            </div>
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    name="q"
-                                                    onChange={this.typeFilter}
-                                                    value={rencana_bantuan.q}
-                                                    placeholder="Cari ..."
-                                                />
-                                            </div>
-                                        </div>
-                                        <div class="card border-0">
-                                            <div class="card-body px-0 py-0">
-                                                <div className="table-responsive">
-                                                    <table className="table table-centered table-nowrap mb-0 rounded">
-                                                        <thead className="thead-light">
-                                                            <tr className="text-uppercase">
-                                                                <th className="px-3" width="50">#</th>
-                                                                <th className="px-3">Bantuan</th>
-                                                                <th className="px-3">Harga Satuan</th>
-                                                                <th className="px-3">Satuan</th>
-                                                                <th className="px-3">Qty</th>
-                                                                <th className="px-3 text-wrap">Detail Kegiatan</th>
-                                                                <th className="px-3">Jumlah</th>
-                                                                <th className="px-3" width="90"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="border-top-0">
-                                                            {rencana_bantuan.data.map((list, idx)=>(
-                                                                <tr key={list}>
-                                                                        <td className="align-middle px-3">{(idx+1)+((rencana_bantuan.page-1)*rencana_bantuan.per_page)}</td>
-                                                                        <td className="px-3">{list.bantuan}</td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={list.harga_satuan}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td className="px-3">{list.satuan}</td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={list.qty}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={list.jumlah}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td className="text-nowrap p-1 px-3">
-                                                                            <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                                <TbEdit className="icon"/>
-                                                                            </button>
-                                                                            <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                                <TbTrash className="icon"/>
-                                                                            </button>
-                                                                        </td>
-                                                                </tr>
-                                                            ))}
-                                                            {rencana_bantuan.data.length==0&&
-                                                                <tr>
-                                                                    <td colSpan="8" className="text-center">Data tidak ditemukan!</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="d-flex align-items-center mt-3">
-                                            <div className="d-flex flex-column">
-                                                <div>Halaman {rencana_bantuan.page} dari {rencana_bantuan.last_page}</div>
-                                            </div>
-                                            <div className="d-flex align-items-center me-auto ms-3">
-                                                <select className="form-select" name="per_page" value={rencana_bantuan.per_page} onChange={this.setPerPage}>
-                                                    <option value="10">10 Data</option>
-                                                    <option value="25">25 Data</option>
-                                                    <option value="50">50 Data</option>
-                                                    <option value="100">100 Data</option>
-                                                </select>
-                                            </div>
-                                            <div className="d-flex ms-3">
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":rencana_bantuan.page>1}
-                                                    )}
-                                                    disabled={rencana_bantuan.page<=1}
-                                                    onClick={()=>this.goToPage(rencana_bantuan.page-1)}
-                                                >
-                                                    <TbChevronLeft/>
-                                                    Prev
-                                                </button>
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":rencana_bantuan.page<rencana_bantuan.last_page},
-                                                        "ms-2"
-                                                    )}
-                                                    disabled={rencana_bantuan.page>=rencana_bantuan.last_page}
-                                                    onClick={()=>this.goToPage(rencana_bantuan.page+1)}
-                                                >
-                                                    Next
-                                                    <TbChevronRight/>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>  
                         </div>
                     </div>
                 </Layout>
@@ -532,7 +520,7 @@ class RencanaBantuan extends React.Component{
                 {/* MODAL TAMBAH */}
                 <Modal show={tambah_rencana_bantuan.is_open} className="modal-blur" onHide={this.toggleTambah} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Tambah Bantuan</div>
+                        <h4 className="modal-title">Tambah Bantuan</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={tambah_rencana_bantuan.rencana_bantuan}
@@ -649,7 +637,7 @@ class RencanaBantuan extends React.Component{
                 {/* MODAL EDIT */}
                 <Modal show={edit_rencana_bantuan.is_open} className="modal-blur" onHide={this.hideModalEdit} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Edit Bantuan</div>
+                        <h4 className="modal-title">Edit Bantuan</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={edit_rencana_bantuan.rencana_bantuan}
@@ -738,15 +726,6 @@ class RencanaBantuan extends React.Component{
                         )}
                     </Formik>
                 </Modal>
-
-                {/* CONFIRM HAPUS */}
-                <ConfirmDelete
-                    show={hapus_rencana_bantuan.is_open}
-                    title="Apakah anda Yakin?"
-                    sub_title="Data yang sudah dihapus tidak bisa dikembalikan lagi!"
-                    toggle={()=>this.hideConfirmHapus()}
-                    deleteAction={()=>this.deleteRencanaBantuan()}
-                />
             </>
         )
     }

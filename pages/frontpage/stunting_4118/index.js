@@ -22,6 +22,7 @@ import { read, utils, writeFileXLSX } from 'xlsx';
 import * as yup from "yup"
 import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbDownload, TbPlus, TbUpload } from "react-icons/tb"
 import dynamic from "next/dynamic"
+import { FiChevronDown, FiChevronLeft, FiChevronRight, FiDownload, FiUpload } from "react-icons/fi"
 
 const Map=dynamic(()=>import("../../../component/modules/map"), {ssr:false})
 const Chart=dynamic(()=>import("react-apexcharts"), {ssr:false})
@@ -648,246 +649,230 @@ class Stunting4118 extends React.Component{
         return (
             <>
                 <Layout>
-                    <div class="page-header d-print-none">
-                        <div class="container-xl">
-                            <div class="row g-2 align-items-center">
-                                <div class="col">
-                                    <div class="page-pretitle">Overview</div>
-                                    <h2 class="page-title">Stunting 4118</h2>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                        <div>
+                            <h2 class="mb-3 mb-md-0">Stunting 4118</h2>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap text-nowrap">
+                            <Dropdown as={ButtonGroup}>
+                                <label>
+                                    <span className="btn btn-success btn-icon-text d-inline-flex align-items-center" style={{borderTopRightRadius:"0", borderBottomRightRadius:"0"}} onClick={this.selectfi}>
+                                        <FiUpload className="btn-icon-prepend"/>
+                                        Import
+                                    </span>
+                                    <input
+                                        type="file"
+                                        name="file"
+                                        onChange={this.selectFile}
+                                        style={{display:"none"}}
+                                        accept=".xlsx"
+                                    />
+                                </label>
+                                <Dropdown.Toggle split variant="success" className="px-1">
+                                    <FiChevronDown/>
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu align="end" className="dropdown-menu-arrow">
+                                    <label class="d-block w-100 mb-0">
+                                        <Dropdown.Item as="span" className="d-block w-100 cursor-pointer">Import Stunting 4118</Dropdown.Item>
+                                        <input
+                                            type="file"
+                                            name="file"
+                                            onChange={this.selectFile}
+                                            style={{display:"none"}}
+                                            accept=".xlsx"
+                                        />
+                                    </label>
+                                    <Dropdown.Item 
+                                        as="a" 
+                                        className="d-block w-100 cursor-pointer" 
+                                        href="/xlsx/stunting-4118.xlsx"
+                                        target="_blank"
+                                    >
+                                        Download Template
+                                    </Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                            <button type="button" className="btn btn-secondary btn-icon-text ms-2" onClick={this.toggleDownload}>
+                                <FiDownload className="btn-icon-prepend"/>
+                                Export
+                            </button>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-lg-6 mb-3">
+                            <div className="card w-100 rounded-4 overflow-hidden">
+                                <div className="card-body p-3 border-top-0">
+                                    <h3 className="card-title fw-semibold mb-4">Pemetaan Stunting</h3>
+                                    <Map data={pemetaan.data} center={pemetaan.center}/>
                                 </div>
-                                <div class="col-12 col-md-auto ms-auto d-print-none">
-                                    <div class="btn-list">
-                                        <Dropdown as={ButtonGroup}>
-                                            <label>
-                                                <span className="btn btn-success d-inline-flex align-items-center" style={{borderTopRightRadius:"0", borderBottomRightRadius:"0"}} onClick={this.selectfi}>
-                                                    <TbUpload className="icon"/>
-                                                    Import
-                                                </span>
-                                                <input
-                                                    type="file"
-                                                    name="file"
-                                                    onChange={this.selectFile}
-                                                    style={{display:"none"}}
-                                                    accept=".xlsx"
-                                                />
-                                            </label>
-                                            <Dropdown.Toggle split variant="success" className="px-2"/>
-                                            <Dropdown.Menu align="end" className="py-0 dropdown-menu-arrow">
-                                                <label class="d-block w-100 mb-0">
-                                                    <Dropdown.Item as="span" className="d-block w-100 cursor-pointer">Import Stunting 4118</Dropdown.Item>
-                                                    <input
-                                                        type="file"
-                                                        name="file"
-                                                        onChange={this.selectFile}
-                                                        style={{display:"none"}}
-                                                        accept=".xlsx"
-                                                    />
-                                                </label>
-                                                <Dropdown.Item 
-                                                    as="a" 
-                                                    className="d-block w-100 cursor-pointer" 
-                                                    href="/xlsx/stunting-4118.xlsx"
-                                                    target="_blank"
-                                                >
-                                                    Download Template
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                        <button type="button" className="btn btn-secondary" onClick={this.toggleDownload}>
-                                            <TbDownload className="icon"/>
-                                            Export
-                                        </button>
-                                    </div>
+                            </div>
+                        </div>
+                        <div className="col-lg-6 mb-3">
+                            <div className="card w-100 rounded-4 overflow-hidden">
+                                <div className="card-body p-3 border-top-0">
+                                    <h3 className="card-title fw-semibold mb-4">Grafik Anak Penderita Stunting</h3>
+                                    <Chart
+                                        options={bar_chart.options}
+                                        series={bar_chart.series}
+                                        type="bar"
+                                        width="100%"
+                                        height="385px"
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="page-body">
-                        <div class="container-xl">
-                            <div className="row">
-                                <div className="col-lg-6 mb-3">
-                                    <div className="card w-100 rounded-4 overflow-hidden">
-                                        <div className="card-header">
-                                            <h3 className="card-title fw-semibold">Pemetaan Stunting</h3>
+                    <div className='row mt-3 mb-5'>
+                        <div className='col-12'>
+                            <div className="card">
+                                <div className="card-body">
+                                    <div className="d-flex mb-3 mt-3">
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <select 
+                                                name="district_id" 
+                                                value={stunting_4118.district_id} 
+                                                className="form-select" 
+                                                onChange={this.typeFilter}
+                                            >
+                                                <option value="">-- Pilih Kecamatan</option>
+                                                {kecamatan_form.map(kec=>(
+                                                    <option value={kec.id_region} key={kec}>{kec.region}</option>
+                                                ))}
+                                            </select>
                                         </div>
-                                        <div className="card-body p-3 border-top-0">
-                                            <Map data={pemetaan.data} center={pemetaan.center}/>
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="q"
+                                                onChange={this.typeFilter}
+                                                value={stunting_4118.q}
+                                                placeholder="Cari ..."
+                                            />
                                         </div>
                                     </div>
-                                </div>
-                                <div className="col-lg-6 mb-3">
-                                    <div className="card w-100 rounded-4 overflow-hidden">
-                                        <div className="card-header">
-                                            <h3 className="card-title fw-semibold">Grafik Anak Penderita Stunting</h3>
+                                    <div className="table-responsive">
+                                        <table className="table table-hover table-custom table-nowrap mb-0 rounded">
+                                            <thead className="thead-light">
+                                                <tr className="text-uppercase">
+                                                    <th className="px-3" width="50">#</th>
+                                                    <th className="px-3">NIK</th>
+                                                    <th className="px-3">No. KK</th>
+                                                    <th className="px-3">Nama</th>
+                                                    <th className="px-3">Jenis Kelamin</th>
+                                                    <th className="px-3">Tgl Lahir</th>
+                                                    <th className="px-3">BB Lahir</th>
+                                                    <th className="px-3">TB Lahir</th>
+                                                    <th className="px-3">Orang Tua</th>
+                                                    <th className="px-3">Prov</th>
+                                                    <th className="px-3">Kab/Kota</th>
+                                                    <th className="px-3">Kec</th>
+                                                    <th className="px-3">Alamat</th>
+                                                    <th className="px-3">Usia Saat Ukur</th>
+                                                    <th className="px-3">Berat Badan </th>
+                                                    <th className="px-3">Tinggi Badan</th>
+                                                    <th className="px-3">TB/U</th>
+                                                    <th className="px-3">BB/U</th>
+                                                    <th className="px-3">BB/TB</th>
+                                                    <th className="px-3">Last Update</th>
+                                                    <th className="px-3" width="90"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="border-top-0">
+                                                {stunting_4118.data.map((list, idx)=>(
+                                                    <tr key={list}>
+                                                            <td className="align-middle px-3">{(idx+1)+((stunting_4118.page-1)*stunting_4118.per_page)}</td>
+                                                            <td className="px-3">{list.data_anak.nik}</td>
+                                                            <td className="px-3">
+                                                                {list.data_anak?.no_kk.toString().trim()!=""&&
+                                                                    <button 
+                                                                        type="button" 
+                                                                        className="btn btn-link link-primary p-0"
+                                                                        onClick={e=>this.showDetailKK(list.data_anak.no_kk)}
+                                                                    >
+                                                                        {list.data_anak.no_kk}
+                                                                    </button>
+                                                                }
+                                                            </td>
+                                                            <td className="px-3">{list.data_anak.nama_lengkap}</td>
+                                                            <td className="px-3">{this.jenkel(list.data_anak.jenis_kelamin)}</td>
+                                                            <td className="px-3">{list.data_anak.tgl_lahir}</td>
+                                                            <td className="px-3">{list.berat_badan_lahir}</td>
+                                                            <td className="px-3">{list.tinggi_badan_lahir}</td>
+                                                            <td className="px-3">
+                                                                {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
+                                                            </td>
+                                                            <td className="px-3">JAWA TIMUR</td>
+                                                            <td className="px-3">MADIUN</td>
+                                                            <td className="px-3">{list.kecamatan.region}</td>
+                                                            <td className="px-3">Desa {list.data_anak.alamat_detail?.desa}, Dusun {list.data_anak.alamat_detail?.dusun}, RT {list.data_anak.alamat_detail?.rt}, RW {list.data_anak.alamat_detail?.rw}, Jl {list.data_anak.alamat_detail?.jalan}</td>
+                                                            <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
+                                                            <td className="px-3">{list.berat_badan}</td>
+                                                            <td className="px-3">{list.tinggi_badan}</td>
+                                                            <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
+                                                            <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
+                                                            <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
+                                                            <td className="px-3">{moment(list.updated_at).format("DD-MM-YYYY HH:mm:ss")}</td>
+                                                            <td className="text-nowrap p-1 px-3">
+                                                            </td>
+                                                    </tr>
+                                                ))}
+                                                {stunting_4118.data.length==0&&
+                                                    <tr>
+                                                        <td colSpan="22" className="text-center">Data tidak ditemukan!</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="d-flex align-items-center mt-3">
+                                        <div className="d-flex flex-column">
+                                            <div>Halaman {stunting_4118.page} dari {stunting_4118.last_page}</div>
                                         </div>
-                                        <div className="card-body p-3 border-top-0">
-                                            <Chart
-                                                options={bar_chart.options}
-                                                series={bar_chart.series}
-                                                type="bar"
-                                                width="100%"
-                                                height="385px"
-                                            />
+                                        <div className="d-flex align-items-center me-auto ms-3">
+                                            <select className="form-select" name="per_page" value={stunting_4118.per_page} onChange={this.setPerPage}>
+                                                <option value="10">10 Data</option>
+                                                <option value="25">25 Data</option>
+                                                <option value="50">50 Data</option>
+                                                <option value="100">100 Data</option>
+                                            </select>
+                                        </div>
+                                        <div className="d-flex ms-3">
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":stunting_4118.page>1}
+                                                )}
+                                                disabled={stunting_4118.page<=1}
+                                                onClick={()=>this.goToPage(stunting_4118.page-1)}
+                                            >
+                                                <FiChevronLeft/>
+                                                Prev
+                                            </button>
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":stunting_4118.page<stunting_4118.last_page},
+                                                    "ms-2"
+                                                )}
+                                                disabled={stunting_4118.page>=stunting_4118.last_page}
+                                                onClick={()=>this.goToPage(stunting_4118.page+1)}
+                                            >
+                                                Next
+                                                <FiChevronRight/>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className='row mt-3 mb-5'>
-                                <div className='col-md-12 mx-auto'>
-                                    <div>
-                                        <div className="d-flex mb-3 mt-3">
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <select 
-                                                    name="district_id" 
-                                                    value={stunting_4118.district_id} 
-                                                    className="form-select" 
-                                                    onChange={this.typeFilter}
-                                                >
-                                                    <option value="">-- Pilih Kecamatan</option>
-                                                    {kecamatan_form.map(kec=>(
-                                                        <option value={kec.id_region} key={kec}>{kec.region}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    name="q"
-                                                    onChange={this.typeFilter}
-                                                    value={stunting_4118.q}
-                                                    placeholder="Cari ..."
-                                                />
-                                            </div>
-                                        </div>
-                                        <div class="card border-0">
-                                            <div class="card-body px-0 py-0">
-                                                <div className="table-responsive">
-                                                    <table className="table table-centered table-nowrap mb-0 rounded">
-                                                        <thead className="thead-light">
-                                                            <tr className="text-uppercase">
-                                                                <th className="px-3" width="50">#</th>
-                                                                <th className="px-3">NIK</th>
-                                                                <th className="px-3">No. KK</th>
-                                                                <th className="px-3">Nama</th>
-                                                                <th className="px-3">Jenis Kelamin</th>
-                                                                <th className="px-3">Tgl Lahir</th>
-                                                                <th className="px-3">BB Lahir</th>
-                                                                <th className="px-3">TB Lahir</th>
-                                                                <th className="px-3">Orang Tua</th>
-                                                                <th className="px-3">Prov</th>
-                                                                <th className="px-3">Kab/Kota</th>
-                                                                <th className="px-3">Kec</th>
-                                                                <th className="px-3">Alamat</th>
-                                                                <th className="px-3">Usia Saat Ukur</th>
-                                                                <th className="px-3">Berat Badan </th>
-                                                                <th className="px-3">Tinggi Badan</th>
-                                                                <th className="px-3">TB/U</th>
-                                                                <th className="px-3">BB/U</th>
-                                                                <th className="px-3">BB/TB</th>
-                                                                <th className="px-3">Last Update</th>
-                                                                <th className="px-3" width="90"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="border-top-0">
-                                                            {stunting_4118.data.map((list, idx)=>(
-                                                                <tr key={list}>
-                                                                        <td className="align-middle px-3">{(idx+1)+((stunting_4118.page-1)*stunting_4118.per_page)}</td>
-                                                                        <td className="px-3">{list.data_anak.nik}</td>
-                                                                        <td className="px-3">
-                                                                            {list.data_anak?.no_kk.toString().trim()!=""&&
-                                                                                <button 
-                                                                                    type="button" 
-                                                                                    className="btn btn-link link-primary p-0"
-                                                                                    onClick={e=>this.showDetailKK(list.data_anak.no_kk)}
-                                                                                >
-                                                                                    {list.data_anak.no_kk}
-                                                                                </button>
-                                                                            }
-                                                                        </td>
-                                                                        <td className="px-3">{list.data_anak.nama_lengkap}</td>
-                                                                        <td className="px-3">{this.jenkel(list.data_anak.jenis_kelamin)}</td>
-                                                                        <td className="px-3">{list.data_anak.tgl_lahir}</td>
-                                                                        <td className="px-3">{list.berat_badan_lahir}</td>
-                                                                        <td className="px-3">{list.tinggi_badan_lahir}</td>
-                                                                        <td className="px-3">
-                                                                            {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
-                                                                        </td>
-                                                                        <td className="px-3">JAWA TIMUR</td>
-                                                                        <td className="px-3">MADIUN</td>
-                                                                        <td className="px-3">{list.kecamatan.region}</td>
-                                                                        <td className="px-3">Desa {list.data_anak.alamat_detail?.desa}, Dusun {list.data_anak.alamat_detail?.dusun}, RT {list.data_anak.alamat_detail?.rt}, RW {list.data_anak.alamat_detail?.rw}, Jl {list.data_anak.alamat_detail?.jalan}</td>
-                                                                        <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
-                                                                        <td className="px-3">{list.berat_badan}</td>
-                                                                        <td className="px-3">{list.tinggi_badan}</td>
-                                                                        <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
-                                                                        <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
-                                                                        <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
-                                                                        <td className="px-3">{moment(list.updated_at).format("DD-MM-YYYY HH:mm:ss")}</td>
-                                                                        <td className="text-nowrap p-1 px-3">
-                                                                        </td>
-                                                                </tr>
-                                                            ))}
-                                                            {stunting_4118.data.length==0&&
-                                                                <tr>
-                                                                    <td colSpan="22" className="text-center">Data tidak ditemukan!</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="d-flex align-items-center mt-3">
-                                            <div className="d-flex flex-column">
-                                                <div>Halaman {stunting_4118.page} dari {stunting_4118.last_page}</div>
-                                            </div>
-                                            <div className="d-flex align-items-center me-auto ms-3">
-                                                <select className="form-select" name="per_page" value={stunting_4118.per_page} onChange={this.setPerPage}>
-                                                    <option value="10">10 Data</option>
-                                                    <option value="25">25 Data</option>
-                                                    <option value="50">50 Data</option>
-                                                    <option value="100">100 Data</option>
-                                                </select>
-                                            </div>
-                                            <div className="d-flex ms-3">
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":stunting_4118.page>1}
-                                                    )}
-                                                    disabled={stunting_4118.page<=1}
-                                                    onClick={()=>this.goToPage(stunting_4118.page-1)}
-                                                >
-                                                    <TbChevronLeft/>
-                                                    Prev
-                                                </button>
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":stunting_4118.page<stunting_4118.last_page},
-                                                        "ms-2"
-                                                    )}
-                                                    disabled={stunting_4118.page>=stunting_4118.last_page}
-                                                    onClick={()=>this.goToPage(stunting_4118.page+1)}
-                                                >
-                                                    Next
-                                                    <TbChevronRight/>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>  
                         </div>
                     </div>
                 </Layout>
 
                 {/* MODAL IMPORT */}
-                <Modal show={import_stunting_4118.is_open} className="modal-blur" onHide={this.hideImport} backdrop="static" size="xl">
+                <Modal show={import_stunting_4118.is_open} className="modal-blur" onHide={this.hideImport} backdrop="static" size="xl" scrollable>
                     <Formik
                         initialValues={import_stunting_4118.stunting_4118}
                         onSubmit={this.importStunting4118}
@@ -896,7 +881,7 @@ class Stunting4118 extends React.Component{
                         {props=>(
                             <form onSubmit={props.handleSubmit}>
                                 <Modal.Header closeButton>
-                                    <div className="modal-title h2 fw-bold">Data Excel</div>
+                                    <h4 className="modal-title">Data Excel</h4>
                                 </Modal.Header>
                                 <Modal.Body>
                                     <div className="row mb-4">
@@ -918,7 +903,7 @@ class Stunting4118 extends React.Component{
                                         </div>
                                     </div>
                                     <div class="table-responsive mb-4">
-                                        <table class="table table-centered table-nowrap mb-0 rounded">
+                                        <table class="table table-hover table-custom table-nowrap mb-0 rounded">
                                             <thead class="thead-light">
                                                 <tr className="text-uppercase">
                                                     <th class="px-3 rounded-start" width="30">#</th>
@@ -992,7 +977,7 @@ class Stunting4118 extends React.Component{
                 {/* MODAL DOWNLOAD TEMPLATE */}
                 <Modal show={download_template.is_open} className="modal-blur" onHide={this.toggleDownload} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Download Excel</div>
+                        <h4 className="modal-title">Download Excel</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={download_template.template}
@@ -1049,7 +1034,7 @@ class Stunting4118 extends React.Component{
                 {/* MODAL DETAIL KK */}
                 <Modal show={detail_kk.is_open} className="modal-blur" onHide={this.hideDetailKK} backdrop="static" size="lg">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Detail Kartu Keluarga</div>
+                        <h4 className="modal-title">Detail Kartu Keluarga</h4>
                     </Modal.Header>
                     <Modal.Body>
                         {!isUndefined(detail_kk.data.no_kk)&&

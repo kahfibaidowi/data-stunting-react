@@ -25,6 +25,12 @@ import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbEdit, TbPlus, TbTrash, Tb
 import CreatableSelect from "react-select/creatable"
 import Select from "react-select"
 import { AsyncTypeahead } from "react-bootstrap-typeahead"
+import swal from "sweetalert2"
+import withReactContent from 'sweetalert2-react-content'
+import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi"
+
+
+const MySwal=withReactContent(swal)
 
 class RealisasiBantuan extends React.Component{
     state={
@@ -61,10 +67,6 @@ class RealisasiBantuan extends React.Component{
             dinas_form:[],
             rencana_bantuan_form:[],
             realisasi_bantuan:{}
-        },
-        hapus_realisasi_bantuan:{
-            is_open:false,
-            id_realisasi_bantuan:""
         }
     }
 
@@ -412,28 +414,28 @@ class RealisasiBantuan extends React.Component{
 
     //hapus
     showConfirmHapus=(data)=>{
-        this.setState({
-            hapus_realisasi_bantuan:{
-                is_open:true,
-                id_realisasi_bantuan:data.id_realisasi_bantuan
+        MySwal.fire({
+            title: "Apakah anda Yakin?",
+            text: "Data yang sudah dihapus mungkin tidak bisa dikembalikan lagi!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus Data!',
+            cancelButtonText: 'Batal!',
+            reverseButtons: true,
+            customClass:{
+                popup:"w-auto"
+            }
+        })
+        .then(result=>{
+            if(result.isConfirmed){
+                this.deleteRealisasiBantuan(data.id_realisasi_bantuan)
             }
         })
     }
-    hideConfirmHapus=()=>{
-        this.setState({
-            hapus_realisasi_bantuan:{
-                is_open:false,
-                id_realisasi_bantuan:""
-            }
-        })
-    }
-    deleteRealisasiBantuan=()=>{
-        const {hapus_realisasi_bantuan}=this.state
-
-        api(access_token()).delete(`/intervensi_realisasi_bantuan/${hapus_realisasi_bantuan.id_realisasi_bantuan}`)
+    deleteRealisasiBantuan=(id)=>{
+        api(access_token()).delete(`/intervensi_realisasi_bantuan/${id}`)
         .then(res=>{
             this.getsRealisasiBantuan()
-            this.hideConfirmHapus()
             toast.warn("Realisasi Bantuan dihapus!")
         })
         .catch(err=>{
@@ -458,174 +460,160 @@ class RealisasiBantuan extends React.Component{
         return (
             <>
                 <Layout>
-                    <div class="page-header d-print-none">
-                        <div class="container-xl">
-                            <div class="row g-2 align-items-center">
-                                <div class="col">
-                                    <div class="page-pretitle">Intervensi</div>
-                                    <h2 class="page-title">Realisasi Bantuan</h2>
-                                </div>
-                                <div class="col-12 col-md-auto ms-auto d-print-none">
-                                    <div class="btn-list">
-                                        <button 
-                                            type="button" 
-                                            class="btn btn-primary" 
-                                            onClick={this.toggleTambah}
-                                            disabled={realisasi_bantuan.id_user==""||realisasi_bantuan.tahun==""}
-                                        >
-                                            <TbPlus className="icon"/>
-                                            Tambah Bantuan
-                                        </button>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                        <div>
+                            <h4 class="mb-3 mb-md-0">Realisasi Bantuan</h4>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap text-nowrap">
+                            <button 
+                                type="button" 
+                                class="btn btn-primary btn-icon-text mb-2 mb-md-0"
+                                onClick={this.toggleTambah}
+                                disabled={realisasi_bantuan.id_user==""||realisasi_bantuan.tahun==""}
+                            >
+                                <FiPlus className="btn-icon-prepend"/>
+                                Tambah Bantuan
+                            </button>
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-12">
+                            <div className="card">
+                                <div className="card-body">
+                                    <div className="d-flex mb-3 mt-3">
+                                        {login_data.role!="dinas"&&
+                                            <div style={{width:"200px"}} className="me-2">
+                                                <Select
+                                                    options={this.listDinas(dinas_form)}
+                                                    onChange={e=>{
+                                                        this.typeFilter({target:{name:"id_user", value:e.value}})
+                                                    }}
+                                                    value={this.findDinas(realisasi_bantuan.id_user, dinas_form)}
+                                                    placeholder="Pilih Dinas"
+                                                />
+                                            </div>
+                                        }
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <CreatableSelect
+                                                options={this.listTahun()}
+                                                onChange={e=>{
+                                                    this.typeFilter({target:{name:"tahun", value:e.value}})
+                                                }}
+                                                value={this.findTahun(realisasi_bantuan.tahun)}
+                                                placeholder="Pilih Tahun"
+                                            />
+                                        </div>
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="q"
+                                                onChange={this.typeFilter}
+                                                value={realisasi_bantuan.q}
+                                                placeholder="Cari ..."
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="table-responsive">
+                                        <table className="table table-hover table-custom table-nowrap mb-0 rounded">
+                                            <thead className="thead-light">
+                                                <tr className="text-uppercase">
+                                                    <th className="px-3" width="50">#</th>
+                                                    <th className="px-3">NIK Anak</th>
+                                                    <th className="px-3">No. KK</th>
+                                                    <th className="px-3">Nama Anak</th>
+                                                    <th className="px-3">Kecamatan</th>
+                                                    <th className="px-3">Alamat</th>
+                                                    <th className="px-3">Jenis Bantuan</th>
+                                                    <th className="px-3">Tanggal</th>
+                                                    <th className="px-3">Dokumen</th>
+                                                    <th className="px-3" width="90"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="border-top-0">
+                                                {realisasi_bantuan.data.map((list, idx)=>(
+                                                    <tr key={list}>
+                                                            <td className="align-middle px-3">{(idx+1)+((realisasi_bantuan.page-1)*realisasi_bantuan.per_page)}</td>
+                                                            <td className="px-3">{list.skrining_balita.data_anak.nik}</td>
+                                                            <td className="px-3">{list.skrining_balita.data_anak.no_kk}</td>
+                                                            <td className="px-3">{list.skrining_balita.data_anak.nama_lengkap}</td>
+                                                            <td className="px-3">{list.skrining_balita.kecamatan.region}</td>
+                                                            <td className="px-3"></td>
+                                                            <td className="px-3">{list.rencana_bantuan.bantuan}</td>
+                                                            <td className="px-3">{moment(list.created_at).format("D MMM YYYY")}</td>
+                                                            <td>
+                                                                {list.dokumen!=""&&
+                                                                    <div className="d-block text-truncate" style={{maxWidth:"100%"}}>
+                                                                        <a 
+                                                                            href={BASE_URL+"/file/show/"+list.dokumen} 
+                                                                            target="_blank" 
+                                                                            rel="noreferrer"
+                                                                        >
+                                                                            {get_file(list.dokumen)}
+                                                                        </a>
+                                                                    </div>
+                                                                }
+                                                            </td>
+                                                            <td className="text-nowrap p-1 px-3">
+                                                                <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                    <TbEdit className="icon"/>
+                                                                </button>
+                                                                <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                    <TbTrash className="icon"/>
+                                                                </button>
+                                                            </td>
+                                                    </tr>
+                                                ))}
+                                                {realisasi_bantuan.data.length==0&&
+                                                    <tr>
+                                                        <td colSpan="10" className="text-center">Data tidak ditemukan!</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="d-flex align-items-center mt-3">
+                                        <div className="d-flex flex-column">
+                                            <div>Halaman {realisasi_bantuan.page} dari {realisasi_bantuan.last_page}</div>
+                                        </div>
+                                        <div className="d-flex align-items-center me-auto ms-3">
+                                            <select className="form-select" name="per_page" value={realisasi_bantuan.per_page} onChange={this.setPerPage}>
+                                                <option value="10">10 Data</option>
+                                                <option value="25">25 Data</option>
+                                                <option value="50">50 Data</option>
+                                                <option value="100">100 Data</option>
+                                            </select>
+                                        </div>
+                                        <div className="d-flex ms-3">
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":realisasi_bantuan.page>1}
+                                                )}
+                                                disabled={realisasi_bantuan.page<=1}
+                                                onClick={()=>this.goToPage(realisasi_bantuan.page-1)}
+                                            >
+                                                <FiChevronLeft/>
+                                                Prev
+                                            </button>
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":realisasi_bantuan.page<realisasi_bantuan.last_page},
+                                                    "ms-2"
+                                                )}
+                                                disabled={realisasi_bantuan.page>=realisasi_bantuan.last_page}
+                                                onClick={()=>this.goToPage(realisasi_bantuan.page+1)}
+                                            >
+                                                Next
+                                                <FiChevronRight/>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="page-body">
-                        <div class="container-xl">
-                            <div className='row mt-3 mb-5'>
-                                <div className='col-md-12 mx-auto'>
-                                    <div>
-                                        <div className="d-flex mb-3 mt-3">
-                                            {login_data.role!="dinas"&&
-                                                <div style={{width:"200px"}} className="me-2">
-                                                    <Select
-                                                        options={this.listDinas(dinas_form)}
-                                                        onChange={e=>{
-                                                            this.typeFilter({target:{name:"id_user", value:e.value}})
-                                                        }}
-                                                        value={this.findDinas(realisasi_bantuan.id_user, dinas_form)}
-                                                        placeholder="Pilih Dinas"
-                                                    />
-                                                </div>
-                                            }
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <CreatableSelect
-                                                    options={this.listTahun()}
-                                                    onChange={e=>{
-                                                        this.typeFilter({target:{name:"tahun", value:e.value}})
-                                                    }}
-                                                    value={this.findTahun(realisasi_bantuan.tahun)}
-                                                    placeholder="Pilih Tahun"
-                                                />
-                                            </div>
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    name="q"
-                                                    onChange={this.typeFilter}
-                                                    value={realisasi_bantuan.q}
-                                                    placeholder="Cari ..."
-                                                />
-                                            </div>
-                                        </div>
-                                        <div class="card border-0">
-                                            <div class="card-body px-0 py-0">
-                                                <div className="table-responsive">
-                                                    <table className="table table-centered table-nowrap mb-0 rounded">
-                                                        <thead className="thead-light">
-                                                            <tr className="text-uppercase">
-                                                                <th className="px-3" width="50">#</th>
-                                                                <th className="px-3">NIK Anak</th>
-                                                                <th className="px-3">No. KK</th>
-                                                                <th className="px-3">Nama Anak</th>
-                                                                <th className="px-3">Kecamatan</th>
-                                                                <th className="px-3">Alamat</th>
-                                                                <th className="px-3">Jenis Bantuan</th>
-                                                                <th className="px-3">Tanggal</th>
-                                                                <th className="px-3">Dokumen</th>
-                                                                <th className="px-3" width="90"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="border-top-0">
-                                                            {realisasi_bantuan.data.map((list, idx)=>(
-                                                                <tr key={list}>
-                                                                        <td className="align-middle px-3">{(idx+1)+((realisasi_bantuan.page-1)*realisasi_bantuan.per_page)}</td>
-                                                                        <td className="px-3">{list.skrining_balita.data_anak.nik}</td>
-                                                                        <td className="px-3">{list.skrining_balita.data_anak.no_kk}</td>
-                                                                        <td className="px-3">{list.skrining_balita.data_anak.nama_lengkap}</td>
-                                                                        <td className="px-3">{list.skrining_balita.kecamatan.region}</td>
-                                                                        <td className="px-3"></td>
-                                                                        <td className="px-3">{list.rencana_bantuan.bantuan}</td>
-                                                                        <td className="px-3">{moment(list.created_at).format("D MMM YYYY")}</td>
-                                                                        <td>
-                                                                            {list.dokumen!=""&&
-                                                                                <div className="d-block text-truncate" style={{maxWidth:"100%"}}>
-                                                                                    <a 
-                                                                                        href={BASE_URL+"/file/show/"+list.dokumen} 
-                                                                                        target="_blank" 
-                                                                                        rel="noreferrer"
-                                                                                    >
-                                                                                        {get_file(list.dokumen)}
-                                                                                    </a>
-                                                                                </div>
-                                                                            }
-                                                                        </td>
-                                                                        <td className="text-nowrap p-1 px-3">
-                                                                            <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                                <TbEdit className="icon"/>
-                                                                            </button>
-                                                                            <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                                <TbTrash className="icon"/>
-                                                                            </button>
-                                                                        </td>
-                                                                </tr>
-                                                            ))}
-                                                            {realisasi_bantuan.data.length==0&&
-                                                                <tr>
-                                                                    <td colSpan="10" className="text-center">Data tidak ditemukan!</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="d-flex align-items-center mt-3">
-                                            <div className="d-flex flex-column">
-                                                <div>Halaman {realisasi_bantuan.page} dari {realisasi_bantuan.last_page}</div>
-                                            </div>
-                                            <div className="d-flex align-items-center me-auto ms-3">
-                                                <select className="form-select" name="per_page" value={realisasi_bantuan.per_page} onChange={this.setPerPage}>
-                                                    <option value="10">10 Data</option>
-                                                    <option value="25">25 Data</option>
-                                                    <option value="50">50 Data</option>
-                                                    <option value="100">100 Data</option>
-                                                </select>
-                                            </div>
-                                            <div className="d-flex ms-3">
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":realisasi_bantuan.page>1}
-                                                    )}
-                                                    disabled={realisasi_bantuan.page<=1}
-                                                    onClick={()=>this.goToPage(realisasi_bantuan.page-1)}
-                                                >
-                                                    <TbChevronLeft/>
-                                                    Prev
-                                                </button>
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":realisasi_bantuan.page<realisasi_bantuan.last_page},
-                                                        "ms-2"
-                                                    )}
-                                                    disabled={realisasi_bantuan.page>=realisasi_bantuan.last_page}
-                                                    onClick={()=>this.goToPage(realisasi_bantuan.page+1)}
-                                                >
-                                                    Next
-                                                    <TbChevronRight/>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>  
                         </div>
                     </div>
                 </Layout>
@@ -633,7 +621,7 @@ class RealisasiBantuan extends React.Component{
                 {/* MODAL TAMBAH */}
                 <Modal show={tambah_realisasi_bantuan.is_open} className="modal-blur" onHide={this.toggleTambah} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Tambah Bantuan</div>
+                        <h4 className="modal-title">Tambah Bantuan</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={tambah_realisasi_bantuan.realisasi_bantuan}
@@ -781,7 +769,7 @@ class RealisasiBantuan extends React.Component{
                 {/* MODAL EDIT */}
                 <Modal show={edit_realisasi_bantuan.is_open} className="modal-blur" onHide={this.hideModalEdit} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Edit Bantuan</div>
+                        <h4 className="modal-title">Edit Bantuan</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={edit_realisasi_bantuan.realisasi_bantuan}
@@ -863,15 +851,6 @@ class RealisasiBantuan extends React.Component{
                         )}
                     </Formik>
                 </Modal>
-
-                {/* CONFIRM HAPUS */}
-                <ConfirmDelete
-                    show={hapus_realisasi_bantuan.is_open}
-                    title="Apakah anda Yakin?"
-                    sub_title="Data yang sudah dihapus tidak bisa dikembalikan lagi!"
-                    toggle={()=>this.hideConfirmHapus()}
-                    deleteAction={()=>this.deleteRealisasiBantuan()}
-                />
             </>
         )
     }

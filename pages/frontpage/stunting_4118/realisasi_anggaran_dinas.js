@@ -24,6 +24,7 @@ import * as yup from "yup"
 import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbEdit, TbPlus, TbTrash, TbUpload } from "react-icons/tb"
 import CreatableSelect from "react-select/creatable"
 import Select from "react-select"
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi"
 
 class RealisasiAnggaran extends React.Component{
     state={
@@ -184,160 +185,146 @@ class RealisasiAnggaran extends React.Component{
         return (
             <>
                 <Layout>
-                    <div class="page-header d-print-none">
-                        <div class="container-xl">
-                            <div class="row g-2 align-items-center">
-                                <div class="col">
-                                    <div class="page-pretitle">Intervensi</div>
-                                    <h2 class="page-title">Realisasi Anggaran Dinas</h2>
-                                </div>
-                                <div class="col-12 col-md-auto ms-auto d-print-none">
-                                    <div class="btn-list">
-                                        
+                    
+                    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                        <div>
+                            <h4 class="mb-3 mb-md-0">Realisasi Anggaran Dinas</h4>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap text-nowrap">
+                        </div>
+                    </div>
+                    <div className="row">
+                        <div className="col-12">
+                            <div className="card">
+                                <div className="card-body">
+                                    <div className="d-flex mb-3 mt-3">
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <CreatableSelect
+                                                options={this.listTahun()}
+                                                onChange={e=>{
+                                                    this.typeFilter({target:{name:"tahun", value:e.value}})
+                                                }}
+                                                value={this.findTahun(realisasi_anggaran.tahun)}
+                                                placeholder="Semua Tahun"
+                                            />
+                                        </div>
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <Select
+                                                options={this.listJenis()}
+                                                onChange={e=>{
+                                                    this.setState({
+                                                        realisasi_anggaran:update(this.state.realisasi_anggaran, {
+                                                            jenis:{$set:e.value}
+                                                        })
+                                                    })
+                                                }}
+                                                value={this.findJenis(realisasi_anggaran.jenis)}
+                                                placeholder="Semua Jenis"
+                                            />
+                                        </div>
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="q"
+                                                onChange={this.typeFilter}
+                                                value={realisasi_anggaran.q}
+                                                placeholder="Cari ..."
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="table-responsive">
+                                        <table className="table table-hover table-custom table-nowrap mb-0 rounded">
+                                            <thead className="thead-light">
+                                                <tr className="text-uppercase">
+                                                    <th className="px-3" width="50">#</th>
+                                                    <th className="px-3">Dinas</th>
+                                                    <th className="px-3">Total Rencana Anggaran(Rp)</th>
+                                                    <th className="px-3">Total Realisasi Anggaran(Rp)</th>
+                                                    <th className="px-3">Serapan(%)</th>
+                                                    <th className="px-3" width="90"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="border-top-0">
+                                                {realisasi_anggaran.data.map((list, idx)=>(
+                                                    <tr key={list}>
+                                                            <td className="align-middle px-3">{(idx+1)+((realisasi_anggaran.page-1)*realisasi_anggaran.per_page)}</td>
+                                                            <td className="px-3">{list.nama_lengkap}</td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={this.valueTotalRencanaAnggaran(list)}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={this.valueTotalRealisasiAnggaran(list)}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td>
+                                                                <NumberFormat
+                                                                    value={(this.valueTotalRealisasiAnggaran(list)/(this.valueTotalRencanaAnggaran(list)>0?this.valueTotalRencanaAnggaran(list):1))*100}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                    decimalScale={2}
+                                                                />
+                                                            </td>
+                                                            <td></td>
+                                                    </tr>
+                                                ))}
+                                                {realisasi_anggaran.data.length==0&&
+                                                    <tr>
+                                                        <td colSpan="6" className="text-center">Data tidak ditemukan!</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="d-flex align-items-center mt-3">
+                                        <div className="d-flex flex-column">
+                                            <div>Halaman {realisasi_anggaran.page} dari {realisasi_anggaran.last_page}</div>
+                                        </div>
+                                        <div className="d-flex align-items-center me-auto ms-3">
+                                            <select className="form-select" name="per_page" value={realisasi_anggaran.per_page} onChange={this.setPerPage}>
+                                                <option value="10">10 Data</option>
+                                                <option value="25">25 Data</option>
+                                                <option value="50">50 Data</option>
+                                                <option value="100">100 Data</option>
+                                            </select>
+                                        </div>
+                                        <div className="d-flex ms-3">
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":realisasi_anggaran.page>1}
+                                                )}
+                                                disabled={realisasi_anggaran.page<=1}
+                                                onClick={()=>this.goToPage(realisasi_anggaran.page-1)}
+                                            >
+                                                <FiChevronLeft/>
+                                                Prev
+                                            </button>
+                                            <button 
+                                                className={classNames(
+                                                    "btn",
+                                                    "border-0",
+                                                    {"btn-primary":realisasi_anggaran.page<realisasi_anggaran.last_page},
+                                                    "ms-2"
+                                                )}
+                                                disabled={realisasi_anggaran.page>=realisasi_anggaran.last_page}
+                                                onClick={()=>this.goToPage(realisasi_anggaran.page+1)}
+                                            >
+                                                Next
+                                                <FiChevronRight/>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="page-body">
-                        <div class="container-xl">
-                            <div className='row mt-3 mb-5'>
-                                <div className='col-md-12 mx-auto'>
-                                    <div>
-                                        <div className="d-flex mb-3 mt-3">
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <CreatableSelect
-                                                    options={this.listTahun()}
-                                                    onChange={e=>{
-                                                        this.typeFilter({target:{name:"tahun", value:e.value}})
-                                                    }}
-                                                    value={this.findTahun(realisasi_anggaran.tahun)}
-                                                    placeholder="Semua Tahun"
-                                                />
-                                            </div>
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <Select
-                                                    options={this.listJenis()}
-                                                    onChange={e=>{
-                                                        this.setState({
-                                                            realisasi_anggaran:update(this.state.realisasi_anggaran, {
-                                                                jenis:{$set:e.value}
-                                                            })
-                                                        })
-                                                    }}
-                                                    value={this.findJenis(realisasi_anggaran.jenis)}
-                                                    placeholder="Semua Jenis"
-                                                />
-                                            </div>
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    name="q"
-                                                    onChange={this.typeFilter}
-                                                    value={realisasi_anggaran.q}
-                                                    placeholder="Cari ..."
-                                                />
-                                            </div>
-                                        </div>
-                                        <div class="card border-0">
-                                            <div class="card-body px-0 py-0">
-                                                <div className="table-responsive">
-                                                    <table className="table table-centered table-nowrap mb-0 rounded">
-                                                        <thead className="thead-light">
-                                                            <tr className="text-uppercase">
-                                                                <th className="px-3" width="50">#</th>
-                                                                <th className="px-3">Dinas</th>
-                                                                <th className="px-3">Total Rencana Anggaran(Rp)</th>
-                                                                <th className="px-3">Total Realisasi Anggaran(Rp)</th>
-                                                                <th className="px-3">Serapan(%)</th>
-                                                                <th className="px-3" width="90"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="border-top-0">
-                                                            {realisasi_anggaran.data.map((list, idx)=>(
-                                                                <tr key={list}>
-                                                                        <td className="align-middle px-3">{(idx+1)+((realisasi_anggaran.page-1)*realisasi_anggaran.per_page)}</td>
-                                                                        <td className="px-3">{list.nama_lengkap}</td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={this.valueTotalRencanaAnggaran(list)}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={this.valueTotalRealisasiAnggaran(list)}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td>
-                                                                            <NumberFormat
-                                                                                value={(this.valueTotalRealisasiAnggaran(list)/(this.valueTotalRencanaAnggaran(list)>0?this.valueTotalRencanaAnggaran(list):1))*100}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                                decimalScale={2}
-                                                                            />
-                                                                        </td>
-                                                                        <td></td>
-                                                                </tr>
-                                                            ))}
-                                                            {realisasi_anggaran.data.length==0&&
-                                                                <tr>
-                                                                    <td colSpan="6" className="text-center">Data tidak ditemukan!</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="d-flex align-items-center mt-3">
-                                            <div className="d-flex flex-column">
-                                                <div>Halaman {realisasi_anggaran.page} dari {realisasi_anggaran.last_page}</div>
-                                            </div>
-                                            <div className="d-flex align-items-center me-auto ms-3">
-                                                <select className="form-select" name="per_page" value={realisasi_anggaran.per_page} onChange={this.setPerPage}>
-                                                    <option value="10">10 Data</option>
-                                                    <option value="25">25 Data</option>
-                                                    <option value="50">50 Data</option>
-                                                    <option value="100">100 Data</option>
-                                                </select>
-                                            </div>
-                                            <div className="d-flex ms-3">
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":realisasi_anggaran.page>1}
-                                                    )}
-                                                    disabled={realisasi_anggaran.page<=1}
-                                                    onClick={()=>this.goToPage(realisasi_anggaran.page-1)}
-                                                >
-                                                    <TbChevronLeft/>
-                                                    Prev
-                                                </button>
-                                                <button 
-                                                    className={classNames(
-                                                        "btn",
-                                                        "border-0",
-                                                        {"btn-primary":realisasi_anggaran.page<realisasi_anggaran.last_page},
-                                                        "ms-2"
-                                                    )}
-                                                    disabled={realisasi_anggaran.page>=realisasi_anggaran.last_page}
-                                                    onClick={()=>this.goToPage(realisasi_anggaran.page+1)}
-                                                >
-                                                    Next
-                                                    <TbChevronRight/>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>  
                         </div>
                     </div>
                 </Layout>

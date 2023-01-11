@@ -1,9 +1,10 @@
 import React from "react"
 import LayoutCombined from "./layout_combined"
 import LayoutCondensed from "./layout_condensed"
+import LayoutNoble from "./layout_noble"
 import LayoutTransparent from "./layout_transparent"
 
-const Layout=({type="combined", children})=>{
+const Layout=({type="noble", children})=>{
     if(type=="vertical-transparent"){
         return <LayoutTransparent>{children}</LayoutTransparent>
     }
@@ -12,6 +13,9 @@ const Layout=({type="combined", children})=>{
     }
     else if(type=="combined"){
         return <LayoutCombined>{children}</LayoutCombined>
+    }
+    else if(type=="noble"){
+        return <LayoutNoble>{children}</LayoutNoble>
     }
 }
 

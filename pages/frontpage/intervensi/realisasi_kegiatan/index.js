@@ -24,6 +24,12 @@ import * as yup from "yup"
 import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbEdit, TbPlus, TbTrash, TbUpload } from "react-icons/tb"
 import CreatableSelect from "react-select/creatable"
 import Select from "react-select"
+import swal from "sweetalert2"
+import withReactContent from 'sweetalert2-react-content'
+import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi"
+
+
+const MySwal=withReactContent(swal)
 
 class RealisasiKegiatan extends React.Component{
     state={
@@ -57,10 +63,6 @@ class RealisasiKegiatan extends React.Component{
             dinas_form:[],
             rencana_kegiatan_form:[],
             realisasi_kegiatan:{}
-        },
-        hapus_realisasi_kegiatan:{
-            is_open:false,
-            id_realisasi_kegiatan:""
         }
     }
 
@@ -350,28 +352,28 @@ class RealisasiKegiatan extends React.Component{
 
     //hapus
     showConfirmHapus=(data)=>{
-        this.setState({
-            hapus_realisasi_kegiatan:{
-                is_open:true,
-                id_realisasi_kegiatan:data.id_realisasi_kegiatan
+        MySwal.fire({
+            title: "Apakah anda Yakin?",
+            text: "Data yang sudah dihapus mungkin tidak bisa dikembalikan lagi!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus Data!',
+            cancelButtonText: 'Batal!',
+            reverseButtons: true,
+            customClass:{
+                popup:"w-auto"
+            }
+        })
+        .then(result=>{
+            if(result.isConfirmed){
+                this.deleteRealisasiKegiatan(data.id_realisasi_kegiatan)
             }
         })
     }
-    hideConfirmHapus=()=>{
-        this.setState({
-            hapus_realisasi_kegiatan:{
-                is_open:false,
-                id_realisasi_kegiatan:""
-            }
-        })
-    }
-    deleteRealisasiKegiatan=()=>{
-        const {hapus_realisasi_kegiatan}=this.state
-
-        api(access_token()).delete(`/intervensi_realisasi_kegiatan/${hapus_realisasi_kegiatan.id_realisasi_kegiatan}`)
+    deleteRealisasiKegiatan=(id)=>{
+        api(access_token()).delete(`/intervensi_realisasi_kegiatan/${id}`)
         .then(res=>{
             this.getsRealisasiKegiatan()
-            this.hideConfirmHapus()
             toast.warn("Realisasi Kegiatan dihapus!")
         })
         .catch(err=>{
@@ -396,126 +398,113 @@ class RealisasiKegiatan extends React.Component{
         return (
             <>
                 <Layout>
-                    <div class="page-header d-print-none">
-                        <div class="container-xl">
-                            <div class="row g-2 align-items-center">
-                                <div class="col">
-                                    <div class="page-pretitle">Intervensi</div>
-                                    <h2 class="page-title">Realisasi Kegiatan</h2>
-                                </div>
-                                <div class="col-12 col-md-auto ms-auto d-print-none">
-                                    <div class="btn-list">
-                                        <button 
-                                            type="button" 
-                                            class="btn btn-primary" 
-                                            onClick={this.toggleTambah}
-                                            disabled={realisasi_kegiatan.id_user==""||realisasi_kegiatan.tahun==""}
-                                        >
-                                            <TbPlus className="icon"/>
-                                            Tambah Kegiatan
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                        <div>
+                            <h4 class="mb-3 mb-md-0">Realisasi Kegiatan</h4>
+                        </div>
+                        <div class="d-flex align-items-center flex-wrap text-nowrap">
+                            <button 
+                                type="button" 
+                                class="btn btn-primary btn-icon-text mb-2 mb-md-0"
+                                onClick={this.toggleTambah}
+                                disabled={realisasi_kegiatan.id_user==""||realisasi_kegiatan.tahun==""}
+                            >
+                                <FiPlus className="btn-icon-prepend"/>
+                                Tambah Kegiatan
+                            </button>
                         </div>
                     </div>
-                    <div class="page-body">
-                        <div class="container-xl">
-                            <div className='row mt-3 mb-5'>
-                                <div className='col-md-12 mx-auto'>
-                                    <div>
-                                        <div className="d-flex mb-3 mt-3">
-                                            {login_data.role!="dinas"&&
-                                                <div style={{width:"200px"}} className="me-2">
-                                                    <Select
-                                                        options={this.listDinas(dinas_form)}
-                                                        onChange={e=>{
-                                                            this.typeFilter({target:{name:"id_user", value:e.value}})
-                                                        }}
-                                                        value={this.findDinas(realisasi_kegiatan.id_user, dinas_form)}
-                                                        placeholder="Pilih Dinas"
-                                                    />
-                                                </div>
-                                            }
+                    <div className="row">
+                        <div className="col-12">
+                            <div className="card">
+                                <div className="card-body">
+                                    <div className="d-flex mb-3 mt-3">
+                                        {login_data.role!="dinas"&&
                                             <div style={{width:"200px"}} className="me-2">
-                                                <CreatableSelect
-                                                    options={this.listTahun()}
+                                                <Select
+                                                    options={this.listDinas(dinas_form)}
                                                     onChange={e=>{
-                                                        this.typeFilter({target:{name:"tahun", value:e.value}})
+                                                        this.typeFilter({target:{name:"id_user", value:e.value}})
                                                     }}
-                                                    value={this.findTahun(realisasi_kegiatan.tahun)}
-                                                    placeholder="Pilih Tahun"
+                                                    value={this.findDinas(realisasi_kegiatan.id_user, dinas_form)}
+                                                    placeholder="Pilih Dinas"
                                                 />
                                             </div>
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    name="q"
-                                                    onChange={this.typeFilter}
-                                                    value={realisasi_kegiatan.q}
-                                                    placeholder="Cari ..."
-                                                />
-                                            </div>
+                                        }
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <CreatableSelect
+                                                options={this.listTahun()}
+                                                onChange={e=>{
+                                                    this.typeFilter({target:{name:"tahun", value:e.value}})
+                                                }}
+                                                value={this.findTahun(realisasi_kegiatan.tahun)}
+                                                placeholder="Pilih Tahun"
+                                            />
                                         </div>
-                                        <div class="card border-0">
-                                            <div class="card-body px-0 py-0">
-                                                <div className="table-responsive">
-                                                    <table className="table table-centered table-nowrap mb-0 rounded">
-                                                        <thead className="thead-light">
-                                                            <tr className="text-uppercase">
-                                                                <th className="px-3" width="50">#</th>
-                                                                <th className="px-3">Bentuk Kegiatan Koordinasi</th>
-                                                                <th className="px-3">Realisasi Anggaran</th>
-                                                                <th className="px-3">Satuan</th>
-                                                                <th className="px-3 text-wrap">Detail Kegiatan</th>
-                                                                <th className="px-3">Jumlah</th>
-                                                                <th className="px-3" width="90"></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="border-top-0">
-                                                            {realisasi_kegiatan.data.map((list, idx)=>(
-                                                                <tr key={list}>
-                                                                        <td className="align-middle px-3">{(idx+1)+((realisasi_kegiatan.page-1)*realisasi_kegiatan.per_page)}</td>
-                                                                        <td className="px-3">{list.rencana_kegiatan.kegiatan}</td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={list.rencana_kegiatan.anggaran}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td className="px-3">{list.rencana_kegiatan.satuan}</td>
-                                                                        <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
-                                                                        <td className="px-3">
-                                                                            <NumberFormat
-                                                                                value={list.rencana_kegiatan.jumlah}
-                                                                                displayType="text"
-                                                                                thousandSeparator={true}
-                                                                            />
-                                                                        </td>
-                                                                        <td className="text-nowrap p-1 px-3">
-                                                                            <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                                <TbEdit className="icon"/>
-                                                                            </button>
-                                                                            <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                                <TbTrash className="icon"/>
-                                                                            </button>
-                                                                        </td>
-                                                                </tr>
-                                                            ))}
-                                                            {realisasi_kegiatan.data.length==0&&
-                                                                <tr>
-                                                                    <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
-                                                                </tr>
-                                                            }
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+                                        <div style={{width:"200px"}} className="me-2">
+                                            <input
+                                                type="text"
+                                                className="form-control"
+                                                name="q"
+                                                onChange={this.typeFilter}
+                                                value={realisasi_kegiatan.q}
+                                                placeholder="Cari ..."
+                                            />
                                         </div>
-
-                                        <div className="d-flex align-items-center mt-3">
+                                    </div>
+                                    <div className="table-responsive">
+                                        <table className="table table-hover table-custom table-nowrap mb-0 rounded">
+                                            <thead className="thead-light">
+                                                <tr className="text-uppercase">
+                                                    <th className="px-3" width="50">#</th>
+                                                    <th className="px-3">Bentuk Kegiatan Koordinasi</th>
+                                                    <th className="px-3">Realisasi Anggaran</th>
+                                                    <th className="px-3">Satuan</th>
+                                                    <th className="px-3 text-wrap">Detail Kegiatan</th>
+                                                    <th className="px-3">Jumlah</th>
+                                                    <th className="px-3" width="90"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="border-top-0">
+                                                {realisasi_kegiatan.data.map((list, idx)=>(
+                                                    <tr key={list}>
+                                                            <td className="align-middle px-3">{(idx+1)+((realisasi_kegiatan.page-1)*realisasi_kegiatan.per_page)}</td>
+                                                            <td className="px-3">{list.rencana_kegiatan.kegiatan}</td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={list.rencana_kegiatan.anggaran}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td className="px-3">{list.rencana_kegiatan.satuan}</td>
+                                                            <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
+                                                            <td className="px-3">
+                                                                <NumberFormat
+                                                                    value={list.rencana_kegiatan.jumlah}
+                                                                    displayType="text"
+                                                                    thousandSeparator={true}
+                                                                />
+                                                            </td>
+                                                            <td className="text-nowrap p-1 px-3">
+                                                                <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                    <TbEdit className="icon"/>
+                                                                </button>
+                                                                <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                    <TbTrash className="icon"/>
+                                                                </button>
+                                                            </td>
+                                                    </tr>
+                                                ))}
+                                                {realisasi_kegiatan.data.length==0&&
+                                                    <tr>
+                                                        <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="d-flex align-items-center mt-3">
                                             <div className="d-flex flex-column">
                                                 <div>Halaman {realisasi_kegiatan.page} dari {realisasi_kegiatan.last_page}</div>
                                             </div>
@@ -537,7 +526,7 @@ class RealisasiKegiatan extends React.Component{
                                                     disabled={realisasi_kegiatan.page<=1}
                                                     onClick={()=>this.goToPage(realisasi_kegiatan.page-1)}
                                                 >
-                                                    <TbChevronLeft/>
+                                                    <FiChevronLeft/>
                                                     Prev
                                                 </button>
                                                 <button 
@@ -551,13 +540,12 @@ class RealisasiKegiatan extends React.Component{
                                                     onClick={()=>this.goToPage(realisasi_kegiatan.page+1)}
                                                 >
                                                     Next
-                                                    <TbChevronRight/>
+                                                    <FiChevronRight/>
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
                                 </div>
-                            </div>  
+                            </div>
                         </div>
                     </div>
                 </Layout>
@@ -565,7 +553,7 @@ class RealisasiKegiatan extends React.Component{
                 {/* MODAL TAMBAH */}
                 <Modal show={tambah_realisasi_kegiatan.is_open} className="modal-blur" onHide={this.toggleTambah} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Tambah Kegiatan</div>
+                        <h4 className="modal-title">Tambah Kegiatan</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={tambah_realisasi_kegiatan.realisasi_kegiatan}
@@ -688,7 +676,7 @@ class RealisasiKegiatan extends React.Component{
                 {/* MODAL EDIT */}
                 <Modal show={edit_realisasi_kegiatan.is_open} className="modal-blur" onHide={this.hideModalEdit} backdrop="static" size="sm">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Edit Kegiatan</div>
+                        <h4 className="modal-title">Edit Kegiatan</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={edit_realisasi_kegiatan.realisasi_kegiatan}
@@ -772,15 +760,6 @@ class RealisasiKegiatan extends React.Component{
                         )}
                     </Formik>
                 </Modal>
-
-                {/* CONFIRM HAPUS */}
-                <ConfirmDelete
-                    show={hapus_realisasi_kegiatan.is_open}
-                    title="Apakah anda Yakin?"
-                    sub_title="Data yang sudah dihapus tidak bisa dikembalikan lagi!"
-                    toggle={()=>this.hideConfirmHapus()}
-                    deleteAction={()=>this.deleteRealisasiKegiatan()}
-                />
             </>
         )
     }

@@ -16,6 +16,12 @@ import { ImFilter, ImPlus } from "react-icons/im"
 import Router from "next/router"
 import { TbChevronLeft, TbChevronRight, TbEdit, TbPlug, TbPlus, TbTrash, TbUpload } from "react-icons/tb"
 import * as yup from "yup"
+import { FiChevronLeft, FiChevronRight, FiPlus } from "react-icons/fi"
+import swal from "sweetalert2"
+import withReactContent from 'sweetalert2-react-content'
+
+
+const MySwal=withReactContent(swal)
 
 class Kecamatan extends React.Component{
     state={
@@ -41,10 +47,6 @@ class Kecamatan extends React.Component{
         edit_region:{
             is_open:false,
             region:{}
-        },
-        hapus_region:{
-            is_open:false,
-            id_region:""
         }
     }
 
@@ -226,28 +228,28 @@ class Kecamatan extends React.Component{
 
     //hapus
     showConfirmHapus=(data)=>{
-        this.setState({
-            hapus_region:{
-                is_open:true,
-                id_region:data.id_region
+        MySwal.fire({
+            title: "Apakah anda Yakin?",
+            text: "Data yang sudah dihapus mungkin tidak bisa dikembalikan lagi!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus Data!',
+            cancelButtonText: 'Batal!',
+            reverseButtons: true,
+            customClass:{
+                popup:"w-auto"
+            }
+        })
+        .then(result=>{
+            if(result.isConfirmed){
+                this.deleteRegion(data.id_region)
             }
         })
     }
-    hideConfirmHapus=()=>{
-        this.setState({
-            hapus_region:{
-                is_open:false,
-                id_region:""
-            }
-        })
-    }
-    deleteRegion=()=>{
-        const {hapus_region}=this.state
-
-        api(access_token()).delete(`/region/${hapus_region.id_region}`)
+    deleteRegion=(id)=>{
+        api(access_token()).delete(`/region/${id}`)
         .then(res=>{
             this.getsRegion()
-            this.hideConfirmHapus()
             toast.warn("Region dihapus!")
         })
         .catch(err=>{
@@ -264,116 +266,107 @@ class Kecamatan extends React.Component{
 
         return (
             <Layout>
-                <div class="page-header d-print-none">
-                    <div class="container-xl">
-                        <div class="row g-2 align-items-center">
-                            <div class="col">
-                                <div class="page-pretitle">Overview</div>
-                                <h2 class="page-title">Master Region(Kecamatan)</h2>
-                            </div>
-                            <div class="col-12 col-md-auto ms-auto d-print-none">
-                                <div class="btn-list">
-                                    <button type="button" class="btn btn-primary" onClick={this.toggleModalTambah}>
-                                        <TbPlus className="icon"/>
-                                        Tambah Kecamatan
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                    <div>
+                        <h4 class="mb-3 mb-md-0">Master Region(Kecamatan)</h4>
+                    </div>
+                    <div class="d-flex align-items-center flex-wrap text-nowrap">
+                        <button 
+                            type="button" 
+                            class="btn btn-primary btn-icon-text mb-2 mb-md-0"
+                            onClick={this.toggleModalTambah}
+                        >
+                            <FiPlus className="btn-icon-prepend"/>
+                            Tambah Kecamatan
+                        </button>
                     </div>
                 </div>
-                <div class="page-body">
-                    <div class="container-xl">
-                        <div className="d-flex flex-column mt-3" style={{minHeight:"67vh"}}>
-                            <div className="row">
-                                <div className="col-12">
-                                    <div className="d-flex mb-3 mt-3">
-                                        <div style={{width:"200px"}} className="me-2">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                name="q"
-                                                onChange={this.typeFilter}
-                                                value={region.q}
-                                                placeholder="Cari ..."
-                                            />
-                                        </div>
+                <div className="row">
+                    <div className="col-12">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="d-flex mb-3 mt-3">
+                                    <div style={{width:"200px"}} className="me-2">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            name="q"
+                                            onChange={this.typeFilter}
+                                            value={region.q}
+                                            placeholder="Cari ..."
+                                        />
                                     </div>
-                                    <div className="card border-0 mb-3">
-                                        <div className="card-body p-0">
-                                            <div className="table-responsive">
-                                                <table className="table table-centered table-wrap mb-0 rounded">
-                                                    <thead className="thead-light">
-                                                        <tr>
-                                                            <th className="border-0 rounded-start" width="50">#</th>
-                                                            <th className="border-0">{region.type=="sub_kriteria"&&"Sub"} Kecamatan</th>
-                                                            <th className="border-0 rounded-end" width="50"></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {region.data.map((list, idx)=>(
-                                                            <tr key={list}>
-                                                                    <td className="align-middle">{(idx+1)+((region.page-1)*region.per_page)}</td>
-                                                                    <td>{list.region}</td>
-                                                                    <td className="text-nowrap p-1 align-middle">
-                                                                        <button type="button" className="btn btn-icon btn-link" onClick={()=>this.showModalEdit(list)}>
-                                                                            <TbEdit className="icon"/>
-                                                                        </button>
-                                                                        <button type="button" className="btn btn-icon btn-link link-danger ms-1" onClick={()=>this.showConfirmHapus(list)}>
-                                                                            <TbTrash className="icon"/>
-                                                                        </button>
-                                                                    </td>
-                                                            </tr>
-                                                        ))}
-                                                        {(region.data.length==0)&&
-                                                            <tr>
-                                                                <td colSpan={3} className="text-center text-muted">Data tidak ditemukan!</td>
-                                                            </tr>
-                                                        }
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
+                                </div>
+                                <div className="table-responsive">
+                                    <table className="table table-hover table-custom table-wrap mb-0 rounded">
+                                        <thead className="thead-light">
+                                            <tr>
+                                                <th className="border-0 rounded-start" width="50">#</th>
+                                                <th className="border-0">{region.type=="sub_kriteria"&&"Sub"} Kecamatan</th>
+                                                <th className="border-0 rounded-end" width="50"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {region.data.map((list, idx)=>(
+                                                <tr key={list}>
+                                                        <td className="align-middle">{(idx+1)+((region.page-1)*region.per_page)}</td>
+                                                        <td>{list.region}</td>
+                                                        <td className="text-nowrap p-1 px-3">
+                                                            <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                <TbEdit className="icon"/>
+                                                            </button>
+                                                            <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                <TbTrash className="icon"/>
+                                                            </button>
+                                                        </td>
+                                                </tr>
+                                            ))}
+                                            {(region.data.length==0)&&
+                                                <tr>
+                                                    <td colSpan={3} className="text-center text-muted">Data tidak ditemukan!</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="d-flex align-items-center mt-3">
+                                    <div className="d-flex flex-column">
+                                        <div>Halaman {region.page} dari {region.last_page}</div>
                                     </div>
-                                    <div className="d-flex align-items-center">
-                                        <div className="d-flex flex-column">
-                                            <div>Halaman {region.page} dari {region.last_page}</div>
-                                        </div>
-                                        <div className="d-flex align-items-center me-auto ms-3">
-                                            <select className="form-select" name="per_page" value={region.per_page} onChange={this.setPerPage}>
-                                                <option value="10">10 Data</option>
-                                                <option value="25">25 Data</option>
-                                                <option value="50">50 Data</option>
-                                                <option value="100">100 Data</option>
-                                            </select>
-                                        </div>
-                                        <div className="d-flex ms-3">
-                                            <button 
-                                                className={classNames(
-                                                    "btn",
-                                                    "border-0",
-                                                    {"btn-primary":region.page>1}
-                                                )}
-                                                disabled={region.page<=1}
-                                                onClick={()=>this.goToPage(region.page-1)}
-                                            >
-                                                <TbChevronLeft/>
-                                                Prev
-                                            </button>
-                                            <button 
-                                                className={classNames(
-                                                    "btn",
-                                                    "border-0",
-                                                    {"btn-primary":region.page<region.last_page},
-                                                    "ms-2"
-                                                )}
-                                                disabled={region.page>=region.last_page}
-                                                onClick={()=>this.goToPage(region.page+1)}
-                                            >
-                                                Next
-                                                <TbChevronRight/>
-                                            </button>
-                                        </div>
+                                    <div className="d-flex align-items-center me-auto ms-3">
+                                        <select className="form-select" name="per_page" value={region.per_page} onChange={this.setPerPage}>
+                                            <option value="10">10 Data</option>
+                                            <option value="25">25 Data</option>
+                                            <option value="50">50 Data</option>
+                                            <option value="100">100 Data</option>
+                                        </select>
+                                    </div>
+                                    <div className="d-flex ms-3">
+                                        <button 
+                                            className={classNames(
+                                                "btn",
+                                                "border-0",
+                                                {"btn-primary":region.page>1}
+                                            )}
+                                            disabled={region.page<=1}
+                                            onClick={()=>this.goToPage(region.page-1)}
+                                        >
+                                            <FiChevronLeft/>
+                                            Prev
+                                        </button>
+                                        <button 
+                                            className={classNames(
+                                                "btn",
+                                                "border-0",
+                                                {"btn-primary":region.page<region.last_page},
+                                                "ms-2"
+                                            )}
+                                            disabled={region.page>=region.last_page}
+                                            onClick={()=>this.goToPage(region.page+1)}
+                                        >
+                                            Next
+                                            <FiChevronRight/>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -384,7 +377,7 @@ class Kecamatan extends React.Component{
                 {/* MODAL TAMBAH */}
                 <Modal show={tambah_region.is_open} className="modal-blur" onHide={this.toggleModalTambah} size="sm" backdrop="static">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Tambah Region</div>
+                        <h4 className="modal-title">Tambah Region</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={tambah_region.region}
@@ -504,7 +497,7 @@ class Kecamatan extends React.Component{
                 {/* MODAL EDIT */}
                 <Modal show={edit_region.is_open} className="modal-blur" onHide={this.hideModalEdit} size="sm" backdrop="static">
                     <Modal.Header closeButton>
-                        <div className="modal-title h2 fw-bold">Edit Region</div>
+                        <h4 className="modal-title">Edit Region</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={edit_region.region}
@@ -620,16 +613,6 @@ class Kecamatan extends React.Component{
                         )}
                     </Formik>
                 </Modal>
-
-                {/* CONFIRM HAPUS */}
-                <ConfirmDelete
-                    show={hapus_region.is_open}
-                    title="Apakah anda Yakin?"
-                    sub_title="Data yang sudah dihapus tidak bisa dikembalikan lagi!"
-                    toggle={()=>this.hideConfirmHapus()}
-                    deleteAction={()=>this.deleteRegion()}
-                />
-
             </Layout>
         )
     }
