@@ -44,7 +44,8 @@ class RealisasiBantuan extends React.Component{
             q:"",
             id_user:"",
             tahun:"",
-            last_page:0
+            last_page:0,
+            is_loading:false
         },
         tambah_realisasi_bantuan:{
             is_open:false,
@@ -139,6 +140,7 @@ class RealisasiBantuan extends React.Component{
 
         if(realisasi_bantuan.id_user==""||realisasi_bantuan.tahun=="") return
 
+        this.setLoading(true)
         await api(access_token()).get("/intervensi_realisasi_bantuan", {
             params:{
                 page:reset?1:realisasi_bantuan.page,
@@ -153,7 +155,8 @@ class RealisasiBantuan extends React.Component{
                 realisasi_bantuan:update(this.state.realisasi_bantuan, {
                     data:{$set:res.data.data},
                     last_page:{$set:res.data.last_page},
-                    page:{$set:res.data.current_page}
+                    page:{$set:res.data.current_page},
+                    is_loading:{$set:false}
                 })
             })
         })
@@ -163,6 +166,7 @@ class RealisasiBantuan extends React.Component{
                 Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
+            this.setLoading(false)
         })
     }
     goToPage=page=>{
@@ -211,6 +215,13 @@ class RealisasiBantuan extends React.Component{
                         this.getsRencanaBantuanForm()
                     })
             }
+        })
+    }
+    setLoading=loading=>{
+        this.setState({
+            realisasi_bantuan:update(this.state.realisasi_bantuan, {
+                is_loading:{$set:loading}
+            })
         })
     }
     timeout=0
@@ -531,42 +542,62 @@ class RealisasiBantuan extends React.Component{
                                                 </tr>
                                             </thead>
                                             <tbody className="border-top-0">
-                                                {realisasi_bantuan.data.map((list, idx)=>(
-                                                    <tr key={list}>
-                                                            <td className="align-middle px-3">{(idx+1)+((realisasi_bantuan.page-1)*realisasi_bantuan.per_page)}</td>
-                                                            <td className="px-3">{list.skrining_balita.data_anak.nik}</td>
-                                                            <td className="px-3">{list.skrining_balita.data_anak.no_kk}</td>
-                                                            <td className="px-3">{list.skrining_balita.data_anak.nama_lengkap}</td>
-                                                            <td className="px-3">{list.skrining_balita.kecamatan.region}</td>
-                                                            <td className="px-3"></td>
-                                                            <td className="px-3">{list.rencana_bantuan.bantuan}</td>
-                                                            <td className="px-3">{moment(list.created_at).format("D MMM YYYY")}</td>
-                                                            <td>
-                                                                {list.dokumen!=""&&
-                                                                    <div className="d-block text-truncate" style={{maxWidth:"100%"}}>
-                                                                        <a 
-                                                                            href={BASE_URL+"/file/show/"+list.dokumen} 
-                                                                            target="_blank" 
-                                                                            rel="noreferrer"
-                                                                        >
-                                                                            {get_file(list.dokumen)}
-                                                                        </a>
-                                                                    </div>
-                                                                }
-                                                            </td>
-                                                            <td className="text-nowrap p-1 px-3">
-                                                                <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                    <TbEdit className="icon"/>
-                                                                </button>
-                                                                <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                    <TbTrash className="icon"/>
-                                                                </button>
-                                                            </td>
-                                                    </tr>
-                                                ))}
-                                                {realisasi_bantuan.data.length==0&&
+                                                {!realisasi_bantuan.is_loading?
+                                                    <>
+                                                        {realisasi_bantuan.data.map((list, idx)=>(
+                                                            <tr key={list}>
+                                                                    <td className="align-middle px-3">{(idx+1)+((realisasi_bantuan.page-1)*realisasi_bantuan.per_page)}</td>
+                                                                    <td className="px-3">{list.skrining_balita.data_anak.nik}</td>
+                                                                    <td className="px-3">{list.skrining_balita.data_anak.no_kk}</td>
+                                                                    <td className="px-3">{list.skrining_balita.data_anak.nama_lengkap}</td>
+                                                                    <td className="px-3">{list.skrining_balita.kecamatan.region}</td>
+                                                                    <td className="px-3"></td>
+                                                                    <td className="px-3">{list.rencana_bantuan.bantuan}</td>
+                                                                    <td className="px-3">{moment(list.created_at).format("D MMM YYYY")}</td>
+                                                                    <td>
+                                                                        {list.dokumen!=""&&
+                                                                            <div className="d-block text-truncate" style={{maxWidth:"100%"}}>
+                                                                                <a 
+                                                                                    href={BASE_URL+"/file/show/"+list.dokumen} 
+                                                                                    target="_blank" 
+                                                                                    rel="noreferrer"
+                                                                                >
+                                                                                    {get_file(list.dokumen)}
+                                                                                </a>
+                                                                            </div>
+                                                                        }
+                                                                    </td>
+                                                                    <td className="text-nowrap p-1 px-3">
+                                                                        <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                            <TbEdit className="icon"/>
+                                                                        </button>
+                                                                        <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                            <TbTrash className="icon"/>
+                                                                        </button>
+                                                                    </td>
+                                                            </tr>
+                                                        ))}
+                                                        {realisasi_bantuan.data.length==0&&
+                                                            <tr>
+                                                                <td colSpan="10" className="text-center">Data tidak ditemukan!</td>
+                                                            </tr>
+                                                        }
+                                                    </>
+                                                :
                                                     <tr>
-                                                        <td colSpan="10" className="text-center">Data tidak ditemukan!</td>
+                                                        <td colSpan={10} className="text-center">
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Spinner
+                                                                    as="span"
+                                                                    animation="border"
+                                                                    size="sm"
+                                                                    role="status"
+                                                                    aria-hidden="true"
+                                                                    className="me-2"
+                                                                />
+                                                                Loading...
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 }
                                             </tbody>

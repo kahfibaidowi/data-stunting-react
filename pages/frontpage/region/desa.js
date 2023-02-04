@@ -32,7 +32,8 @@ class Desa extends React.Component{
             per_page:10,
             last_page:0,
             district_id:"",
-            q:""
+            q:"",
+            is_loading:false
         },
         tambah_region:{
             is_open:false,
@@ -59,6 +60,7 @@ class Desa extends React.Component{
     getsRegion=async (reset=false)=>{
         const {region}=this.state
 
+        this.setLoading(true)
         await api(access_token()).get("/region/type/desa", {
             params:{
                 page:reset?1:region.page,
@@ -72,7 +74,8 @@ class Desa extends React.Component{
                 region:update(this.state.region, {
                     data:{$set:res.data.data},
                     last_page:{$set:res.data.last_page},
-                    page:{$set:res.data.current_page}
+                    page:{$set:res.data.current_page},
+                    is_loading:{$set:false}
                 })
             })
         })
@@ -82,6 +85,7 @@ class Desa extends React.Component{
                 Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
+            this.setLoading(false)
         })
     }
     getsKecamatanForm=async ()=>{
@@ -163,6 +167,13 @@ class Desa extends React.Component{
                 })
             break
         }
+    }
+    setLoading=loading=>{
+        this.setState({
+            region:update(this.state.region, {
+                is_loading:{$set:loading}
+            })
+        })
     }
     timeout=0
 
@@ -361,23 +372,43 @@ class Desa extends React.Component{
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {region.data.map((list, idx)=>(
-                                                <tr key={list}>
-                                                        <td className="align-middle">{(idx+1)+((region.page-1)*region.per_page)}</td>
-                                                        <td>{list.region}</td>
-                                                        <td className="text-nowrap p-1 px-3">
-                                                            <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                <TbEdit className="icon"/>
-                                                            </button>
-                                                            <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                <TbTrash className="icon"/>
-                                                            </button>
-                                                        </td>
-                                                </tr>
-                                            ))}
-                                            {(region.data.length==0)&&
+                                            {!region.is_loading?
+                                                <>
+                                                    {region.data.map((list, idx)=>(
+                                                        <tr key={list}>
+                                                                <td className="align-middle">{(idx+1)+((region.page-1)*region.per_page)}</td>
+                                                                <td>{list.region}</td>
+                                                                <td className="text-nowrap p-1 px-3">
+                                                                    <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                        <TbEdit className="icon"/>
+                                                                    </button>
+                                                                    <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                        <TbTrash className="icon"/>
+                                                                    </button>
+                                                                </td>
+                                                        </tr>
+                                                    ))}
+                                                    {(region.data.length==0)&&
+                                                        <tr>
+                                                            <td colSpan={3} className="text-center text-muted">Data tidak ditemukan!</td>
+                                                        </tr>
+                                                    }
+                                                </>
+                                            :
                                                 <tr>
-                                                    <td colSpan={3} className="text-center text-muted">Data tidak ditemukan!</td>
+                                                    <td colSpan={3} className="text-center">
+                                                        <div className="d-flex align-items-center justify-content-center">
+                                                            <Spinner
+                                                                as="span"
+                                                                animation="border"
+                                                                size="sm"
+                                                                role="status"
+                                                                aria-hidden="true"
+                                                                className="me-2"
+                                                            />
+                                                            Loading...
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             }
                                         </tbody>
@@ -422,23 +453,6 @@ class Desa extends React.Component{
                                             <FiChevronRight/>
                                         </button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="page-body">
-                    <div class="container-xl">
-                        <div className="d-flex flex-column mt-3" style={{minHeight:"67vh"}}>
-                            <div className="row">
-                                <div className="col-12">
-                                    
-                                    <div className="card border-0 mb-3">
-                                        <div className="card-body p-0">
-                                            
-                                        </div>
-                                    </div>
-                                    
                                 </div>
                             </div>
                         </div>

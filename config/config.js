@@ -8,8 +8,8 @@ export const BASE_URL=process.env.NODE_ENV==="development"?
     "https://api.stunting.tifpsdku.com";
 
 export const BASE_URL_KEPENDUDUKAN=process.env.NODE_ENV==="development"?
-    "https://api.stunting.madiunkab.go.id/api":
-    "https://api.stunting.madiunkab.go.id/api";
+    "https://api.stunting.madiunkab.go.id":
+    "https://api.stunting.madiunkab.go.id";
 
 //login storage
 export const login_data=()=>{

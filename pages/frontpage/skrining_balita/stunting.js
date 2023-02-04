@@ -33,7 +33,8 @@ class Stunting extends React.Component{
             per_page:10,
             q:"",
             posyandu_id:"",
-            last_page:0
+            last_page:0,
+            is_loading:false
         },
         detail_kk:{
             is_open:false,
@@ -96,6 +97,7 @@ class Stunting extends React.Component{
     getsStunting=(reset=false)=>{
         const {stunting}=this.state
 
+        this.setLoading(true)
         api(access_token()).get("/stunting", {
             params:{
                 page:reset?1:stunting.page,
@@ -109,7 +111,8 @@ class Stunting extends React.Component{
                 stunting:update(this.state.stunting, {
                     data:{$set:res.data.data},
                     last_page:{$set:res.data.last_page},
-                    page:{$set:res.data.current_page}
+                    page:{$set:res.data.current_page},
+                    is_loading:{$set:false}
                 })
             })
         })
@@ -119,13 +122,18 @@ class Stunting extends React.Component{
                 Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
+            this.setLoading(false)
         })
     }
     getKK=async(kk_id)=>{
-        return await api_kependudukan().post(`/view-penduduk`, {
-            query:"kk",
-            data:kk_id
-        }).then(res=>res.data.data)
+        return await api(access_token()).post("/auth/request_stunting_madiunkab", {
+            endpoint:"/view-penduduk",
+            methods:"POST",
+            params:{
+                query:"kk",
+                data:kk_id
+            }
+        }).then(res=>res.data)
     }
     goToPage=page=>{
         this.setState({
@@ -170,6 +178,13 @@ class Stunting extends React.Component{
             }
         })
     }
+    setLoading=loading=>{
+        this.setState({
+            stunting:update(this.state.stunting, {
+                is_loading:{$set:loading}
+            })
+        })
+    }
     timeout=0
 
     //helpers
@@ -193,12 +208,12 @@ class Stunting extends React.Component{
     //detail kk
     showDetailKK=async no_kk=>{
         const kk=await this.getKK(no_kk).catch(err=>false)
-
-        if(kk!==false&&kk.length>0){
+        
+        if(kk!==false&&kk.data.length>0){
             this.setState({
                 detail_kk:{
                     is_open:true,
-                    data:kk
+                    data:kk.data
                 }
             })
         }
@@ -306,49 +321,67 @@ class Stunting extends React.Component{
                                                 </tr>
                                             </thead>
                                             <tbody className="border-top-0">
-                                                {stunting.data.map((list, idx)=>(
-                                                    <tr key={list}>
-                                                            <td className="align-middle px-3">{(idx+1)+((stunting.page-1)*stunting.per_page)}</td>
-                                                            <td className="px-3">{list.data_anak.nik}</td>
-                                                            <td className="px-3">
-                                                                {list.data_anak?.no_kk.trim()!=""&&
-                                                                    <button 
-                                                                        type="button" 
-                                                                        className="btn btn-link link-primary p-0"
-                                                                        onClick={e=>this.showDetailKK(list.data_anak.no_kk)}
-                                                                    >
-                                                                        {list.data_anak.no_kk}
-                                                                    </button>
-                                                                }
-                                                            </td>
-                                                            <td className="px-3">{list.data_anak.nama_lengkap}</td>
-                                                            <td className="px-3">{this.jenkel(list.data_anak.jenis_kelamin)}</td>
-                                                            <td className="px-3">{list.data_anak.tgl_lahir}</td>
-                                                            <td className="px-3">{list.berat_badan_lahir}</td>
-                                                            <td className="px-3">{list.tinggi_badan_lahir}</td>
-                                                            <td className="px-3">
-                                                                {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
-                                                            </td>
-                                                            <td className="px-3">JAWA TIMUR</td>
-                                                            <td className="px-3">MADIUN</td>
-                                                            <td className="px-3">{list.user_posyandu.kecamatan}</td>
-                                                            <td className="px-3">{list.user_posyandu.desa}</td>
-                                                            <td className="px-3">{list.user_posyandu.nama_lengkap}</td>
-                                                            <td className="px-3">Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
-                                                            <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
-                                                            <td className="px-3">{moment(list.created_at).format("YYYY-MM-DD")}</td>
-                                                            <td className="px-3">{list.berat_badan}</td>
-                                                            <td className="px-3">{list.tinggi_badan}</td>
-                                                            <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
-                                                            <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
-                                                            <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
-                                                            <td className="text-nowrap p-1 px-3">
-                                                            </td>
-                                                    </tr>
-                                                ))}
-                                                {stunting.data.length==0&&
+                                                {!stunting.is_loading?
+                                                    <>
+                                                        {stunting.data.map((list, idx)=>(
+                                                            <tr key={list}>
+                                                                    <td className="align-middle px-3">{(idx+1)+((stunting.page-1)*stunting.per_page)}</td>
+                                                                    <td className="px-3">{list.data_anak.nik}</td>
+                                                                    <td className="px-3">
+                                                                        <button 
+                                                                            type="button" 
+                                                                            className="btn btn-link link-primary p-0"
+                                                                            onClick={e=>this.showDetailKK(list.data_anak.no_kk)}
+                                                                        >
+                                                                            {list.data_anak.no_kk}
+                                                                        </button>
+                                                                    </td>
+                                                                    <td className="px-3">{list.data_anak.nama_lengkap}</td>
+                                                                    <td className="px-3">{this.jenkel(list.data_anak.jenis_kelamin)}</td>
+                                                                    <td className="px-3">{list.data_anak.tgl_lahir}</td>
+                                                                    <td className="px-3">{list.berat_badan_lahir}</td>
+                                                                    <td className="px-3">{list.tinggi_badan_lahir}</td>
+                                                                    <td className="px-3">
+                                                                        {list.data_anak.ibu?.nama_lengkap}, {list.data_anak.ayah?.nama_lengkap}
+                                                                    </td>
+                                                                    <td className="px-3">JAWA TIMUR</td>
+                                                                    <td className="px-3">MADIUN</td>
+                                                                    <td className="px-3">{list.user_posyandu.kecamatan}</td>
+                                                                    <td className="px-3">{list.user_posyandu.desa}</td>
+                                                                    <td className="px-3">{list.user_posyandu.nama_lengkap}</td>
+                                                                    <td className="px-3">Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
+                                                                    <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
+                                                                    <td className="px-3">{moment(list.created_at).format("YYYY-MM-DD")}</td>
+                                                                    <td className="px-3">{list.berat_badan}</td>
+                                                                    <td className="px-3">{list.tinggi_badan}</td>
+                                                                    <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
+                                                                    <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
+                                                                    <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
+                                                                    <td className="text-nowrap p-1 px-3">
+                                                                    </td>
+                                                            </tr>
+                                                        ))}
+                                                        {stunting.data.length==0&&
+                                                            <tr>
+                                                                <td colSpan="22" className="text-center">Data tidak ditemukan!</td>
+                                                            </tr>
+                                                        }
+                                                    </>
+                                                :
                                                     <tr>
-                                                        <td colSpan="22" className="text-center">Data tidak ditemukan!</td>
+                                                        <td colSpan={22} className="text-center">
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Spinner
+                                                                    as="span"
+                                                                    animation="border"
+                                                                    size="sm"
+                                                                    role="status"
+                                                                    aria-hidden="true"
+                                                                    className="me-2"
+                                                                />
+                                                                Loading...
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 }
                                             </tbody>

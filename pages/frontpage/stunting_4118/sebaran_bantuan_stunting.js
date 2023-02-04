@@ -35,7 +35,8 @@ class SebaranBantuanStunting extends React.Component{
             per_page:10,
             q:"",
             tahun:"",
-            last_page:0
+            last_page:0,
+            is_loading:false
         }
     }
 
@@ -49,6 +50,7 @@ class SebaranBantuanStunting extends React.Component{
     getsSebaranBantuanStunting=async(reset=false)=>{
         const {sebaran_bantuan}=this.state
 
+        this.setLoading(true)
         await api(access_token()).get("/stunting_4118/sebaran_bantuan", {
             params:{
                 page:reset?1:sebaran_bantuan.page,
@@ -62,7 +64,8 @@ class SebaranBantuanStunting extends React.Component{
                 sebaran_bantuan:update(this.state.sebaran_bantuan, {
                     data:{$set:res.data.data},
                     last_page:{$set:res.data.last_page},
-                    page:{$set:res.data.current_page}
+                    page:{$set:res.data.current_page},
+                    is_loading:{$set:false}
                 })
             })
         })
@@ -72,6 +75,7 @@ class SebaranBantuanStunting extends React.Component{
                 Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
+            this.setLoading(false)
         })
     }
     goToPage=page=>{
@@ -116,6 +120,13 @@ class SebaranBantuanStunting extends React.Component{
                     this.getsSebaranBantuanStunting(true)
                 break;
             }
+        })
+    }
+    setLoading=loading=>{
+        this.setState({
+            sebaran_bantuan:update(this.state.sebaran_bantuan, {
+                is_loading:{$set:loading}
+            })
         })
     }
     timeout=0
@@ -193,45 +204,65 @@ class SebaranBantuanStunting extends React.Component{
                                                 </tr>
                                             </thead>
                                             <tbody className="border-top-0">
-                                                {sebaran_bantuan.data.map((list, idx)=>(
-                                                    <tr key={list}>
-                                                            <td className="align-middle px-3">{(idx+1)+((sebaran_bantuan.page-1)*sebaran_bantuan.per_page)}</td>
-                                                            <td className="px-3">{list.region}</td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={list.count_stunting}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={list.count_penerima_bantuan}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td>
-                                                                <NumberFormat
-                                                                    value={(list.count_penerima_bantuan/(list.count_stunting>0?list.count_stunting:1))*100}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                    decimalScale={2}
-                                                                />
-                                                            </td>
-                                                            <td>
-                                                                <NumberFormat
-                                                                    value={list.total_bantuan}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td></td>
-                                                    </tr>
-                                                ))}
-                                                {sebaran_bantuan.data.length==0&&
+                                                {!sebaran_bantuan.is_loading?
+                                                    <>
+                                                        {sebaran_bantuan.data.map((list, idx)=>(
+                                                            <tr key={list}>
+                                                                    <td className="align-middle px-3">{(idx+1)+((sebaran_bantuan.page-1)*sebaran_bantuan.per_page)}</td>
+                                                                    <td className="px-3">{list.region}</td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={list.count_stunting}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={list.count_penerima_bantuan}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td>
+                                                                        <NumberFormat
+                                                                            value={(list.count_penerima_bantuan/(list.count_stunting>0?list.count_stunting:1))*100}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                            decimalScale={2}
+                                                                        />
+                                                                    </td>
+                                                                    <td>
+                                                                        <NumberFormat
+                                                                            value={list.total_bantuan}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td></td>
+                                                            </tr>
+                                                        ))}
+                                                        {sebaran_bantuan.data.length==0&&
+                                                            <tr>
+                                                                <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
+                                                            </tr>
+                                                        }
+                                                    </>
+                                                :
                                                     <tr>
-                                                        <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
+                                                        <td colSpan={7} className="text-center">
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Spinner
+                                                                    as="span"
+                                                                    animation="border"
+                                                                    size="sm"
+                                                                    role="status"
+                                                                    aria-hidden="true"
+                                                                    className="me-2"
+                                                                />
+                                                                Loading...
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 }
                                             </tbody>

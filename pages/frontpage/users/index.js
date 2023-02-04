@@ -8,7 +8,7 @@ import { api } from "../../../config/api"
 import { access_token } from "../../../config/config"
 import { toast } from "react-toastify"
 import { Formik } from "formik"
-import {Modal} from "react-bootstrap"
+import {Modal, Spinner} from "react-bootstrap"
 import {ConfirmDelete} from "../../../component/ui/confirm"
 import { FaChevronLeft, FaChevronRight, FaSadCry } from "react-icons/fa"
 import { FiChevronLeft, FiChevronRight, FiPlus, FiTrash, FiTrash2, FiUpload } from "react-icons/fi" 
@@ -34,7 +34,8 @@ class Users extends React.Component{
             q:"",
             role:"",
             status:"",
-            last_page:0
+            last_page:0,
+            is_loading:false
         },
         tambah_user:{
             is_open:false,
@@ -84,6 +85,7 @@ class Users extends React.Component{
     getsUser=(reset=false)=>{
         const {users}=this.state
 
+        this.setLoading(true)
         api(access_token()).get("/user", {
             params:{
                 page:reset?1:users.page,
@@ -98,7 +100,8 @@ class Users extends React.Component{
                 users:update(this.state.users, {
                     data:{$set:res.data.data},
                     last_page:{$set:res.data.last_page},
-                    page:{$set:res.data.current_page}
+                    page:{$set:res.data.current_page},
+                    is_loading:{$set:false}
                 })
             })
         })
@@ -108,6 +111,7 @@ class Users extends React.Component{
                 Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
+            this.setLoading(false)
         })
     }
     goToPage=page=>{
@@ -166,6 +170,13 @@ class Users extends React.Component{
         })
 
         return res
+    }
+    setLoading=loading=>{
+        this.setState({
+            users:update(this.state.users, {
+                is_loading:{$set:loading}
+            })
+        })
     }
     timeout=0
 
@@ -371,45 +382,68 @@ class Users extends React.Component{
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {users.data.map((list, idx)=>(
-                                                <tr key={list}>
-                                                        <td className="align-middle">{(idx+1)+((users.page-1)*users.per_page)}</td>
-                                                        <td className="py-1 align-middle">
-                                                            <div className="d-flex align-items-center">
-                                                                <div className="d-flex align-items-center">
-                                                                    <span className="avatar avatar-sm">
-                                                                        <Avatar 
-                                                                            data={list}
-                                                                        />
-                                                                    </span>
-                                                                </div>
-                                                                <span className="fw-semibold text-capitalize ms-2">{list.nama_lengkap}</span>
+                                            {!users.is_loading?
+                                                <>
+                                                    {users.data.map((list, idx)=>(
+                                                        <tr key={list}>
+                                                                <td className="align-middle">{(idx+1)+((users.page-1)*users.per_page)}</td>
+                                                                <td className="py-1 align-middle">
+                                                                    <div className="d-flex align-items-center">
+                                                                        <div className="d-flex align-items-center">
+                                                                            <span className="avatar avatar-sm">
+                                                                                <Avatar 
+                                                                                    data={list}
+                                                                                />
+                                                                            </span>
+                                                                        </div>
+                                                                        <span className="fw-semibold text-capitalize ms-2">{list.nama_lengkap}</span>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    {list.username}
+                                                                </td>
+                                                                <td>
+                                                                    {list.role}
+                                                                </td>
+                                                                <td>
+                                                                    {this.userStatus(list.status)}
+                                                                </td>
+                                                                <td className="text-nowrap p-1 align-middle">
+                                                                    <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                        <TbEdit className="icon"/>
+                                                                    </button>
+                                                                    <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                        <TbTrash className="icon"/>
+                                                                    </button>
+                                                                </td>
+                                                        </tr>
+                                                    ))}
+                                                    {users.data.length==0&&
+                                                        <tr>
+                                                            <td colSpan={6} className="text-center">Data tidak ditemukan!</td>
+                                                        </tr>
+                                                    }
+                                                </>
+                                            :
+                                                <>
+                                                    <tr>
+                                                        <td colSpan={6} className="text-center">
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Spinner
+                                                                    as="span"
+                                                                    animation="border"
+                                                                    size="sm"
+                                                                    role="status"
+                                                                    aria-hidden="true"
+                                                                    className="me-2"
+                                                                />
+                                                                Loading...
                                                             </div>
                                                         </td>
-                                                        <td>
-                                                            {list.username}
-                                                        </td>
-                                                        <td>
-                                                            {list.role}
-                                                        </td>
-                                                        <td>
-                                                            {this.userStatus(list.status)}
-                                                        </td>
-                                                        <td className="text-nowrap p-1 align-middle">
-                                                            <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                <TbEdit className="icon"/>
-                                                            </button>
-                                                            <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                <TbTrash className="icon"/>
-                                                            </button>
-                                                        </td>
-                                                </tr>
-                                            ))}
-                                            {users.data.length==0&&
-                                                <tr>
-                                                    <td colSpan={6} className="text-center">Data tidak ditemukan!</td>
-                                                </tr>
+                                                    </tr>
+                                                </>
                                             }
+                                            
                                         </tbody>
                                     </table>
                                 </div>

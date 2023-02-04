@@ -42,7 +42,8 @@ class RencanaBantuan extends React.Component{
             q:"",
             id_user:"",
             tahun:"",
-            last_page:0
+            last_page:0,
+            is_loading:false
         },
         tambah_rencana_bantuan:{
             is_open:false,
@@ -107,6 +108,7 @@ class RencanaBantuan extends React.Component{
 
         if(rencana_bantuan.id_user==""||rencana_bantuan.tahun=="") return
 
+        this.setLoading(true)
         await api(access_token()).get("/intervensi_rencana_bantuan", {
             params:{
                 page:reset?1:rencana_bantuan.page,
@@ -121,7 +123,8 @@ class RencanaBantuan extends React.Component{
                 rencana_bantuan:update(this.state.rencana_bantuan, {
                     data:{$set:res.data.data},
                     last_page:{$set:res.data.last_page},
-                    page:{$set:res.data.current_page}
+                    page:{$set:res.data.current_page},
+                    is_loading:{$set:false}
                 })
             })
         })
@@ -131,6 +134,7 @@ class RencanaBantuan extends React.Component{
                 Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
+            this.setLoading(false)
         })
     }
     goToPage=page=>{
@@ -174,6 +178,13 @@ class RencanaBantuan extends React.Component{
                 default:
                     this.getsRencanaBantuan(true)
             }
+        })
+    }
+    setLoading=loading=>{
+        this.setState({
+            rencana_bantuan:update(this.state.rencana_bantuan, {
+                is_loading:{$set:loading}
+            })
         })
     }
     timeout=0
@@ -426,46 +437,66 @@ class RencanaBantuan extends React.Component{
                                                 </tr>
                                             </thead>
                                             <tbody className="border-top-0">
-                                                {rencana_bantuan.data.map((list, idx)=>(
-                                                    <tr key={list}>
-                                                            <td className="align-middle px-3">{(idx+1)+((rencana_bantuan.page-1)*rencana_bantuan.per_page)}</td>
-                                                            <td className="px-3">{list.bantuan}</td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={list.harga_satuan}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td className="px-3">{list.satuan}</td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={list.qty}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={list.jumlah}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td className="text-nowrap p-1 px-3">
-                                                                <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                    <TbEdit className="icon"/>
-                                                                </button>
-                                                                <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                    <TbTrash className="icon"/>
-                                                                </button>
-                                                            </td>
-                                                    </tr>
-                                                ))}
-                                                {rencana_bantuan.data.length==0&&
+                                                {!rencana_bantuan.is_loading?
+                                                    <>
+                                                        {rencana_bantuan.data.map((list, idx)=>(
+                                                            <tr key={list}>
+                                                                    <td className="align-middle px-3">{(idx+1)+((rencana_bantuan.page-1)*rencana_bantuan.per_page)}</td>
+                                                                    <td className="px-3">{list.bantuan}</td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={list.harga_satuan}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="px-3">{list.satuan}</td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={list.qty}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={list.jumlah}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="text-nowrap p-1 px-3">
+                                                                        <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                            <TbEdit className="icon"/>
+                                                                        </button>
+                                                                        <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                            <TbTrash className="icon"/>
+                                                                        </button>
+                                                                    </td>
+                                                            </tr>
+                                                        ))}
+                                                        {rencana_bantuan.data.length==0&&
+                                                            <tr>
+                                                                <td colSpan="8" className="text-center">Data tidak ditemukan!</td>
+                                                            </tr>
+                                                        }
+                                                    </>
+                                                :
                                                     <tr>
-                                                        <td colSpan="8" className="text-center">Data tidak ditemukan!</td>
+                                                        <td colSpan={8} className="text-center">
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Spinner
+                                                                    as="span"
+                                                                    animation="border"
+                                                                    size="sm"
+                                                                    role="status"
+                                                                    aria-hidden="true"
+                                                                    className="me-2"
+                                                                />
+                                                                Loading...
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 }
                                             </tbody>

@@ -43,7 +43,8 @@ class RealisasiKegiatan extends React.Component{
             q:"",
             id_user:"",
             tahun:"",
-            last_page:0
+            last_page:0,
+            is_loading:false
         },
         tambah_realisasi_kegiatan:{
             is_open:false,
@@ -135,6 +136,7 @@ class RealisasiKegiatan extends React.Component{
 
         if(realisasi_kegiatan.id_user==""||realisasi_kegiatan.tahun=="") return
 
+        this.setLoading(true)
         await api(access_token()).get("/intervensi_realisasi_kegiatan", {
             params:{
                 page:reset?1:realisasi_kegiatan.page,
@@ -149,7 +151,8 @@ class RealisasiKegiatan extends React.Component{
                 realisasi_kegiatan:update(this.state.realisasi_kegiatan, {
                     data:{$set:res.data.data},
                     last_page:{$set:res.data.last_page},
-                    page:{$set:res.data.current_page}
+                    page:{$set:res.data.current_page},
+                    is_loading:{$set:false}
                 })
             })
         })
@@ -159,6 +162,7 @@ class RealisasiKegiatan extends React.Component{
                 Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
+            this.setLoading(false)
         })
     }
     goToPage=page=>{
@@ -207,6 +211,13 @@ class RealisasiKegiatan extends React.Component{
                         this.getsRencanaKegiatanForm()
                     })
             }
+        })
+    }
+    setLoading=loading=>{
+        this.setState({
+            realisasi_kegiatan:update(this.state.realisasi_kegiatan, {
+                is_loading:{$set:loading}
+            })
         })
     }
     timeout=0
@@ -466,39 +477,59 @@ class RealisasiKegiatan extends React.Component{
                                                 </tr>
                                             </thead>
                                             <tbody className="border-top-0">
-                                                {realisasi_kegiatan.data.map((list, idx)=>(
-                                                    <tr key={list}>
-                                                            <td className="align-middle px-3">{(idx+1)+((realisasi_kegiatan.page-1)*realisasi_kegiatan.per_page)}</td>
-                                                            <td className="px-3">{list.rencana_kegiatan.kegiatan}</td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={list.rencana_kegiatan.anggaran}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td className="px-3">{list.rencana_kegiatan.satuan}</td>
-                                                            <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={list.rencana_kegiatan.jumlah}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td className="text-nowrap p-1 px-3">
-                                                                <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
-                                                                    <TbEdit className="icon"/>
-                                                                </button>
-                                                                <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
-                                                                    <TbTrash className="icon"/>
-                                                                </button>
-                                                            </td>
-                                                    </tr>
-                                                ))}
-                                                {realisasi_kegiatan.data.length==0&&
+                                                {!realisasi_kegiatan.is_loading?
+                                                    <>
+                                                        {realisasi_kegiatan.data.map((list, idx)=>(
+                                                            <tr key={list}>
+                                                                    <td className="align-middle px-3">{(idx+1)+((realisasi_kegiatan.page-1)*realisasi_kegiatan.per_page)}</td>
+                                                                    <td className="px-3">{list.rencana_kegiatan.kegiatan}</td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={list.rencana_kegiatan.anggaran}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="px-3">{list.rencana_kegiatan.satuan}</td>
+                                                                    <td className="px-3 text-pre-wrap">{list.detail_kegiatan}</td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={list.rencana_kegiatan.jumlah}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="text-nowrap p-1 px-3">
+                                                                        <button type="button" className="btn btn-link p-0" onClick={()=>this.showModalEdit(list)}>
+                                                                            <TbEdit className="icon"/>
+                                                                        </button>
+                                                                        <button type="button" className="btn btn-link link-danger ms-2 p-0" onClick={()=>this.showConfirmHapus(list)}>
+                                                                            <TbTrash className="icon"/>
+                                                                        </button>
+                                                                    </td>
+                                                            </tr>
+                                                        ))}
+                                                        {realisasi_kegiatan.data.length==0&&
+                                                            <tr>
+                                                                <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
+                                                            </tr>
+                                                        }
+                                                    </>
+                                                :
                                                     <tr>
-                                                        <td colSpan="7" className="text-center">Data tidak ditemukan!</td>
+                                                        <td colSpan={7} className="text-center">
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Spinner
+                                                                    as="span"
+                                                                    animation="border"
+                                                                    size="sm"
+                                                                    role="status"
+                                                                    aria-hidden="true"
+                                                                    className="me-2"
+                                                                />
+                                                                Loading...
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 }
                                             </tbody>

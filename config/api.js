@@ -18,7 +18,8 @@ export const api=(jwt_token="")=>{
 }
 export const api_kependudukan=(jwt_token="")=>{
     let config={
-        'content-type':'application/json'
+        'content-type':'application/json',
+        'secret-key':"Rxm6pJwmx1Zrs?Lv5EHx4HSJfdgxNVYqeKbR=JeZuoCJ5Sis?LoYQMhnVYMS6wYHxCGgi98jgipMi0Tl3?/ybxClOYOlQb/lcyz!4Hakw95=rIh/FQezg!lJQxOVu=Hl8kln/QUlc-D0Xnnuj2g=6SRe6rw0pfuhfdP7NAHefDh25e-RKcwT6KvO4FeTBOUszChVBbP5zbXu72NzF2DOP!vEIjnZRY5noYxEQO3S/XVq4MRbIHbLzuZkBm0j309h"
     }
 
     if(jwt_token!=""){

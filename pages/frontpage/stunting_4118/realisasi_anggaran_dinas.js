@@ -36,7 +36,8 @@ class RealisasiAnggaran extends React.Component{
             q:"",
             jenis:"",
             tahun:"",
-            last_page:0
+            last_page:0,
+            is_loading:false
         }
     }
 
@@ -50,6 +51,7 @@ class RealisasiAnggaran extends React.Component{
     getsRealisasiAnggaran=async(reset=false)=>{
         const {realisasi_anggaran}=this.state
 
+        this.setLoading(true)
         await api(access_token()).get("/stunting_4118/realisasi_anggaran_dinas", {
             params:{
                 page:reset?1:realisasi_anggaran.page,
@@ -63,7 +65,8 @@ class RealisasiAnggaran extends React.Component{
                 realisasi_anggaran:update(this.state.realisasi_anggaran, {
                     data:{$set:res.data.data},
                     last_page:{$set:res.data.last_page},
-                    page:{$set:res.data.current_page}
+                    page:{$set:res.data.current_page},
+                    is_loading:{$set:false}
                 })
             })
         })
@@ -73,6 +76,7 @@ class RealisasiAnggaran extends React.Component{
                 Router.push("/login")
             }
             toast.error("Gets Data Failed!", {position:"bottom-center"})
+            this.setLoading(false)
         })
     }
     goToPage=page=>{
@@ -117,6 +121,13 @@ class RealisasiAnggaran extends React.Component{
                     this.getsRealisasiAnggaran(true)
                 break;
             }
+        })
+    }
+    setLoading=loading=>{
+        this.setState({
+            realisasi_anggaran:update(this.state.realisasi_anggaran, {
+                is_loading:{$set:loading}
+            })
         })
     }
     timeout=0
@@ -246,38 +257,58 @@ class RealisasiAnggaran extends React.Component{
                                                 </tr>
                                             </thead>
                                             <tbody className="border-top-0">
-                                                {realisasi_anggaran.data.map((list, idx)=>(
-                                                    <tr key={list}>
-                                                            <td className="align-middle px-3">{(idx+1)+((realisasi_anggaran.page-1)*realisasi_anggaran.per_page)}</td>
-                                                            <td className="px-3">{list.nama_lengkap}</td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={this.valueTotalRencanaAnggaran(list)}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td className="px-3">
-                                                                <NumberFormat
-                                                                    value={this.valueTotalRealisasiAnggaran(list)}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                />
-                                                            </td>
-                                                            <td>
-                                                                <NumberFormat
-                                                                    value={(this.valueTotalRealisasiAnggaran(list)/(this.valueTotalRencanaAnggaran(list)>0?this.valueTotalRencanaAnggaran(list):1))*100}
-                                                                    displayType="text"
-                                                                    thousandSeparator={true}
-                                                                    decimalScale={2}
-                                                                />
-                                                            </td>
-                                                            <td></td>
-                                                    </tr>
-                                                ))}
-                                                {realisasi_anggaran.data.length==0&&
+                                                {!realisasi_anggaran.is_loading?
+                                                    <>
+                                                        {realisasi_anggaran.data.map((list, idx)=>(
+                                                            <tr key={list}>
+                                                                    <td className="align-middle px-3">{(idx+1)+((realisasi_anggaran.page-1)*realisasi_anggaran.per_page)}</td>
+                                                                    <td className="px-3">{list.nama_lengkap}</td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={this.valueTotalRencanaAnggaran(list)}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td className="px-3">
+                                                                        <NumberFormat
+                                                                            value={this.valueTotalRealisasiAnggaran(list)}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                        />
+                                                                    </td>
+                                                                    <td>
+                                                                        <NumberFormat
+                                                                            value={(this.valueTotalRealisasiAnggaran(list)/(this.valueTotalRencanaAnggaran(list)>0?this.valueTotalRencanaAnggaran(list):1))*100}
+                                                                            displayType="text"
+                                                                            thousandSeparator={true}
+                                                                            decimalScale={2}
+                                                                        />
+                                                                    </td>
+                                                                    <td></td>
+                                                            </tr>
+                                                        ))}
+                                                        {realisasi_anggaran.data.length==0&&
+                                                            <tr>
+                                                                <td colSpan="6" className="text-center">Data tidak ditemukan!</td>
+                                                            </tr>
+                                                        }
+                                                    </>
+                                                :
                                                     <tr>
-                                                        <td colSpan="6" className="text-center">Data tidak ditemukan!</td>
+                                                        <td colSpan={6} className="text-center">
+                                                            <div className="d-flex align-items-center justify-content-center">
+                                                                <Spinner
+                                                                    as="span"
+                                                                    animation="border"
+                                                                    size="sm"
+                                                                    role="status"
+                                                                    aria-hidden="true"
+                                                                    className="me-2"
+                                                                />
+                                                                Loading...
+                                                            </div>
+                                                        </td>
                                                     </tr>
                                                 }
                                             </tbody>
