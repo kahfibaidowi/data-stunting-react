@@ -38,7 +38,7 @@ class Stunting extends React.Component{
         },
         detail_kk:{
             is_open:false,
-            data:{}
+            data:[]
         }
     }
 
@@ -204,6 +204,14 @@ class Stunting extends React.Component{
             return bln+" Bulan"
         }
     }
+    valueBBU=value=>{
+        if(value=="gizi_buruk") return "Berat Badan sangat Kurang";
+        if(value=="gizi_kurang") return "Berat badan kurang";
+        if(value=="gizi_baik") return "Berat badan normal";
+        if(value=="gizi_lebih") return "Risiko Berat badan lebih";
+        
+        return value
+    }
 
     //detail kk
     showDetailKK=async no_kk=>{
@@ -232,7 +240,7 @@ class Stunting extends React.Component{
             this.setState({
                 detail_kk:{
                     is_open:false,
-                    data:{}
+                    data:[]
                 }
             })
         }, 200);
@@ -309,7 +317,8 @@ class Stunting extends React.Component{
                                                     <th className="px-3">Kec</th>
                                                     <th className="px-3">Desa/Kel</th>
                                                     <th className="px-3">Posyandu</th>
-                                                    <th className="px-3">Alamat</th>
+                                                    <th className="px-3">Alamat Balita</th>
+                                                    <th className="px-3">Data Status</th>
                                                     <th className="px-3">Usia Saat Ukur</th>
                                                     <th className="px-3">Tanggal</th>
                                                     <th className="px-3">Berat Badan </th>
@@ -348,14 +357,17 @@ class Stunting extends React.Component{
                                                                     <td className="px-3">MADIUN</td>
                                                                     <td className="px-3">{list.user_posyandu.kecamatan}</td>
                                                                     <td className="px-3">{list.user_posyandu.desa}</td>
-                                                                    <td className="px-3">{list.user_posyandu.nama_lengkap}</td>
                                                                     <td className="px-3">Desa {list.user_posyandu.desa} - Posy. {list.user_posyandu.nama_lengkap}</td>
+                                                                    <td className="px-3">
+                                                                        {list.data_anak?.provinsi?.nama}, {list.data_anak?.kabupaten_kota?.nama}, {list.data_anak?.kecamatan?.nama}, Desa {list.data_anak?.desa?.nama}, RT/RW {list.data_anak.alamat_detail.rt}/{list.data_anak.alamat_detail.rw}
+                                                                    </td>
+                                                                    <td className="px-3">{list.data_anak.data_status}</td>
                                                                     <td className="px-3">{this.getBulan(list.usia_saat_ukur)}</td>
                                                                     <td className="px-3">{moment(list.created_at).format("YYYY-MM-DD")}</td>
                                                                     <td className="px-3">{list.berat_badan}</td>
                                                                     <td className="px-3">{list.tinggi_badan}</td>
                                                                     <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
-                                                                    <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
+                                                                    <td className="px-3">{this.valueBBU(list.hasil_berat_badan_per_umur)}</td>
                                                                     <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
                                                                     <td className="text-nowrap p-1 px-3">
                                                                     </td>
@@ -363,13 +375,13 @@ class Stunting extends React.Component{
                                                         ))}
                                                         {stunting.data.length==0&&
                                                             <tr>
-                                                                <td colSpan="22" className="text-center">Data tidak ditemukan!</td>
+                                                                <td colSpan="24" className="text-center">Data tidak ditemukan!</td>
                                                             </tr>
                                                         }
                                                     </>
                                                 :
                                                     <tr>
-                                                        <td colSpan={22} className="text-center">
+                                                        <td colSpan={24} className="text-center">
                                                             <div className="d-flex align-items-center justify-content-center">
                                                                 <Spinner
                                                                     as="span"
@@ -433,84 +445,71 @@ class Stunting extends React.Component{
                     </div>
                 </Layout>
 
-                {/* MODAL DETAIL KK */}
-                <Modal show={detail_kk.is_open} className="modal-blur" onHide={this.hideDetailKK} backdrop="static" size="lg">
-                    <Modal.Header closeButton>
-                        <h4 className="modal-title">Detail Kartu Keluarga</h4>
-                    </Modal.Header>
-                    <Modal.Body>
-                        {!isUndefined(detail_kk.data.no_kk)&&
-                            <>
-                                <table className="mb-3">
-                                    <tr>
-                                        <th valign="top" width="140">No. KK</th>
-                                        <td valign="top" width="15"> : </td>
-                                        <td>{detail_kk.data?.no_kk}</td>
-                                    </tr>
-                                    <tr>
-                                        <th valign="top">Provinsi</th>
-                                        <td valign="top"> : </td>
-                                        <td>{detail_kk.data.provinsi?.region}</td>
-                                    </tr>
-                                    <tr>
-                                        <th valign="top">Kabupaten/Kota</th>
-                                        <td valign="top"> : </td>
-                                        <td>{detail_kk.data.kabupaten_kota?.region}</td>
-                                    </tr>
-                                    <tr>
-                                        <th valign="top">Kecamatan</th>
-                                        <td valign="top"> : </td>
-                                        <td>{detail_kk.data.kecamatan?.region}</td>
-                                    </tr>
-                                    <tr>
-                                        <th valign="top">getDesaForm</th>
-                                        <td valign="top"> : </td>
-                                        <td>{detail_kk.data.desa?.region}</td>
-                                    </tr>
-                                    <tr>
-                                        <th valign="top">Alamat</th>
-                                        <td valign="top"> : </td>
-                                        <td>{detail_kk.data.alamat_detail?.dusun},  RT/RW {detail_kk.data.alamat_detail?.rt}/{detail_kk.data.alamat_detail?.rw}, Jalan {detail_kk.data.alamat_detail?.jalan}</td>
-                                    </tr>
-                                </table>
-                                <div className="mb-3">
-                                    <label className="my-1 me-2 fw-semibold" for="country">Detail/Anggota</label>
-                                    <table className="table">
-                                        <thead>
-                                            <tr>
-                                                <th>NIK</th>
-                                                <th>Nama Lengkap</th>
-                                                <th>Hubungan Dalam Keluarga</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {detail_kk.data.detail.map(row=>(
-                                                <tr key={row}>
-                                                    <td className="py-1">{row.nik}</td>
-                                                    <td className="py-1">{row.penduduk.nama_lengkap}</td>
-                                                    <td className="py-1">{row.status_hubungan_keluarga}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </>
-                        }
-                        
-                    </Modal.Body>
-                    <Modal.Footer className="mt-3 border-top pt-2">
-                        <button 
-                            type="button" 
-                            class="btn btn-link text-gray me-auto" 
-                            onClick={this.hideDetailKK}
-                        >
-                            Tutup
-                        </button>
-                    </Modal.Footer>
-                </Modal>
+                <DetailKK
+                    data={detail_kk}
+                    hideModal={this.hideDetailKK}
+                />
             </>
         )
     }
+}
+
+//DETAIL KK
+const DetailKK=({data, hideModal})=>{
+    
+    return (
+        <Modal show={data.is_open} className="modal-blur" onHide={hideModal} backdrop="static" size="lg">
+            <Modal.Header closeButton>
+                <h4 className="modal-title">Detail Kartu Keluarga</h4>
+            </Modal.Header>
+            <Modal.Body>
+                <div className="mb-3">
+                    <label className="my-1 me-2 fw-semibold" for="country">Detail/Anggota</label>
+                    <div className="table-responsive">
+                        <table className="table table-nowrap table-custom">
+                            <thead>
+                                <tr>
+                                    <th>NIK</th>
+                                    <th>Nama Lengkap</th>
+                                    <th>Provinsi</th>
+                                    <th>Kabupaten/Kota</th>
+                                    <th>Kecamatan</th>
+                                    <th>Desa</th>
+                                    <th>Alamat</th>
+                                    <th>Hubungan Dalam Keluarga</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.data.map(row=>(
+                                    <tr key={row}>
+                                        <td className="">{row.nik}</td>
+                                        <td className="">{row.nama}</td>
+                                        <td className="">{row.provinsi?.nama}</td>
+                                        <td className="">{row.kota?.nama}</td>
+                                        <td className="">{row.kecamatan?.nama}</td>
+                                        <td className="">{row.desa?.nama}</td>
+                                        <td className="">
+                                            {" "},  RT/RW {row.rt}/{row.rw}, Jalan {""}
+                                        </td>
+                                        <td className="">{row.hubungan_keluarga?.nama}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </Modal.Body>
+            <Modal.Footer className="mt-3 border-top pt-2">
+                <button 
+                    type="button" 
+                    class="btn btn-link text-gray me-auto" 
+                    onClick={hideModal}
+                >
+                    Tutup
+                </button>
+            </Modal.Footer>
+        </Modal>
+    )
 }
 
 export default withRouter(withAuth(Stunting))

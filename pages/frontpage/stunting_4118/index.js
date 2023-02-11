@@ -309,6 +309,14 @@ class Stunting4118 extends React.Component{
         }
         return ""
     }
+    valueBBU=value=>{
+        if(value=="gizi_buruk") return "Berat Badan sangat Kurang";
+        if(value=="gizi_kurang") return "Berat badan kurang";
+        if(value=="gizi_baik") return "Berat badan normal";
+        if(value=="gizi_lebih") return "Risiko Berat badan lebih";
+        
+        return value
+    }
 
     //import
     selectFile=async e=>{
@@ -825,7 +833,7 @@ class Stunting4118 extends React.Component{
                                                                     <td className="px-3">{list.berat_badan}</td>
                                                                     <td className="px-3">{list.tinggi_badan}</td>
                                                                     <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
-                                                                    <td className="px-3">{list.hasil_berat_badan_per_umur.split("_").join(" ")}</td>
+                                                                    <td className="px-3">{this.valueBBU(list.hasil_berat_badan_per_umur)}</td>
                                                                     <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
                                                                     <td className="px-3">{moment(list.updated_at).format("DD-MM-YYYY HH:mm:ss")}</td>
                                                                     <td className="text-nowrap p-1 px-3">

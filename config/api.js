@@ -1,4 +1,5 @@
 import axios from "axios";
+import axiosRetry from "axios-retry";
 import { BASE_URL, BASE_URL_KEPENDUDUKAN } from "./config";
 
 

@@ -90,7 +90,7 @@ const LayoutNoble=(props)=>{
                 {"sidebar-open":sidebar_mobile_toggler}
             )}
         >
-            <nav className="sidebar">
+            <nav className="sidebar" style={{zIndex:1001}}>
                 <div className="sidebar-header">
                     <Link href="" className="sidebar-brand">
                         <img src="/logo.png" alt="Stunting" className="navbar-brand-image"/>
@@ -155,7 +155,7 @@ const LayoutNoble=(props)=>{
                                                         href="/frontpage/skrining_balita" 
                                                         className={classNames("nav-link", {"active":active_page=="/frontpage/skrining_balita"})}
                                                     >
-                                                        Lihat Skrining
+                                                        Rekap Timbangan
                                                     </Link>
                                                 </li>
                                                 <li className="nav-item">
