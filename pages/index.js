@@ -628,7 +628,7 @@ class ControlBox extends React.Component{
                     <div className="card">
                         <div className="card-body">
                             <div className="d-flex justify-content-between align-items-baseline">
-                                <h6 className="card-title mb-1">Total Stunting</h6>
+                                <h6 className="card-title mb-1"></h6>
                             </div>
                             <div className="row">
                                 <div className="col-6 col-md-12 col-xl-5">

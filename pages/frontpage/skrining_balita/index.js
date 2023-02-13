@@ -78,6 +78,9 @@ class Skrining extends React.Component{
         if(this.props.router.isReady){
             if(this.props.router.query?.action=="cek_antropometri"){
                 this.toggleTambah()
+                this.setState({
+                    login_data:login_data()!==null?login_data():{}
+                })
             }
             else{
                 this.setState({
@@ -107,6 +110,9 @@ class Skrining extends React.Component{
             if(this.props.router.isReady){
                 if(this.props.router.query?.action=="cek_antropometri"){
                     this.toggleTambah()
+                    this.setState({
+                        login_data:login_data()!==null?login_data():{}
+                    })
                 }
                 else{
                     this.setState({
@@ -135,6 +141,9 @@ class Skrining extends React.Component{
             if(this.props.router.isReady){
                 if(this.props.router.query?.action=="cek_antropometri"){
                     this.toggleTambah()
+                    this.setState({
+                        login_data:login_data()!==null?login_data():{}
+                    })
                 }
                 else{
                     this.setState({
