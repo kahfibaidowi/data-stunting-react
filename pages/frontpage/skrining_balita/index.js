@@ -1160,7 +1160,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
 
         resetForm.then(async res=>{
             //old skrining
-            const data_old_skrining=await request.apiGetSkriningNIK(formik.values.nik_anak).catch(err=>false)
+            const data_old_skrining=await request.apiGetSkriningNIK(formik.values.nik_anak.toString().trim()).catch(err=>false)
             if(data_old_skrining!==false){
                 formik.setFieldValue("berat_badan_lahir", data_old_skrining.data.berat_badan_lahir)
                 formik.setFieldValue("tinggi_badan_lahir", data_old_skrining.data.tinggi_badan_lahir)
@@ -1173,7 +1173,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                     berat_badan_lahir:"",
                     tinggi_badan_lahir:""
                 }
-                const data_lahir=await request.apiGetDataLahir(formik.values.nik_anak).catch(err=>false)
+                const data_lahir=await request.apiGetDataLahir(formik.values.nik_anak.toString().trim()).catch(err=>false)
                 if(data_lahir!==false && data_lahir.data!==null){
                     lahir={
                         berat_badan_lahir:data_lahir.data.berat_badan,
@@ -1182,7 +1182,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                 }
 
                 //penduduk
-                const data_penduduk=await request.apiGetPenduduk(formik.values.nik_anak).catch(err=>false)
+                const data_penduduk=await request.apiGetPenduduk(formik.values.nik_anak.toString().trim()).catch(err=>false)
                 if(data_penduduk!==false && !isUndefined(data_penduduk.data.nik)){
                     let data_anak={}
                     data_anak={
@@ -1252,7 +1252,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                             //data
                             let data_anak={
                                 id_penduduk:"",
-                                nik:formik.values.nik_anak,
+                                nik:formik.values.nik_anak.toString().trim(),
                                 no_kk:"",
                                 nama_lengkap:"",
                                 tempat_lahir:"",
