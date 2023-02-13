@@ -172,7 +172,7 @@ const LayoutNoble=(props)=>{
                                 </li>
                             </>
                         }
-                        {["admin", "dinas"].includes(login_data.role)&&
+                        {(["admin", "dinas"].includes(login_data.role)&&false)&&
                             <>
                                 <li 
                                     className={classNames(

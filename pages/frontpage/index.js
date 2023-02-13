@@ -6,7 +6,7 @@ import Layout from "../../component/layout"
 import Link from "next/link"
 import dynamic from "next/dynamic"
 import { api } from "../../config/api"
-import { access_token, isUndefined } from "../../config/config"
+import { access_token, isUndefined, login_data } from "../../config/config"
 import Router from "next/router"
 import { toast } from "react-toastify"
 
@@ -15,6 +15,7 @@ const Chart=dynamic(()=>import("react-apexcharts"), {ssr:false})
 
 class Frontpage extends React.Component{
     state={
+        login_data:{},
         kecamatan_form:[],
         pemetaan:{
             type:"kecamatan",
@@ -57,9 +58,15 @@ class Frontpage extends React.Component{
     }
 
     componentDidMount=()=>{
-        this.getsKecamatanForm()
-        this.getsPemetaan()
-        this.getsBarChart()
+        this.setState({
+            login_data:login_data()!==null?login_data():{}
+        }, ()=>{
+            if(this.state.login_data=="admin"){
+                this.getsKecamatanForm()
+                this.getsPemetaan()
+                this.getsBarChart()
+            }
+        })
     }
     getsPemetaan=async ()=>{
         const {pemetaan}=this.state
@@ -246,7 +253,7 @@ class Frontpage extends React.Component{
     }
 
     render(){
-        const {pemetaan, kecamatan_form, bar_chart}=this.state
+        const {pemetaan, kecamatan_form, bar_chart, login_data}=this.state
 
         return (
             <>
@@ -254,66 +261,68 @@ class Frontpage extends React.Component{
                     <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
                         
                     </div>
-                    <div className="row">
-                        <div className="col-lg-6 mb-3">
-                            <div className="card w-100 rounded-4 overflow-hidden">
-                                <div className="card-body p-3 border-top-0">
-                                    <h3 className="card-title fw-semibold mb-4">Pemetaan Stunting</h3>
-                                    <div className="d-flex mb-3">
-                                        <div style={{width:"200px"}} className="me-2">
-                                            <select name="type" value={pemetaan.type} className="form-select" onChange={this.typeFilterPemetaan}>
-                                                <option value="kecamatan">Kecamatan</option>
-                                                <option value="desa">Desa</option>
-                                            </select>
-                                        </div>
-                                        {pemetaan.type=="desa"&&
+                    {login_data.role=="admin"&&
+                        <div className="row">
+                            <div className="col-lg-6 mb-3">
+                                <div className="card w-100 rounded-4 overflow-hidden">
+                                    <div className="card-body p-3 border-top-0">
+                                        <h3 className="card-title fw-semibold mb-4">Pemetaan Stunting</h3>
+                                        <div className="d-flex mb-3">
                                             <div style={{width:"200px"}} className="me-2">
-                                                <select name="district_id" value={pemetaan.district_id} className="form-select" onChange={this.typeFilterPemetaan}>
-                                                    <option value="">-- Pilih Kecamatan</option>
-                                                    {kecamatan_form.map(kf=>(
-                                                        <option key={kf} value={kf.id_region}>{kf.region}</option>
-                                                    ))}
+                                                <select name="type" value={pemetaan.type} className="form-select" onChange={this.typeFilterPemetaan}>
+                                                    <option value="kecamatan">Kecamatan</option>
+                                                    <option value="desa">Desa</option>
                                                 </select>
                                             </div>
-                                        }
+                                            {pemetaan.type=="desa"&&
+                                                <div style={{width:"200px"}} className="me-2">
+                                                    <select name="district_id" value={pemetaan.district_id} className="form-select" onChange={this.typeFilterPemetaan}>
+                                                        <option value="">-- Pilih Kecamatan</option>
+                                                        {kecamatan_form.map(kf=>(
+                                                            <option key={kf} value={kf.id_region}>{kf.region}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            }
+                                        </div>
+                                        <Map data={pemetaan.data} center={pemetaan.center}/>
                                     </div>
-                                    <Map data={pemetaan.data} center={pemetaan.center}/>
+                                </div>
+                            </div>
+                            <div className="col-lg-6 mb-3">
+                                <div className="card w-100 rounded-4 overflow-hidden">
+                                    <div className="card-body p-3 border-top-0">
+                                        <h3 className="card-title fw-semibold mb-4">Grafik Anak Penderita Stunting</h3>
+                                        <div className="d-flex mb-3">
+                                            <div style={{width:"200px"}} className="me-2">
+                                                <select name="type" value={bar_chart.type} className="form-select" onChange={this.typeFilterChart}>
+                                                    <option value="kecamatan">Kecamatan</option>
+                                                    <option value="desa">Desa</option>
+                                                </select>
+                                            </div>
+                                            {bar_chart.type=="desa"&&
+                                                <div style={{width:"200px"}} className="me-2">
+                                                    <select name="district_id" value={bar_chart.district_id} className="form-select" onChange={this.typeFilterChart}>
+                                                        <option value="">-- Pilih Kecamatan</option>
+                                                        {kecamatan_form.map(kf=>(
+                                                            <option key={kf} value={kf.id_region}>{kf.region}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            }
+                                        </div>
+                                        <Chart
+                                            options={bar_chart.options}
+                                            series={bar_chart.series}
+                                            type="bar"
+                                            width="100%"
+                                            height="385px"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div className="col-lg-6 mb-3">
-                            <div className="card w-100 rounded-4 overflow-hidden">
-                                <div className="card-body p-3 border-top-0">
-                                    <h3 className="card-title fw-semibold mb-4">Grafik Anak Penderita Stunting</h3>
-                                    <div className="d-flex mb-3">
-                                        <div style={{width:"200px"}} className="me-2">
-                                            <select name="type" value={bar_chart.type} className="form-select" onChange={this.typeFilterChart}>
-                                                <option value="kecamatan">Kecamatan</option>
-                                                <option value="desa">Desa</option>
-                                            </select>
-                                        </div>
-                                        {bar_chart.type=="desa"&&
-                                            <div style={{width:"200px"}} className="me-2">
-                                                <select name="district_id" value={bar_chart.district_id} className="form-select" onChange={this.typeFilterChart}>
-                                                    <option value="">-- Pilih Kecamatan</option>
-                                                    {kecamatan_form.map(kf=>(
-                                                        <option key={kf} value={kf.id_region}>{kf.region}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        }
-                                    </div>
-                                    <Chart
-                                        options={bar_chart.options}
-                                        series={bar_chart.series}
-                                        type="bar"
-                                        width="100%"
-                                        height="385px"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    }
                 </Layout>
             </>
         )

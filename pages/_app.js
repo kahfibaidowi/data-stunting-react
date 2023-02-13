@@ -16,7 +16,7 @@ function MyApp({ Component, pageProps }) {
   return (
     <>
       <Head>
-        <title>Data Stunting</title>
+        <title>Data Timbang</title>
       </Head>
       
       <Component {...pageProps} />

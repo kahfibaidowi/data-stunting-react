@@ -871,7 +871,8 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                     />
                 </div>
                 
-                <div className="ms-auto">
+                {false&&
+                    <div className="ms-auto">
                         <Dropdown autoClose="outside">
                             <Dropdown.Toggle variant="light" id="dropdown-basic">
                                 <FiFilter className="btn-icon-prepend me-1"/>
@@ -966,6 +967,7 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                             </Dropdown.Menu>
                         </Dropdown>
                     </div>
+                }
             </div>
             <div className="table-responsive">
                 <table className="table table-hover table-custom table-nowrap mb-0 rounded">
@@ -1028,7 +1030,7 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                                         <td className="px-3">{list.berat_badan_lahir}</td>
                                         <td className="px-3">{list.tinggi_badan_lahir}</td>
                                         <td className="px-3">
-                                            {list.data_anak?.ibu?.nama_lengkap}
+                                            {list.data_anak?.ibu?.nama_lengkap}, No. WA: {list.data_anak?.ibu?.no_wa}
                                         </td>
                                         <td className="px-3">JAWA TIMUR</td>
                                         <td className="px-3">MADIUN</td>
@@ -1191,10 +1193,22 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                         tempat_lahir:data_penduduk.data.tempat_lahir,
                         tgl_lahir:data_penduduk.data.tanggal_lahir,
                         jenis_kelamin:jenkelReverse(data_penduduk.data.jenis_kelamin.nama),
-                        provinsi:data_penduduk.data.provinsi,
-                        kabupaten_kota:data_penduduk.data.kota,
-                        kecamatan:data_penduduk.data.kecamatan,
-                        desa:data_penduduk.data.desa,
+                        provinsi:{
+                            id:data_penduduk.data.provinsi!==null?data_penduduk.data.provinsi.id:"",
+                            nama:data_penduduk.data.provinsi!==null?data_penduduk.data.provinsi.nama:"",
+                        },
+                        kabupaten_kota:{
+                            id:data_penduduk.data.kota!==null?data_penduduk.data.kota.id:"",
+                            nama:data_penduduk.data.kota!==null?data_penduduk.data.kota.nama:"",
+                        },
+                        kecamatan:{
+                            id:data_penduduk.data.kecamatan!==null?data_penduduk.data.kecamatan.id:"",
+                            nama:data_penduduk.data.kecamatan!==null?data_penduduk.data.kecamatan.nama:"",
+                        },
+                        desa:{
+                            id:data_penduduk.data.desa!==null?data_penduduk.data.desa.id:"",
+                            nama:data_penduduk.data.desa!==null?data_penduduk.data.desa.nama:"",
+                        },
                         alamat_detail:{
                             dusun:"",
                             jalan:"",
@@ -1203,8 +1217,9 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                         },
                         ibu:{
                             id_penduduk:"",
-                            nik:data_penduduk.data?.ibu?.nik,
-                            nama_lengkap:data_penduduk.data?.ibu?.nama
+                            nik:data_penduduk.data.ibu!==null?data_penduduk.data.ibu.nik:"",
+                            nama_lengkap:data_penduduk.data.ibu!==null?data_penduduk.data.ibu.nama:"",
+                            no_wa:""
                         },
                         data_status:data_penduduk.data.data_status,
                         from_kependudukan:true
@@ -1268,7 +1283,8 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                 ibu:{
                                     id_penduduk:"",
                                     nik:"",
-                                    nama_lengkap:""
+                                    nama_lengkap:"",
+                                    no_wa:""
                                 },
                                 data_status:"",
                                 from_kependudukan:false
@@ -1480,9 +1496,9 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                                         <th valign="top" className="fw-semibold">Alamat </th>
                                                         <td valign="top"> : </td>
                                                         <td>{' '}
-                                                            {formik.values.data_anak.desa.nama}, {' '}
-                                                            {formik.values.data_anak.kecamatan.nama}, {' '}
-                                                            {formik.values.data_anak.kabupaten_kota.nama}
+                                                            {formik.values.data_anak?.desa?.nama}, {' '}
+                                                            {formik.values.data_anak?.kecamatan?.nama}, {' '}
+                                                            {formik.values.data_anak?.kabupaten_kota?.nama}
                                                         </td>
                                                     </tr>
                                                     <tr>
@@ -2086,6 +2102,17 @@ const EditPenduduk=({data, hideModal, request})=>{
                                             name="ibu.nama_lengkap"
                                             onChange={formik.handleChange}
                                             value={formik.values.ibu.nama_lengkap}
+                                        />
+                                    </div>
+                                    <div class="input-group mb-1">
+                                        <span class="input-group-text">No. WA</span>
+                                        <input 
+                                            type="text" 
+                                            class="form-control"  
+                                            placeholder=""
+                                            name="ibu.no_wa"
+                                            onChange={formik.handleChange}
+                                            value={formik.values.ibu.no_wa}
                                         />
                                     </div>
                                 </div>

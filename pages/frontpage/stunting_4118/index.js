@@ -674,7 +674,7 @@ class Stunting4118 extends React.Component{
                 <Layout>
                     <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
                         <div>
-                            <h2 class="mb-3 mb-md-0">Stunting 4118</h2>
+                            <h2 class="mb-3 mb-md-0">Timbang 4118</h2>
                         </div>
                         <div class="d-flex align-items-center flex-wrap text-nowrap">
                             <Dropdown as={ButtonGroup}>
