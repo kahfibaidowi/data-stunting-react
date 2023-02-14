@@ -160,6 +160,14 @@ const LayoutNoble=(props)=>{
                                                 </li>
                                                 <li className="nav-item">
                                                     <Link 
+                                                        href="/frontpage/skrining_balita/group_nik" 
+                                                        className={classNames("nav-link", {"active":active_page=="/frontpage/skrining_balita/group_nik"})}
+                                                    >
+                                                        Rekap Per Anak
+                                                    </Link>
+                                                </li>
+                                                <li className="nav-item">
+                                                    <Link 
                                                         href="/frontpage/skrining_balita/stunting" 
                                                         className={classNames("nav-link", {"active":active_page=="/frontpage/skrining_balita/stunting"})}
                                                     >

@@ -45,7 +45,6 @@ class Skrining extends React.Component{
             posyandu_id:"",
             district_id:"",
             village_id:"",
-            nik:"",
             bbu:"",
             tbu:"",
             bbtb:"",
@@ -53,10 +52,6 @@ class Skrining extends React.Component{
             tindakan:"",
             last_page:0,
             is_loading:false
-        },
-        tambah_skrining:{
-            is_open:false,
-            kecamatan_form:[]
         },
         detail_kk:{
             is_open:false,
@@ -67,107 +62,29 @@ class Skrining extends React.Component{
             data:{},
             skrining:[],
             is_loading:false
-        },
-        edit_skrining:{
-            is_open:false,
-            data:{}
         }
     }
 
     componentDidMount=()=>{
-        if(this.props.router.isReady){
-            if(this.props.router.query?.action=="cek_antropometri"){
-                this.toggleTambah()
+        this.setState({
+            login_data:login_data()!==null?login_data():{}
+        }, ()=>{
+            if(this.state.login_data.role=="posyandu"){
                 this.setState({
-                    login_data:login_data()!==null?login_data():{}
+                    skrining:update(this.state.skrining, {
+                        posyandu_id:{$set:this.state.login_data.id_user}
+                    })
+                }, ()=>{
+                    this.fetchSkrining()
                 })
             }
             else{
-                this.setState({
-                    login_data:login_data()!==null?login_data():{}
-                }, ()=>{
-                    if(this.state.login_data.role=="posyandu"){
-                        this.setState({
-                            skrining:update(this.state.skrining, {
-                                posyandu_id:{$set:this.state.login_data.id_user}
-                            })
-                        }, ()=>{
-                            this.fetchSkrining()
-                        })
-                    }
-                    else{
-                        //this.fetchSkrining()
-                        this.fetchKecamatanForm()
-                    }
-                })
+                //this.fetchSkrining()
+                this.fetchKecamatanForm()
             }
-        }
+        })
         
         this.fetchSummaryFormula()
-    }
-    componentDidUpdate=(prevProps)=>{
-        if(prevProps.router.isReady!==this.props.router.isReady){
-            if(this.props.router.isReady){
-                if(this.props.router.query?.action=="cek_antropometri"){
-                    this.toggleTambah()
-                    this.setState({
-                        login_data:login_data()!==null?login_data():{}
-                    })
-                }
-                else{
-                    this.setState({
-                        login_data:login_data()!==null?login_data():{}
-                    }, ()=>{
-                        if(this.state.login_data.role=="posyandu"){
-                            this.setState({
-                                skrining:update(this.state.skrining, {
-                                    posyandu_id:{$set:this.state.login_data.id_user}
-                                })
-                            }, ()=>{
-                                this.fetchSkrining()
-                            })
-                        }
-                        else{
-                            //this.fetchSkrining()
-                            this.fetchKecamatanForm()
-                        }
-                    })
-                }
-            }
-
-            this.fetchSummaryFormula()
-        }
-        if(JSON.stringify(prevProps.router)!=JSON.stringify(this.props.router)){
-            if(this.props.router.isReady){
-                if(this.props.router.query?.action=="cek_antropometri"){
-                    this.toggleTambah()
-                    this.setState({
-                        login_data:login_data()!==null?login_data():{}
-                    })
-                }
-                else{
-                    this.setState({
-                        login_data:login_data()!==null?login_data():{}
-                    }, ()=>{
-                        if(this.state.login_data.role=="posyandu"){
-                            this.setState({
-                                skrining:update(this.state.skrining, {
-                                    posyandu_id:{$set:this.state.login_data.id_user}
-                                })
-                            }, ()=>{
-                                this.fetchSkrining()
-                            })
-                        }
-                        else{
-                            this.fetchKecamatanForm()
-                            //this.fetchSkrining()
-                        }
-                    })
-                }
-            }
-
-            this.fetchSummaryFormula()
-        }
     }
 
     //API, REQUEST, DATA
@@ -183,7 +100,7 @@ class Skrining extends React.Component{
             this.abortController.abort()
             this.abortController=new AbortController()
 
-            return await api(access_token()).get("/skrining_balita", {
+            return await api(access_token()).get("/skrining_balita/type/group_nik", {
                 params,
                 signal:this.abortController.signal
             })
@@ -331,7 +248,6 @@ class Skrining extends React.Component{
             page:reset?1:skrining.page,
             per_page:skrining.per_page,
             q:skrining.q,
-            nik:skrining.nik,
             posyandu_id:skrining.posyandu_id,
             village_id:skrining.village_id,
             district_id:skrining.district_id,
@@ -635,29 +551,12 @@ class Skrining extends React.Component{
                                         kecamatan_form={kecamatan_form}
                                         showDetailKK={this.showDetailKK}
                                         toggleDetailSkrining={this.toggleDetailSkrining}
-                                        toggleEditSkrining={this.toggleEditSkrining}
                                     />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </Layout>
-
-                <TambahSkrining
-                    data={tambah_skrining}
-                    hideModal={this.toggleTambah}
-                    addSkrining={this.addSkrining}
-                    login_data={login_data}
-                    request={this.request}
-                    kecamatan_form={kecamatan_form}
-                />
-
-                <EditSkrining
-                    data={edit_skrining}
-                    hideModal={this.toggleEditSkrining}
-                    updateSkrining={this.updateSkrining}
-                    request={this.request}
-                />
 
                 <DetailKK
                     data={detail_kk}
@@ -1066,10 +965,6 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                                                 <button type="button" className="btn btn-light py-0 px-2" onClick={()=>toggleDetailSkrining(list)}>
                                                     <FiInfo className="icon me-1"/>
                                                     Detail
-                                                </button>
-                                                <button type="button" className="btn btn-secondary py-0 px-2 ms-1" onClick={()=>toggleEditSkrining(list)}>
-                                                    <FiEdit className="icon me-1"/>
-                                                    Edit
                                                 </button>
                                             </div>
                                         </td>

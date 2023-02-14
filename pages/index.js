@@ -426,7 +426,8 @@ class SkriningDataMasuk extends React.Component{
     setLoading=loading=>{
         this.setState({
             skrining_data_masuk:update(this.state.skrining_data_masuk, {
-                is_loading:{$set:loading}
+                is_loading:{$set:loading},
+                data:{$set:[]}
             })
         })
     }

@@ -61,7 +61,7 @@ class Frontpage extends React.Component{
         this.setState({
             login_data:login_data()!==null?login_data():{}
         }, ()=>{
-            if(this.state.login_data=="admin"){
+            if(this.state.login_data.role=="admin"){
                 this.getsKecamatanForm()
                 this.getsPemetaan()
                 this.getsBarChart()
