@@ -474,7 +474,7 @@ class SkriningDataMasuk extends React.Component{
                                                     <td className="py-1 align-middle">{list.kecamatan}</td>
                                                     <td>{list.desa}</td>
                                                     <td>{list.nama_lengkap}</td>
-                                                    <td>{list.skrining_balita_count}</td>
+                                                    <td>{list.count_balita}</td>
                                             </tr>
                                         ))}
                                         {skrining_data_masuk.data.length==0&&
@@ -556,7 +556,9 @@ class ControlBox extends React.Component{
     state={
         summary:{
             total_posyandu:0,
-            total_skrining:0
+            total_skrining:0,
+            total_balita:0,
+            total_user_online:0
         }
     }
 
@@ -585,7 +587,7 @@ class ControlBox extends React.Component{
 
         return (
             <>
-                <div className="col-md-4 grid-margin stretch-card">
+                <div className="col-md-3 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
                             <div className="d-flex justify-content-between align-items-baseline">
@@ -605,7 +607,7 @@ class ControlBox extends React.Component{
                         </div>
                     </div>
                 </div>
-                <div className="col-md-4 grid-margin stretch-card">
+                <div className="col-md-3 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
                             <div className="d-flex justify-content-between align-items-baseline">
@@ -625,16 +627,40 @@ class ControlBox extends React.Component{
                         </div>
                     </div>
                 </div>
-                <div className="col-md-4 grid-margin stretch-card">
+                <div className="col-md-3 grid-margin stretch-card">
                     <div className="card">
                         <div className="card-body">
                             <div className="d-flex justify-content-between align-items-baseline">
-                                <h6 className="card-title mb-1"></h6>
+                                <h6 className="card-title mb-1">Jumlah Balita Ditimbang</h6>
                             </div>
                             <div className="row">
                                 <div className="col-6 col-md-12 col-xl-5">
                                     <h3 className="mb-1" style={{fontWeight:"700"}}>
-                                        
+                                        <NumberFormat
+                                            displayType="text"
+                                            thousandSeparator
+                                            value={summary.total_balita}
+                                        />
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-3 grid-margin stretch-card">
+                    <div className="card">
+                        <div className="card-body">
+                            <div className="d-flex justify-content-between align-items-baseline">
+                                <h6 className="card-title mb-1">Jumlah User Online</h6>
+                            </div>
+                            <div className="row">
+                                <div className="col-6 col-md-12 col-xl-5">
+                                    <h3 className="mb-1" style={{fontWeight:"700"}}>
+                                        <NumberFormat
+                                            displayType="text"
+                                            thousandSeparator
+                                            value={summary.total_user_online}
+                                        />
                                     </h3>
                                 </div>
                             </div>
