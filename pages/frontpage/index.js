@@ -62,9 +62,9 @@ class Frontpage extends React.Component{
             login_data:login_data()!==null?login_data():{}
         }, ()=>{
             if(this.state.login_data.role=="admin"){
-                this.getsKecamatanForm()
-                this.getsPemetaan()
-                this.getsBarChart()
+                // this.getsKecamatanForm()
+                // this.getsPemetaan()
+                // this.getsBarChart()
             }
         })
     }
@@ -261,7 +261,7 @@ class Frontpage extends React.Component{
                     <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
                         
                     </div>
-                    {login_data.role=="admin"&&
+                    {/* {['admin','dinkes'].includes(login_data.role)&&
                         <div className="row">
                             <div className="col-lg-6 mb-3">
                                 <div className="card w-100 rounded-4 overflow-hidden">
@@ -322,7 +322,7 @@ class Frontpage extends React.Component{
                                 </div>
                             </div>
                         </div>
-                    }
+                    } */}
                 </Layout>
             </>
         )
