@@ -525,7 +525,7 @@ class Skrining extends React.Component{
                 <Layout>
                     <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
                         <div>
-                            <h4 class="mb-3 mb-md-0">Rekap Timbangan</h4>
+                            <h4 class="mb-3 mb-md-0">Rekap Per Anak</h4>
                         </div>
                         <div class="d-flex align-items-center flex-wrap text-nowrap">
                             <button 
