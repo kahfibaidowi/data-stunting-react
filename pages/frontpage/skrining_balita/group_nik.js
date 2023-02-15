@@ -50,6 +50,10 @@ class Skrining extends React.Component{
             bbtb:"",
             status_gizi:"",
             tindakan:"",
+            umur:{
+                start:"",
+                end:""
+            },
             last_page:0,
             is_loading:false
         },
@@ -119,7 +123,9 @@ class Skrining extends React.Component{
                 tbu:"",
                 bbtb:"",
                 status_gizi:"",
-                tindakan:""
+                tindakan:"",
+                umur_start:"",
+                umur_end:""
             }
 
             return await api(access_token()).get("/skrining_balita", {
@@ -255,7 +261,9 @@ class Skrining extends React.Component{
             tbu:skrining.tbu,
             bbtb:skrining.bbtb,
             status_gizi:skrining.status_gizi,
-            tindakan:skrining.tindakan
+            tindakan:skrining.tindakan,
+            umur_start:skrining.umur.start,
+            umur_end:skrining.umur.end
         }
 
         this.setLoading(true)
@@ -528,14 +536,7 @@ class Skrining extends React.Component{
                             <h4 class="mb-3 mb-md-0">Rekap Per Anak</h4>
                         </div>
                         <div class="d-flex align-items-center flex-wrap text-nowrap">
-                            <button 
-                                type="button" 
-                                class="btn btn-primary btn-icon-text mb-2 mb-md-0"
-                                onClick={this.toggleTambah}
-                            >
-                                <FiPlus className="btn-icon-prepend"/>
-                                Cek Antropometri
-                            </button>
+                            
                         </div>
                     </div>
                     <div className="row">
@@ -575,6 +576,11 @@ class Skrining extends React.Component{
 
 //TABLE SKRINING
 const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetailKK, toggleDetailSkrining, toggleEditSkrining, login_data})=>{
+    const [filter_umur, setFilterUmur]=useState({
+        start:"",
+        end:""
+    })
+
     //helpers
     const jenkel=val=>{
         if(val=="L"){
@@ -791,6 +797,76 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                             <Dropdown.Menu style={{minWidth:"400px"}}>
                                 <div className="d-flex flex-column p-2">
                                     <div>
+                                        <div className="mb-3">
+                                            <label className="my-1 me-2 fw-semibold fs-5" for="country">Usia Saat Ukur/Umur (0-60 bulan)</label>
+                                            <div className="d-flex">
+                                                <div className="me-2" style={{maxWidth:"100px"}}>
+                                                    <NumberFormat
+                                                        displayType="input"
+                                                        suffix=" Bulan"
+                                                        value={filter_umur.start}
+                                                        onValueChange={values=>{
+                                                            const {value}=values
+                                                            setFilterUmur(update(filter_umur, {
+                                                                start:{$set:value}
+                                                            }))
+                                                        }}
+                                                        thousandSeparator={true}
+                                                        decimalScale={false}
+                                                        className="form-control"
+                                                        placeholder="Dari"
+                                                    />
+                                                </div>
+                                                <div className="me-2" style={{maxWidth:"100px"}}>
+                                                    <NumberFormat
+                                                        displayType="input"
+                                                        suffix=" Bulan"
+                                                        value={filter_umur.end}
+                                                        onValueChange={values=>{
+                                                            const {value}=values
+                                                            setFilterUmur(update(filter_umur, {
+                                                                end:{$set:value}
+                                                            }))
+                                                        }}
+                                                        thousandSeparator={true}
+                                                        decimalScale={false}
+                                                        className="form-control"
+                                                        placeholder="Sampai"
+                                                    />
+                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    className="btn btn-secondary"
+                                                    disabled={
+                                                        (filter_umur.start==data.umur.start && filter_umur.end==data.umur.end)||
+                                                        (filter_umur.start.toString().trim()=="" || filter_umur.end.toString().trim()=="")
+                                                    }
+                                                    onClick={e=>{
+                                                        e.preventDefault()
+                                                        typeFilter({target:{name:"umur", value:filter_umur}})
+                                                    }}
+                                                >
+                                                    Lihat Data
+                                                </button>
+                                            </div>
+                                            {(data.umur.start!=""||data.umur.end!="")&&
+                                                <div className="mt-1">
+                                                    <button 
+                                                        type="button" 
+                                                        className="btn btn-link link-danger text-decoration-underline p-0"
+                                                        onClick={e=>{
+                                                            e.preventDefault()
+                                                            
+                                                            const umur={start:"", end:""}
+                                                            setFilterUmur(umur)
+                                                            typeFilter({target:{name:"umur", value:umur}})
+                                                        }}
+                                                    >
+                                                        Clear Filter Umur
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
                                         <div className="mb-1">
                                             <label className="my-1 me-2 fw-semibold fs-5" for="country">Berat Badan/Umur</label>
                                             <div className="d-flex flex-wrap">

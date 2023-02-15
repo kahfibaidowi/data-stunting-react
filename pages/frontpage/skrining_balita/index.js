@@ -22,7 +22,7 @@ import { read, utils, writeFileXLSX } from 'xlsx';
 import * as yup from "yup"
 import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbPlus, TbUpload } from "react-icons/tb"
 import axios from "axios"
-import { FiArrowRight, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiEdit, FiEdit2, FiEdit3, FiFilter, FiInfo, FiPlus, FiX } from "react-icons/fi"
+import { FiArrowRight, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiEdit, FiEdit2, FiEdit3, FiFilter, FiInfo, FiPlus, FiTrash, FiX } from "react-icons/fi"
 import swal from "sweetalert2"
 import withReactContent from 'sweetalert2-react-content'
 import ChartSkriningDetail from "../../../component/modules/chart_skrining_detail"
@@ -51,6 +51,10 @@ class Skrining extends React.Component{
             bbtb:"",
             status_gizi:"",
             tindakan:"",
+            umur:{
+                start:"",
+                end:""
+            },
             last_page:0,
             is_loading:false
         },
@@ -202,7 +206,9 @@ class Skrining extends React.Component{
                 tbu:"",
                 bbtb:"",
                 status_gizi:"",
-                tindakan:""
+                tindakan:"",
+                umur_start:"",
+                umur_end:""
             }
 
             return await api(access_token()).get("/skrining_balita", {
@@ -283,6 +289,9 @@ class Skrining extends React.Component{
         },
         apiGetSummaryFormula:async()=>{
             return await api(access_token()).get("/skrining_balita/summary/formula").then(res=>res.data)
+        },
+        apiDeleteSkrining:async(id)=>{
+            return await api(access_token()).delete(`/skrining_balita/${id}`).then(res=>res.data)
         }
     }
 
@@ -339,7 +348,9 @@ class Skrining extends React.Component{
             tbu:skrining.tbu,
             bbtb:skrining.bbtb,
             status_gizi:skrining.status_gizi,
-            tindakan:skrining.tindakan
+            tindakan:skrining.tindakan,
+            umur_start:skrining.umur.start,
+            umur_end:skrining.umur.end
         }
 
         this.setLoading(true)
@@ -446,6 +457,20 @@ class Skrining extends React.Component{
                 toast.error(err.response.data.data, {position:"bottom-center"})
             else
                 toast.error("Update Data Failed! ", {position:"bottom-center"})
+        })
+    }
+    deleteSkrining=async(id)=>{
+        await this.request.apiDeleteSkrining(id)
+        .then(data=>{
+            this.fetchSkrining()
+            toast.warn("Data Skrining Dihapus!")
+        })
+        .catch(err=>{
+            if(err.response.status===401){
+                localStorage.removeItem("login_data")
+                Router.push("/login")
+            }
+            toast.error("Remove Data Failed!", {position:"bottom-center"})
         })
     }
 
@@ -591,6 +616,25 @@ class Skrining extends React.Component{
             }
         })
     }
+    showConfirmHapus=(data)=>{
+        MySwal.fire({
+            title: "Apakah anda Yakin?",
+            text: "Data yang sudah dihapus tidak bisa dikembalikan lagi!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Hapus Data!',
+            cancelButtonText: 'Batal!',
+            reverseButtons: true,
+            customClass:{
+                popup:"w-auto"
+            }
+        })
+        .then(result=>{
+            if(result.isConfirmed){
+                this.deleteSkrining(data.id_skrining_balita)
+            }
+        })
+    }
 
     render(){
         const {
@@ -636,6 +680,7 @@ class Skrining extends React.Component{
                                         showDetailKK={this.showDetailKK}
                                         toggleDetailSkrining={this.toggleDetailSkrining}
                                         toggleEditSkrining={this.toggleEditSkrining}
+                                        showConfirmHapus={this.showConfirmHapus}
                                     />
                                 </div>
                             </div>
@@ -675,7 +720,12 @@ class Skrining extends React.Component{
 }
 
 //TABLE SKRINING
-const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetailKK, toggleDetailSkrining, toggleEditSkrining, login_data})=>{
+const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetailKK, toggleDetailSkrining, toggleEditSkrining, showConfirmHapus, login_data})=>{
+    const [filter_umur, setFilterUmur]=useState({
+        start:"",
+        end:""
+    })
+
     //helpers
     const jenkel=val=>{
         if(val=="L"){
@@ -828,6 +878,7 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
         if(data.bbtb!="") count++
         if(data.status_gizi!="") count++
         if(data.tindakan!="") count++
+        if(data.umur.start!="" && data.umur.end!="") count++
 
         return count
     }
@@ -892,6 +943,76 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                             <Dropdown.Menu style={{minWidth:"400px"}}>
                                 <div className="d-flex flex-column p-2">
                                     <div>
+                                        <div className="mb-3">
+                                            <label className="my-1 me-2 fw-semibold fs-5" for="country">Usia Saat Ukur/Umur (0-60 bulan)</label>
+                                            <div className="d-flex">
+                                                <div className="me-2" style={{maxWidth:"100px"}}>
+                                                    <NumberFormat
+                                                        displayType="input"
+                                                        suffix=" Bulan"
+                                                        value={filter_umur.start}
+                                                        onValueChange={values=>{
+                                                            const {value}=values
+                                                            setFilterUmur(update(filter_umur, {
+                                                                start:{$set:value}
+                                                            }))
+                                                        }}
+                                                        thousandSeparator={true}
+                                                        decimalScale={false}
+                                                        className="form-control"
+                                                        placeholder="Dari"
+                                                    />
+                                                </div>
+                                                <div className="me-2" style={{maxWidth:"100px"}}>
+                                                    <NumberFormat
+                                                        displayType="input"
+                                                        suffix=" Bulan"
+                                                        value={filter_umur.end}
+                                                        onValueChange={values=>{
+                                                            const {value}=values
+                                                            setFilterUmur(update(filter_umur, {
+                                                                end:{$set:value}
+                                                            }))
+                                                        }}
+                                                        thousandSeparator={true}
+                                                        decimalScale={false}
+                                                        className="form-control"
+                                                        placeholder="Sampai"
+                                                    />
+                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    className="btn btn-secondary"
+                                                    disabled={
+                                                        (filter_umur.start==data.umur.start && filter_umur.end==data.umur.end)||
+                                                        (filter_umur.start.toString().trim()=="" || filter_umur.end.toString().trim()=="")
+                                                    }
+                                                    onClick={e=>{
+                                                        e.preventDefault()
+                                                        typeFilter({target:{name:"umur", value:filter_umur}})
+                                                    }}
+                                                >
+                                                    Lihat Data
+                                                </button>
+                                            </div>
+                                            {(data.umur.start!=""||data.umur.end!="")&&
+                                                <div className="mt-1">
+                                                    <button 
+                                                        type="button" 
+                                                        className="btn btn-link link-danger text-decoration-underline p-0"
+                                                        onClick={e=>{
+                                                            e.preventDefault()
+                                                            
+                                                            const umur={start:"", end:""}
+                                                            setFilterUmur(umur)
+                                                            typeFilter({target:{name:"umur", value:umur}})
+                                                        }}
+                                                    >
+                                                        Clear Filter Umur
+                                                    </button>
+                                                </div>
+                                            }
+                                        </div>
                                         <div className="mb-1">
                                             <label className="my-1 me-2 fw-semibold fs-5" for="country">Berat Badan/Umur</label>
                                             <div className="d-flex flex-wrap">
@@ -1070,6 +1191,10 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                                                 <button type="button" className="btn btn-secondary py-0 px-2 ms-1" onClick={()=>toggleEditSkrining(list)}>
                                                     <FiEdit className="icon me-1"/>
                                                     Edit
+                                                </button>
+                                                <button type="button" className="btn btn-danger py-0 px-2 ms-1" onClick={()=>showConfirmHapus(list)}>
+                                                    <FiTrash className="icon me-1"/>
+                                                    Hapus
                                                 </button>
                                             </div>
                                         </td>
