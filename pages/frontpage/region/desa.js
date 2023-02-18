@@ -591,7 +591,7 @@ class Desa extends React.Component{
                 {/* MODAL EDIT */}
                 <Modal show={edit_region.is_open} className="modal-blur" onHide={this.hideModalEdit} size="sm" backdrop="static">
                     <Modal.Header closeButton>
-                        <h4 className="modal-title">Tambah Region</h4>
+                        <h4 className="modal-title">Edit Region</h4>
                     </Modal.Header>
                     <Formik
                         initialValues={edit_region.region}
