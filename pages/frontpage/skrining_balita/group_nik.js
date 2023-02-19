@@ -22,7 +22,7 @@ import { read, utils, writeFileXLSX } from 'xlsx';
 import * as yup from "yup"
 import { TbArrowLeft, TbChevronLeft, TbChevronRight, TbPlus, TbUpload } from "react-icons/tb"
 import axios from "axios"
-import { FiArrowRight, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiEdit, FiEdit2, FiEdit3, FiFilter, FiInfo, FiPlus, FiX } from "react-icons/fi"
+import { FiArrowRight, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiEdit, FiEdit2, FiEdit3, FiFilter, FiInfo, FiPlus, FiSearch, FiX } from "react-icons/fi"
 import swal from "sweetalert2"
 import withReactContent from 'sweetalert2-react-content'
 import ChartSkriningDetail from "../../../component/modules/chart_skrining_detail"
@@ -54,6 +54,8 @@ class Skrining extends React.Component{
                 start:"",
                 end:""
             },
+            hide_bb_0:"n",
+            hide_tb_0:"n",
             last_page:0,
             is_loading:false
         },
@@ -263,7 +265,9 @@ class Skrining extends React.Component{
             status_gizi:skrining.status_gizi,
             tindakan:skrining.tindakan,
             umur_start:skrining.umur.start,
-            umur_end:skrining.umur.end
+            umur_end:skrining.umur.end,
+            hide_bb_0:skrining.hide_bb_0,
+            hide_tb_0:skrining.hide_tb_0
         }
 
         this.setLoading(true)
@@ -531,18 +535,18 @@ class Skrining extends React.Component{
         return (
             <>
                 <Layout>
-                    <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
+                    <div className="d-flex justify-content-between align-items-center flex-wrap grid-margin">
                         <div>
-                            <h4 class="mb-3 mb-md-0">Rekap Per Anak</h4>
+                            <h4 className="mb-3 mb-md-0">Rekap Per Anak</h4>
                         </div>
-                        <div class="d-flex align-items-center flex-wrap text-nowrap">
+                        <div className="d-flex align-items-center flex-wrap text-nowrap">
                             
                         </div>
                     </div>
                     <div className="row">
                         <div className="col-12">
-                            <div class="card">
-                                <div class="card-body">
+                            <div className="card">
+                                <div className="card-body">
                                     <Table 
                                         data={skrining}
                                         login_data={login_data}
@@ -759,6 +763,9 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
         if(data.bbtb!="") count++
         if(data.status_gizi!="") count++
         if(data.tindakan!="") count++
+        if(data.umur.start!="" && data.umur.end!="") count++
+        if(data.hide_bb_0=="y") count++
+        if(data.hide_tb_0=="y") count++
 
         return count
     }
@@ -817,52 +824,74 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                         <Dropdown autoClose="outside">
                             <Dropdown.Toggle variant="light" id="dropdown-basic">
                                 <FiFilter className="btn-icon-prepend me-1"/>
-                                Filter{count_filter()>0&&<>ed <span class="badge bg-primary rounded-pill">{count_filter()}</span></>}
+                                Filter{count_filter()>0&&<>ed <span className="badge bg-primary rounded-pill">{count_filter()}</span></>}
                             </Dropdown.Toggle>
 
                             <Dropdown.Menu style={{minWidth:"400px"}}>
                                 <div className="d-flex flex-column p-2">
                                     <div>
                                         <div className="mb-3">
+                                            <div className="form-check mb-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="form-check-input" 
+                                                    id="cb_hide_bb_0"
+                                                    checked={data.hide_bb_0=="y"}
+                                                    onChange={(e)=>{
+                                                        typeFilter({target:{name:"hide_bb_0", value:data.hide_bb_0!="y"?"y":"n"}})
+                                                    }}
+                                                />
+                                                <label className="form-check-label" for="cb_hide_bb_0">Sembunyikan BB=0</label>
+                                            </div>
+                                            <div className="form-check mb-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="form-check-input" 
+                                                    id="cb_hide_tb_0"
+                                                    checked={data.hide_tb_0=="y"}
+                                                    onChange={(e)=>{
+                                                        typeFilter({target:{name:"hide_tb_0", value:data.hide_tb_0!="y"?"y":"n"}})
+                                                    }}
+                                                />
+                                                <label className="form-check-label" for="cb_hide_tb_0">Sembunyikan TB=0</label>
+                                            </div>
+                                        </div>
+                                        <div className="mb-3">
                                             <label className="my-1 me-2 fw-semibold fs-5" for="country">Usia Saat Ukur/Umur (0-60 bulan)</label>
-                                            <div className="d-flex">
-                                                <div className="me-2" style={{maxWidth:"100px"}}>
-                                                    <NumberFormat
-                                                        displayType="input"
-                                                        suffix=" Bulan"
-                                                        value={filter_umur.start}
-                                                        onValueChange={values=>{
-                                                            const {value}=values
-                                                            setFilterUmur(update(filter_umur, {
-                                                                start:{$set:value}
-                                                            }))
-                                                        }}
-                                                        thousandSeparator={true}
-                                                        decimalScale={false}
-                                                        className="form-control"
-                                                        placeholder="Dari"
-                                                    />
-                                                </div>
-                                                <div className="me-2" style={{maxWidth:"100px"}}>
-                                                    <NumberFormat
-                                                        displayType="input"
-                                                        suffix=" Bulan"
-                                                        value={filter_umur.end}
-                                                        onValueChange={values=>{
-                                                            const {value}=values
-                                                            setFilterUmur(update(filter_umur, {
-                                                                end:{$set:value}
-                                                            }))
-                                                        }}
-                                                        thousandSeparator={true}
-                                                        decimalScale={false}
-                                                        className="form-control"
-                                                        placeholder="Sampai"
-                                                    />
-                                                </div>
+                                            <div className="input-group mb-3" style={{maxWidth:"300px"}}>
+                                                <NumberFormat
+                                                    displayType="input"
+                                                    suffix=" Bulan"
+                                                    value={filter_umur.start}
+                                                    onValueChange={values=>{
+                                                        const {value}=values
+                                                        setFilterUmur(update(filter_umur, {
+                                                            start:{$set:value}
+                                                        }))
+                                                    }}
+                                                    thousandSeparator={true}
+                                                    decimalScale={false}
+                                                    className="form-control"
+                                                    placeholder="Dari"
+                                                />
+                                                <NumberFormat
+                                                    displayType="input"
+                                                    suffix=" Bulan"
+                                                    value={filter_umur.end}
+                                                    onValueChange={values=>{
+                                                        const {value}=values
+                                                        setFilterUmur(update(filter_umur, {
+                                                            end:{$set:value}
+                                                        }))
+                                                    }}
+                                                    thousandSeparator={true}
+                                                    decimalScale={false}
+                                                    className="form-control"
+                                                    placeholder="Sampai"
+                                                />
                                                 <button 
-                                                    type="button"
-                                                    className="btn btn-secondary"
+                                                    className="btn btn-secondary btn-icon" 
+                                                    type="button" 
                                                     disabled={
                                                         (filter_umur.start==data.umur.start && filter_umur.end==data.umur.end)||
                                                         (filter_umur.start.toString().trim()=="" || filter_umur.end.toString().trim()=="")
@@ -872,7 +901,7 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                                                         typeFilter({target:{name:"umur", value:filter_umur}})
                                                     }}
                                                 >
-                                                    Lihat Data
+                                                    <FiSearch/>
                                                 </button>
                                             </div>
                                             {(data.umur.start!=""||data.umur.end!="")&&
@@ -1391,7 +1420,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                     <div className='w-100 d-flex flex-column'>
                                         <div className="mb-3">
                                             <label className="my-1 me-2 fw-semibold" for="country">Usia Sampai</label>
-                                            <div class="input-group">
+                                            <div className="input-group">
                                                 <select 
                                                     name="input_bulan" 
                                                     value={formik.values.input_bulan} 
@@ -1408,7 +1437,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                         {login_data.role!="posyandu"&&
                                             <div className="mb-3">
                                                 <label className="my-1 me-2 fw-semibold" for="country">Posyandu</label>
-                                                <div class="input-group">
+                                                <div className="input-group">
                                                     <select 
                                                         name="id_user" 
                                                         value={formik.values.id_user} 
@@ -1433,7 +1462,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                         }
                                         <div className="mb-3">
                                             <label className="my-1 me-2 fw-semibold" for="country">NIK Anak<span className="text-danger">*</span></label>
-                                            <div class="input-group">
+                                            <div className="input-group">
                                                 <input 
                                                     type="text" 
                                                     className="form-control"
@@ -1444,7 +1473,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                                 />
                                                 {!isUndefined(formik.values.data_anak.nik)?
                                                     <button 
-                                                        class="btn btn-danger btn-icon"
+                                                        className="btn btn-danger btn-icon"
                                                         type="button"
                                                         onClick={e=>{
                                                             formik.setFieldValue("berat_badan_lahir", "")
@@ -1459,7 +1488,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                                     </button>
                                                 :
                                                     <button 
-                                                        class="btn btn-secondary btn-icon"
+                                                        className="btn btn-secondary btn-icon"
                                                         type="button"
                                                         onClick={e=>searchNIK(formik)}
                                                         disabled={search_loading}
@@ -1855,8 +1884,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                             <h4 className="modal-title">Edit Penduduk</h4>
                         </Modal.Header>
                         <Modal.Body>
-                            <div class="mb-3">
-                                <label class="my-1 me-2" for="country">NIK</label>
+                            <div className="mb-3">
+                                <label className="my-1 me-2" for="country">NIK</label>
                                 <input 
                                     type="text" 
                                     className="form-control"
@@ -1865,8 +1894,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     disabled
                                 />
                             </div>
-                            <div class="mb-3">
-                                <label class="my-1 me-2" for="country">No. KK</label>
+                            <div className="mb-3">
+                                <label className="my-1 me-2" for="country">No. KK</label>
                                 <input 
                                     type="text" 
                                     className="form-control"
@@ -1875,8 +1904,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     onChange={formik.handleChange}
                                 />
                             </div>
-                            <div class="mb-1">
-                                <label class="my-1 me-2" for="country">Provinsi</label>
+                            <div className="mb-1">
+                                <label className="my-1 me-2" for="country">Provinsi</label>
                                 <select 
                                     name="provinsi.id" 
                                     value={formik.values.provinsi.id} 
@@ -1907,8 +1936,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     ))}
                                 </select>
                             </div>
-                            <div class="mb-1">
-                                <label class="my-1 me-2" for="country">Kabupaten/Kota</label>
+                            <div className="mb-1">
+                                <label className="my-1 me-2" for="country">Kabupaten/Kota</label>
                                 <select 
                                     name="kabupaten_kota.id" 
                                     value={formik.values.kabupaten_kota.id} 
@@ -1937,8 +1966,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     ))}
                                 </select>
                             </div>
-                            <div class="mb-1">
-                                <label class="my-1 me-2" for="country">Kecamatan</label>
+                            <div className="mb-1">
+                                <label className="my-1 me-2" for="country">Kecamatan</label>
                                 <select 
                                     name="kecamatan.id" 
                                     value={formik.values.kecamatan.id} 
@@ -1965,8 +1994,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     ))}
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label class="my-1 me-2" for="country">Desa</label>
+                            <div className="mb-3">
+                                <label className="my-1 me-2" for="country">Desa</label>
                                 <select 
                                     name="desa.id" 
                                     value={formik.values.desa.id} 
@@ -1990,47 +2019,47 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     ))}
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label class="my-1 me-2" for="country">Detail Alamat</label>
+                            <div className="mb-3">
+                                <label className="my-1 me-2" for="country">Detail Alamat</label>
                                 <div>
-                                    <div class="input-group mb-1">
-                                        <span class="input-group-text">Dusun</span>
+                                    <div className="input-group mb-1">
+                                        <span className="input-group-text">Dusun</span>
                                         <input 
                                             type="text" 
-                                            class="form-control" 
+                                            className="form-control" 
                                             placeholder=""
                                             name="alamat_detail.dusun"
                                             onChange={formik.handleChange}
                                             value={formik.values.alamat_detail.dusun}
                                         />
                                     </div>
-                                    <div class="input-group mb-1">
-                                        <span class="input-group-text">RW</span>
+                                    <div className="input-group mb-1">
+                                        <span className="input-group-text">RW</span>
                                         <input 
                                             type="text" 
-                                            class="form-control" 
+                                            className="form-control" 
                                             placeholder=""
                                             name="alamat_detail.rw"
                                             onChange={formik.handleChange}
                                             value={formik.values.alamat_detail.rw}
                                         />
                                     </div>
-                                    <div class="input-group mb-1">
-                                        <span class="input-group-text">RT</span>
+                                    <div className="input-group mb-1">
+                                        <span className="input-group-text">RT</span>
                                         <input 
                                             type="text" 
-                                            class="form-control" 
+                                            className="form-control" 
                                             placeholder=""
                                             name="alamat_detail.rt"
                                             onChange={formik.handleChange}
                                             value={formik.values.alamat_detail.rt}
                                         />
                                     </div>
-                                    <div class="input-group mb-1">
-                                        <span class="input-group-text">Jalan</span>
+                                    <div className="input-group mb-1">
+                                        <span className="input-group-text">Jalan</span>
                                         <input 
                                             type="text" 
-                                            class="form-control" 
+                                            className="form-control" 
                                             placeholder=""
                                             name="alamat_detail.jalan"
                                             onChange={formik.handleChange}
@@ -2039,8 +2068,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     </div>
                                 </div>
                             </div>
-                            <div class="mb-1">
-                                <label class="my-1 me-2" for="country">Nama Lengkap</label>
+                            <div className="mb-1">
+                                <label className="my-1 me-2" for="country">Nama Lengkap</label>
                                 <input 
                                     type="text" 
                                     className="form-control"
@@ -2049,8 +2078,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     value={formik.values.nama_lengkap}
                                 />
                             </div>
-                            <div class="mb-1">
-                                <label class="my-1 me-2" for="country">Tempat Lahir</label>
+                            <div className="mb-1">
+                                <label className="my-1 me-2" for="country">Tempat Lahir</label>
                                 <input 
                                     type="text" 
                                     className="form-control"
@@ -2059,8 +2088,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     value={formik.values.tempat_lahir}
                                 />
                             </div>
-                            <div class="mb-1">
-                                <label class="my-1 me-2" for="country">Tgl Lahir</label>
+                            <div className="mb-1">
+                                <label className="my-1 me-2" for="country">Tgl Lahir</label>
                                 <input 
                                     type="date" 
                                     className="form-control"
@@ -2069,10 +2098,10 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     value={formik.values.tgl_lahir}
                                 />
                             </div>
-                            <div class="mb-1">
-                                <label class="my-1 me-2" for="country">Jenis Kelamin</label>
+                            <div className="mb-1">
+                                <label className="my-1 me-2" for="country">Jenis Kelamin</label>
                                 <select 
-                                    class="form-select" 
+                                    className="form-select" 
                                     name="jenis_kelamin"
                                     onChange={formik.handleChange}
                                     value={formik.values.jenis_kelamin}
@@ -2082,8 +2111,8 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     <option value="P">Perempuan</option>
                                 </select>
                             </div>
-                            <div class="mb-3">
-                                <label class="my-1 me-2" for="country">Data Status</label>
+                            <div className="mb-3">
+                                <label className="my-1 me-2" for="country">Data Status</label>
                                 <input 
                                     type="text" 
                                     className="form-control"
@@ -2092,36 +2121,36 @@ const EditPenduduk=({data, hideModal, request})=>{
                                     value={formik.values.data_status}
                                 />
                             </div>
-                            <div class="mb-1">
-                                <label class="my-1 me-2" for="country">Data Ibu</label>
+                            <div className="mb-1">
+                                <label className="my-1 me-2" for="country">Data Ibu</label>
                                 <div>
-                                    <div class="input-group mb-1">
-                                        <span class="input-group-text">NIK Ibu</span>
+                                    <div className="input-group mb-1">
+                                        <span className="input-group-text">NIK Ibu</span>
                                         <input 
                                             type="text" 
-                                            class="form-control" 
+                                            className="form-control" 
                                             placeholder=""
                                             name="ibu.nik"
                                             onChange={formik.handleChange}
                                             value={formik.values.ibu.nik}
                                         />
                                     </div>
-                                    <div class="input-group mb-1">
-                                        <span class="input-group-text">Nama Ibu</span>
+                                    <div className="input-group mb-1">
+                                        <span className="input-group-text">Nama Ibu</span>
                                         <input 
                                             type="text" 
-                                            class="form-control"  
+                                            className="form-control"  
                                             placeholder=""
                                             name="ibu.nama_lengkap"
                                             onChange={formik.handleChange}
                                             value={formik.values.ibu.nama_lengkap}
                                         />
                                     </div>
-                                    <div class="input-group mb-1">
-                                        <span class="input-group-text">No. WA</span>
+                                    <div className="input-group mb-1">
+                                        <span className="input-group-text">No. WA</span>
                                         <input 
                                             type="text" 
-                                            class="form-control"  
+                                            className="form-control"  
                                             placeholder=""
                                             name="ibu.no_wa"
                                             onChange={formik.handleChange}
@@ -2202,7 +2231,7 @@ const DetailKK=({data, hideModal})=>{
             <Modal.Footer className="mt-3 border-top pt-2">
                 <button 
                     type="button" 
-                    class="btn btn-link text-gray me-auto" 
+                    className="btn btn-link text-gray me-auto" 
                     onClick={hideModal}
                 >
                     Tutup
@@ -2394,7 +2423,7 @@ const DetailSkrining=({data, hideModal, formula})=>{
             <Modal.Footer className="mt-3 border-top pt-2">
                 <button 
                     type="button" 
-                    class="btn btn-link text-gray me-auto" 
+                    className="btn btn-link text-gray me-auto" 
                     onClick={hideModal}
                 >
                     Tutup
