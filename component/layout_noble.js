@@ -3,7 +3,7 @@ import Link from "next/link"
 import Router, { useRouter } from "next/router"
 import React, { useEffect, useState } from "react"
 import { Collapse, Dropdown } from "react-bootstrap"
-import {FiChevronDown, FiCloudRain, FiEdit, FiEye, FiHelpCircle, FiHome, FiLogOut, FiMail, FiMapPin, FiMenu, FiShoppingBag, FiSmile, FiTruck, FiUser} from "react-icons/fi"
+import {FiChevronDown, FiCloudRain, FiEdit, FiEye, FiHelpCircle, FiHome, FiLogOut, FiMail, FiMapPin, FiMenu, FiSettings, FiShoppingBag, FiSmile, FiTruck, FiUser} from "react-icons/fi"
 import {api} from "../config/api"
 import { access_token, login_data as user_data } from "../config/config"
 import Avatar from "./ui/avatar"
@@ -360,6 +360,17 @@ const LayoutNoble=(props)=>{
                                         <Link href="/frontpage/users" className="nav-link">
                                             <FiUser className="link-icon"/>
                                             <span className="link-title">Users</span>
+                                        </Link>
+                                    </li>
+                                    <li 
+                                        className={classNames(
+                                            "nav-item",
+                                            {"active":active_page=="/frontpage/setting"}
+                                        )}
+                                    >
+                                        <Link href="/frontpage/setting" className="nav-link">
+                                            <FiSettings className="link-icon"/>
+                                            <span className="link-title">Pengaturan</span>
                                         </Link>
                                     </li>
                             </>

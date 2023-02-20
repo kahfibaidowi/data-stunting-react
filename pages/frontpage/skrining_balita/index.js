@@ -28,6 +28,7 @@ import withReactContent from 'sweetalert2-react-content'
 import ChartSkriningDetail from "../../../component/modules/chart_skrining_detail"
 import Select from "react-select"
 import { RadioPicker } from "../../../component/ui/custom_input"
+import { zScoreBBTB, zScoreBBU, zScoreTBU } from "../../../config/helpers"
 
 
 const MySwal=withReactContent(swal)
@@ -36,7 +37,6 @@ class Skrining extends React.Component{
     state={
         login_data:{},
         kecamatan_form:[],
-        formula:{},
         skrining:{
             data:[],
             page:1,
@@ -108,8 +108,6 @@ class Skrining extends React.Component{
                 })
             }
         }
-        
-        this.fetchSummaryFormula()
     }
     componentDidUpdate=(prevProps)=>{
         if(prevProps.router.isReady!==this.props.router.isReady){
@@ -140,8 +138,6 @@ class Skrining extends React.Component{
                     })
                 }
             }
-
-            this.fetchSummaryFormula()
         }
         if(JSON.stringify(prevProps.router)!=JSON.stringify(this.props.router)){
             if(this.props.router.isReady){
@@ -171,8 +167,6 @@ class Skrining extends React.Component{
                     })
                 }
             }
-
-            this.fetchSummaryFormula()
         }
     }
 
@@ -648,8 +642,7 @@ class Skrining extends React.Component{
             tambah_skrining,
             detail_kk,
             detail_skrining,
-            edit_skrining,
-            formula
+            edit_skrining
         }=this.state
 
         return (
@@ -716,7 +709,6 @@ class Skrining extends React.Component{
                 <DetailSkrining
                     data={detail_skrining}
                     hideModal={this.toggleDetailSkrining}
-                    formula={formula}
                 />
             </>
         )
@@ -766,32 +758,6 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
         if(bbu!="gizi_baik") return "rujuk";
 
         return ""
-    }
-    const valueZScoreBBU=(bbu)=>{
-        if(bbu=="") return ""
-        if(bbu=="unknown") return "unknown"
-        if(bbu=="gizi_buruk") return "<-3 SD"
-        if(bbu=="gizi_kurang") return "-3 SD sd <-2 SD"
-        if(bbu=="gizi_baik") return "-2 SD sd +1 SD"
-        if(bbu=="gizi_lebih") return "> +1 SD"
-    }
-    const valueZScoreTBU=(tbu)=>{
-        if(tbu=="") return ""
-        if(tbu=="unknown") return "unknown"
-        if(tbu=="sangat_pendek") return "<-3 SD"
-        if(tbu=="pendek") return "-3 SD sd <-2 SD"
-        if(tbu=="normal") return "-2 SD sd +3 SD"
-        if(tbu=="tinggi") return "> +3 SD"
-    }
-    const valueZScoreBBTB=(bbtb)=>{
-        if(bbtb=="") return ""
-        if(bbtb=="unknown") return "unknown"
-        if(bbtb=="gizi_buruk") return "<-3 SD"
-        if(bbtb=="gizi_kurang") return "-3 SD sd <- 2 SD"
-        if(bbtb=="gizi_baik") return "-2 SD sd +1 SD"
-        if(bbtb=="beresiko_gizi_lebih") return "> +1 SD sd +2 SD"
-        if(bbtb=="gizi_lebih") return "> +2 SD sd +3 SD"
-        if(bbtb=="obesitas") return "> +3 SD"
     }
 
     //value
@@ -1236,9 +1202,9 @@ const Table=({data, typeFilter, setPerPage, goToPage, kecamatan_form, showDetail
                                         <td className="px-3">{list.hasil_tinggi_badan_per_umur.split("_").join(" ")}</td>
                                         <td className="px-3">{valueBBU(list.hasil_berat_badan_per_umur)}</td>
                                         <td className="px-3">{list.hasil_berat_badan_per_tinggi_badan.split("_").join(" ")}</td>
-                                        <td className="px-3">{valueZScoreTBU(list.hasil_tinggi_badan_per_umur)}</td>
-                                        <td className="px-3">{valueZScoreBBU(list.hasil_berat_badan_per_umur)}</td>
-                                        <td className="px-3">{valueZScoreBBTB(list.hasil_berat_badan_per_tinggi_badan)}</td>
+                                        <td className="px-3">{zScoreTBU(list.tinggi_badan, list.data_anak.jenis_kelamin.toUpperCase(), list.usia_saat_ukur)}</td>
+                                        <td className="px-3">{zScoreBBU(list.berat_badan, list.data_anak.jenis_kelamin.toUpperCase(), list.usia_saat_ukur)}</td>
+                                        <td className="px-3">{zScoreBBTB(list.berat_badan, list.tinggi_badan, list.data_anak.jenis_kelamin.toUpperCase(), list.usia_saat_ukur)}</td>
                                         <td className="px-3">{valueStatusGizi(list.hasil_status_gizi)}</td>
                                         <td className="px-3">{valueTindakan(list.hasil_status_gizi, list.hasil_berat_badan_per_umur)}</td>
                                         <td className="px-3"></td>
@@ -1769,7 +1735,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                                         className="form-control"
                                                         placeholder="Cm"
                                                     />
-                                                    <span className="text-muted">Umur 24 Bulan ukur dalam keadaan telentang! contoh isian : 45, 45.5, 46</span>
+                                                    <span className="text-muted">Umur <strong>24</strong> Bulan ukur dalam keadaan telentang!</span>
                                                 </div>
                                             </>
                                         }
@@ -2395,7 +2361,7 @@ const DetailKK=({data, hideModal})=>{
 }
 
 //DETAIL SKRINING
-const DetailSkrining=({data, hideModal, formula})=>{
+const DetailSkrining=({data, hideModal})=>{
     const [chart_open, setChartOpen]=useState(false)
 
     useEffect(()=>{
@@ -2564,7 +2530,6 @@ const DetailSkrining=({data, hideModal, formula})=>{
                                 {chart_open&&
                                     <ChartSkriningDetail
                                         data={data.skrining}
-                                        formula={formula}
                                         jenkel={data.data.data_anak?.jenis_kelamin}
                                     />
                                 }

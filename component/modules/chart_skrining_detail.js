@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { isUndefined } from "../../config/config";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { table_bb_u_laki_laki, table_bb_u_perempuan } from "../../config/helpers";
 defaults.font.family="Roboto"
 
 ChartJS.register(
@@ -26,7 +27,7 @@ ChartJS.register(
     Legend
 );
 
-export default function ChartSkriningDetail({formula, jenkel, data=[]}){
+export default function ChartSkriningDetail({jenkel, data=[]}){
     const [page, setPage]=useState(1)
 
     const antropometri=()=>{
@@ -41,10 +42,14 @@ export default function ChartSkriningDetail({formula, jenkel, data=[]}){
         }
 
         if(isUndefined(jenkel)) return []
-        if(isUndefined(formula.l)) return []
 
-        let bbu=formula?.[jenkel.toLowerCase()].berat_badan_umur
-        if(isUndefined(bbu)) return []
+        let bbu=[]
+        if(jenkel=="L"){
+            bbu=table_bb_u_laki_laki()
+        }
+        else if(jenkel=="P"){
+            bbu=table_bb_u_perempuan()
+        }
 
         //exec
         let new_bbu=[]
