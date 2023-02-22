@@ -1634,7 +1634,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
                                             {!isUndefined(formik.values.data_anak.id_penduduk)&&
                                                 <table className="mt-2">
                                                     <tr>
-                                                        <th valign="top" className="fw-semibold" width="150">Nama Lengkap </th>
+                                                        <th valign="top" className="fw-semibold" width="110">Nama Lengkap </th>
                                                         <td valign="top" width="15"> : </td>
                                                         <td>{formik.values.data_anak.nama_lengkap}</td>
                                                     </tr>
@@ -1772,7 +1772,7 @@ const TambahSkrining=({data, hideModal, addSkrining, login_data, request, kecama
     )
 }
 
-//TAMBAH SKRINING
+//EDIT SKRINING
 const EditSkrining=({data, hideModal, updateSkrining, request})=>{
 
     return (
@@ -1806,6 +1806,64 @@ const EditSkrining=({data, hideModal, updateSkrining, request})=>{
                             <form onSubmit={formik.handleSubmit}>
                                 <Modal.Body>
                                     <div className='w-100 d-flex flex-column'>
+                                        <div className="mb-3">
+                                            <label className="my-1 me-2 fw-semibold" for="country">Data Anak<span className="text-danger">*</span></label>
+                                            <div class="input-group mb-2">
+                                                <span class="input-group-text" id="edit-nik">NIK Anak</span>
+                                                <input 
+                                                    type="text" 
+                                                    class="form-control" 
+                                                    id="input-edit-nik" 
+                                                    aria-describedby="edit-nik"
+                                                    name="data_anak.nik"
+                                                    value={formik.values.data_anak.nik}
+                                                    onChange={formik.handleChange}
+                                                />
+                                            </div>
+                                            <div class="input-group mb-2">
+                                                <span class="input-group-text" id="edit-nik">NIK Ibu</span>
+                                                <input 
+                                                    type="text" 
+                                                    class="form-control" 
+                                                    id="input-edit-nik" 
+                                                    aria-describedby="edit-nik"
+                                                    name="data_anak.ibu.nik"
+                                                    value={formik.values.data_anak.ibu.nik}
+                                                    onChange={formik.handleChange}
+                                                />
+                                            </div>
+                                            <table className="mt-2">
+                                                <tr>
+                                                    <th valign="top" className="fw-semibold" width="110">Nama Lengkap </th>
+                                                    <td valign="top" width="15"> : </td>
+                                                    <td>{formik.values.data_anak.nama_lengkap}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th valign="top" className="fw-semibold">NIK</th>
+                                                    <td valign="top"> : </td>
+                                                    <td>{formik.values.data_anak.nik}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th valign="top" className="fw-semibold">Nama Ibu</th>
+                                                    <td valign="top"> : </td>
+                                                    <td>{formik.values.data_anak.ibu?.nama_lengkap}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th valign="top" className="fw-semibold">NIK Ibu</th>
+                                                    <td valign="top"> : </td>
+                                                    <td>{formik.values.data_anak.ibu?.nik}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th valign="top" className="fw-semibold">Alamat </th>
+                                                    <td valign="top"> : </td>
+                                                    <td>{' '}
+                                                        {formik.values.data_anak?.desa?.nama}, {' '}
+                                                        {formik.values.data_anak?.kecamatan?.nama}, {' '}
+                                                        {formik.values.data_anak?.kabupaten_kota?.nama}
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
                                         <div className="mb-3">
                                             <label className="my-1 me-2 fw-semibold" for="country">Berat Badan Lahir<span className="text-danger">*</span></label>
                                             <NumberFormat
