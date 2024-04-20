@@ -5,7 +5,7 @@ import { read, utils, writeFileXLSX } from 'xlsx';
 //url
 export const BASE_URL=process.env.NODE_ENV==="development"?
     "http://localhost/data-stunting/public":
-    "https://api.datatimbang.madiunkab.go.id";
+    "https://api.stunting.tifpsdku.com";
 
 export const BASE_URL_KEPENDUDUKAN=process.env.NODE_ENV==="development"?
     "https://api.stunting.madiunkab.go.id":
